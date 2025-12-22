@@ -17,6 +17,8 @@ struct ImmersiveNarrativeView: View {
     @State private var ctaArc: Entity?
     @State private var skyboxModel: ModelEntity?
     @State private var shockwaveBurst: [Entity] = []
+    @State private var focusOverlay: ModelEntity?
+    @State private var flashOverlay: ModelEntity?
     @State private var sceneBuilt = false
     @State private var closeNotification: Entity?
     
@@ -89,28 +91,67 @@ struct ImmersiveNarrativeView: View {
         
         entity.position = [x, y, z]
         
-        let width = Float.random(in: 0.25...0.4)
-        let height = Float.random(in: 0.15...0.25)
-        let cardMesh = MeshResource.generateBox(width: width, height: height, depth: 0.005, cornerRadius: 0.01)
+        let width = Float.random(in: 0.28...0.42)
+        let height = Float.random(in: 0.17...0.26)
+        let depth: Float = 0.005
+        let cardMesh = MeshResource.generateBox(width: width, height: height, depth: depth, cornerRadius: 0.012)
         
-        let colors: [UIColor] = [
-            UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.8),
-            UIColor(red: 0.55, green: 0.2, blue: 0.65, alpha: 0.8),
-            UIColor(red: 0.85, green: 0.25, blue: 0.25, alpha: 0.8),
-            UIColor(red: 0.2, green: 0.65, blue: 0.4, alpha: 0.8),
-            UIColor(red: 0.85, green: 0.55, blue: 0.1, alpha: 0.8),
+        // Palette for app chrome accents
+        let accents: [UIColor] = [
+            UIColor(red: 0.2, green: 0.5, blue: 0.95, alpha: 1),
+            UIColor(red: 0.65, green: 0.3, blue: 0.85, alpha: 1),
+            UIColor(red: 0.95, green: 0.4, blue: 0.35, alpha: 1),
+            UIColor(red: 0.25, green: 0.75, blue: 0.5, alpha: 1),
+            UIColor(red: 0.95, green: 0.7, blue: 0.2, alpha: 1),
         ]
-        let color = colors.randomElement()!
+        let accent = accents.randomElement()!
         
-        var mat = PhysicallyBasedMaterial()
-        mat.baseColor = .init(tint: color)
-        mat.roughness = .init(floatLiteral: 0.1)
-        mat.metallic = .init(floatLiteral: 0.25)
-        mat.emissiveColor = .init(color: color)
-        mat.emissiveIntensity = 0.4
-        
-        let cardModel = ModelEntity(mesh: cardMesh, materials: [mat])
+        // Base panel (dark, slight emissive)
+        var baseMat = PhysicallyBasedMaterial()
+        baseMat.baseColor = .init(tint: UIColor(white: 0.08, alpha: 0.9))
+        baseMat.roughness = .init(floatLiteral: 0.6)
+        baseMat.metallic = .init(floatLiteral: 0.05)
+        baseMat.emissiveColor = .init(color: UIColor(white: 0.12, alpha: 1))
+        baseMat.emissiveIntensity = 0.08
+        let cardModel = ModelEntity(mesh: cardMesh, materials: [baseMat])
         entity.addChild(cardModel)
+        
+        // Header bar
+        let headerHeight = height * 0.18
+        let headerMesh = MeshResource.generateBox(width: width * 0.96, height: headerHeight, depth: depth * 0.6, cornerRadius: 0.01)
+        var headerMat = PhysicallyBasedMaterial()
+        headerMat.baseColor = .init(tint: accent.withAlphaComponent(0.9))
+        headerMat.emissiveColor = .init(color: accent.withAlphaComponent(0.9))
+        headerMat.emissiveIntensity = 0.15
+        let header = ModelEntity(mesh: headerMesh, materials: [headerMat])
+        header.position = [0, (height * 0.5 - headerHeight * 0.5) - 0.01, depth * 0.6]
+        cardModel.addChild(header)
+        
+        // Avatar/icon circle
+        let avatarMesh = MeshResource.generateSphere(radius: headerHeight * 0.35)
+        let avatarMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.9))
+        let avatar = ModelEntity(mesh: avatarMesh, materials: [avatarMat])
+        avatar.position = [-(width * 0.35), 0, depth * 0.4]
+        header.addChild(avatar)
+        
+        // Title line
+        let titleMesh = MeshResource.generateBox(width: width * 0.35, height: headerHeight * 0.25, depth: depth * 0.4, cornerRadius: 0.002)
+        let titleMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.85))
+        let title = ModelEntity(mesh: titleMesh, materials: [titleMat])
+        title.position = [0, 0, depth * 0.2]
+        header.addChild(title)
+        
+        // Body lines (3 rows)
+        let bodyYStart = height * 0.15
+        for i in 0..<3 {
+            let rowWidth = width * Float(0.75 - 0.08 * Float(i))
+            let rowHeight = height * 0.08
+            let rowMesh = MeshResource.generateBox(width: rowWidth, height: rowHeight, depth: depth * 0.35, cornerRadius: 0.002)
+            let rowMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.35))
+            let row = ModelEntity(mesh: rowMesh, materials: [rowMat])
+            row.position = [-(width * 0.05), bodyYStart - Float(i) * (rowHeight * 1.9), depth * 0.2]
+            cardModel.addChild(row)
+        }
         
         entity.look(at: [0, 1.5, 0], from: entity.position, relativeTo: nil)
         
@@ -131,15 +172,61 @@ struct ImmersiveNarrativeView: View {
         entity.position = [0.3, 1.5, -1.0] // Close to user, slightly right
         
         let cardMesh = MeshResource.generateBox(width: 0.35, height: 0.22, depth: 0.005, cornerRadius: 0.01)
-        var mat = PhysicallyBasedMaterial()
-        mat.baseColor = .init(tint: UIColor(red: 0.9, green: 0.3, blue: 0.3, alpha: 0.9))
-        mat.roughness = .init(floatLiteral: 0.1)
-        mat.emissiveColor = .init(color: UIColor(red: 0.9, green: 0.3, blue: 0.3, alpha: 1))
-        mat.emissiveIntensity = 0.5
+        var baseMat = PhysicallyBasedMaterial()
+        baseMat.baseColor = .init(tint: UIColor(white: 0.08, alpha: 0.95))
+        baseMat.roughness = .init(floatLiteral: 0.6)
+        baseMat.metallic = .init(floatLiteral: 0.05)
+        baseMat.emissiveColor = .init(color: UIColor(white: 0.12, alpha: 1))
+        baseMat.emissiveIntensity = 0.12
         
-        let cardModel = ModelEntity(mesh: cardMesh, materials: [mat])
+        let cardModel = ModelEntity(mesh: cardMesh, materials: [baseMat])
         entity.addChild(cardModel)
         entity.look(at: [0, 1.5, 0], from: entity.position, relativeTo: nil)
+        
+        // Header (red alert)
+        let headerHeight: Float = 0.22 * 0.18
+        let headerMesh = MeshResource.generateBox(width: 0.35 * 0.96, height: headerHeight, depth: 0.003, cornerRadius: 0.01)
+        var headerMat = PhysicallyBasedMaterial()
+        let accent = UIColor(red: 0.9, green: 0.3, blue: 0.3, alpha: 1)
+        headerMat.baseColor = .init(tint: accent.withAlphaComponent(0.95))
+        headerMat.emissiveColor = .init(color: accent.withAlphaComponent(0.95))
+        headerMat.emissiveIntensity = 0.25
+        let header = ModelEntity(mesh: headerMesh, materials: [headerMat])
+        header.position = [0, (0.22 * 0.5 - headerHeight * 0.5) - 0.01, 0.003]
+        cardModel.addChild(header)
+        
+        // Avatar
+        let avatarMesh = MeshResource.generateSphere(radius: headerHeight * 0.35)
+        let avatarMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.9))
+        let avatar = ModelEntity(mesh: avatarMesh, materials: [avatarMat])
+        avatar.position = [-(0.35 * 0.35), 0, 0.002]
+        header.addChild(avatar)
+        
+        // Title
+        let titleMesh = MeshResource.generateBox(width: 0.35 * 0.35, height: headerHeight * 0.25, depth: 0.002, cornerRadius: 0.002)
+        let titleMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.85))
+        let title = ModelEntity(mesh: titleMesh, materials: [titleMat])
+        title.position = [0, 0, 0.001]
+        header.addChild(title)
+        
+        // Body lines
+        let bodyYStart: Float = 0.22 * 0.15
+        for i in 0..<3 {
+            let rowWidth = 0.35 * Float(0.78 - 0.1 * Float(i))
+            let rowHeight = 0.22 * 0.08
+            let rowMesh = MeshResource.generateBox(width: rowWidth, height: rowHeight, depth: 0.002, cornerRadius: 0.002)
+            let rowMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.35))
+            let row = ModelEntity(mesh: rowMesh, materials: [rowMat])
+            row.position = [-(0.35 * 0.04), bodyYStart - Float(i) * (rowHeight * 1.9), 0.001]
+            cardModel.addChild(row)
+        }
+        
+        // Alert badge
+        let badgeMesh = MeshResource.generateBox(width: 0.35 * 0.18, height: 0.22 * 0.12, depth: 0.002, cornerRadius: 0.003)
+        let badgeMat = UnlitMaterial(color: UIColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 0.9))
+        let badge = ModelEntity(mesh: badgeMesh, materials: [badgeMat])
+        badge.position = [0.35 * 0.28, -0.22 * 0.05, 0.002]
+        cardModel.addChild(badge)
         
         cardModel.scale = [0, 0, 0]
         return entity
@@ -187,6 +274,29 @@ struct ImmersiveNarrativeView: View {
             p.components[ShatterData.self] = ShatterData(velocity: dir * Float.random(in: 0.8...1.6))
             sceneRoot.addChild(p)
             shockwaveBurst.append(p)
+        }
+    }
+
+    // Overlay planes to fake depth-of-field and a flash
+    @MainActor
+    private func ensureFocusOverlay() {
+        if focusOverlay == nil {
+            let mesh = MeshResource.generatePlane(width: 4, height: 4)
+            var mat = UnlitMaterial(color: UIColor.black.withAlphaComponent(0.0))
+            let plane = ModelEntity(mesh: mesh, materials: [mat])
+            plane.position = [0, 1.5, -1]
+            plane.name = "FocusOverlay"
+            sceneRoot.addChild(plane)
+            focusOverlay = plane
+        }
+        if flashOverlay == nil {
+            let mesh = MeshResource.generatePlane(width: 4, height: 4)
+            var mat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.0))
+            let plane = ModelEntity(mesh: mesh, materials: [mat])
+            plane.position = [0, 1.5, -0.9]
+            plane.name = "FlashOverlay"
+            sceneRoot.addChild(plane)
+            flashOverlay = plane
         }
     }
     
@@ -394,6 +504,9 @@ struct ImmersiveNarrativeView: View {
             lightBeam = createLightBeam()
             sceneRoot.addChild(lightBeam!)
         }
+        // Ensure overlays for DOF/flash
+        ensureFocusOverlay()
+        
         // Shockwave burst once
         if shockwaveBurst.isEmpty {
             createShockwaveBurst(at: [0, 1.5, -2.0])
@@ -429,6 +542,23 @@ struct ImmersiveNarrativeView: View {
             mat.color = .init(tint: UIColor(red: darken, green: darken, blue: darken + 0.01, alpha: 1))
             sky.model?.materials = [mat]
         }
+
+        // Fake DOF: dim overlay, then reduce after mid-progress
+        if let overlay = focusOverlay, var mat = overlay.model?.materials.first as? UnlitMaterial {
+            // ramp in to 0.45 alpha then ease out
+            let alphaIn = min(0.45, progress * 0.9)
+            let alphaOut = max(0.0, 0.45 - max(0, progress - 0.5) * 0.9)
+            let alpha = progress < 0.5 ? alphaIn : alphaOut
+            mat.color = .init(tint: UIColor.black.withAlphaComponent(alpha))
+            overlay.model?.materials = [mat]
+        }
+        
+        // Quick flash at start of crack
+        if let flash = flashOverlay, var mat = flash.model?.materials.first as? UnlitMaterial {
+            let flashAlpha = progress < 0.15 ? CGFloat(0.4 * (1 - progress / 0.15)) : 0
+            mat.color = .init(tint: UIColor.white.withAlphaComponent(flashAlpha))
+            flash.model?.materials = [mat]
+        }
         
         // Animate shatter particles outward then fade
         for particle in shatterParticles {
@@ -463,6 +593,25 @@ struct ImmersiveNarrativeView: View {
                 sceneRoot.addChild(shard)
                 shardParticles.append(shard)
             }
+        }
+
+        // Reverse DOF shift: quickly clear overlay and restore sky brightness
+        if let overlay = focusOverlay, var mat = overlay.model?.materials.first as? UnlitMaterial {
+            let alpha = max(0, 0.25 - progress * 1.0) // fade out fast
+            mat.color = .init(tint: UIColor.black.withAlphaComponent(alpha))
+            overlay.model?.materials = [mat]
+        }
+        if let flash = flashOverlay, var mat = flash.model?.materials.first as? UnlitMaterial {
+            mat.color = .init(tint: UIColor.white.withAlphaComponent(0))
+            flash.model?.materials = [mat]
+        }
+        if let sky = skyboxModel, var mat = sky.model?.materials.first as? UnlitMaterial {
+            // ease back toward base brightness
+            let base: CGFloat = 0.01
+            let minVal: CGFloat = 0.002
+            let val = minVal + (base - minVal) * CGFloat(min(1.0, progress * 1.2))
+            mat.color = .init(tint: UIColor(red: val, green: val, blue: val + 0.01, alpha: 1))
+            sky.model?.materials = [mat]
         }
         
         // Animate shards drifting outward (fragmentation metaphor)
