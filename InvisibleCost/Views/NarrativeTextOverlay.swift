@@ -24,7 +24,8 @@ struct NarrativeTextOverlay: View {
                 EmptyView()
                 
             case .exitMoment:
-                ExitText(progress: viewModel.phaseProgress)
+                // Main narrative hides, arc attachments take over in ImmersiveNarrativeView
+                EmptyView()
                 
             default:
                 EmptyView()
@@ -34,7 +35,64 @@ struct NarrativeTextOverlay: View {
     }
 }
 
-// MARK: - Spatial Overwhelm
+// MARK: - Volumetric CTA Arc Components
+
+struct ExitCenterCTA: View {
+    @Environment(ExperienceViewModel.self) private var viewModel
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+    
+    var body: some View {
+        let progress = viewModel.phaseProgress
+        VStack(spacing: 24) {
+            Text("What could your organization become\nwith invisible work returned?")
+                .font(.system(size: 24, weight: .light))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+            
+            // Show sooner to avoid long wait after "wasn't your work?"
+            if progress > 0.08 {
+                Text("Experience the full journey at Imagine 2026")
+                    .font(.system(size: 14, weight: .medium))
+                    .tracking(1)
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+            
+            if progress > 0.2 {
+                Button {
+                    Task { await dismissImmersiveSpace() }
+                } label: {
+                    Text("END EXPERIENCE")
+                        .font(.system(size: 13, weight: .semibold))
+                        .tracking(2)
+                        .padding(.horizontal, 30)
+                        .padding(.vertical, 14)
+                        .glassBackgroundEffect()
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(40)
+        .frame(width: 500)
+        .glassBackgroundEffect()
+        .opacity(viewModel.currentPhase == .exitMoment ? 1 : 0)
+        .animation(.easeIn(duration: 1.0), value: viewModel.currentPhase == .exitMoment)
+    }
+}
+
+struct ExitSideText: View {
+    let text: String
+    @Environment(ExperienceViewModel.self) private var viewModel
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 28, weight: .ultraLight))
+            .foregroundStyle(.white.opacity(0.6))
+            .padding(30)
+            .glassBackgroundEffect()
+            .opacity(viewModel.currentPhase == .exitMoment ? 1 : 0)
+            .animation(.easeIn(duration: 1.5), value: viewModel.currentPhase == .exitMoment)
+    }
+}
 
 struct OverwhelmText: View {
     let progress: Double
@@ -115,100 +173,33 @@ struct DataChoreographyText: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            Text("What if this work…")
-                .font(.system(size: 28, weight: .light))
-                .foregroundStyle(.white.opacity(0.9))
-            
-            if progress > 0.1 {
-                Text("wasn't your work?")
-                    .font(.system(size: 38, weight: .medium))
-                    .foregroundStyle(.white)
+            // Text starts earlier to match ring appearance
+            if progress > 0.15 {
+                Text("What if this work…")
+                    .font(.system(size: 28, weight: .light))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .transition(.opacity)
+                
+                // Delay "wasn't your work" until AFTER order established (approx > 0.6)
+                if progress > 0.65 {
+                    Text("wasn't your work?")
+                        .font(.system(size: 38, weight: .medium))
+                        .foregroundStyle(.white)
+                        .transition(.opacity)
+                }
             }
         }
         .padding(36)
         .frame(width: 560)
-    }
-}
-
-// MARK: - Exit Moment
-
-struct ExitText: View {
-    let progress: Double
-    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
-    
-    var body: some View {
-        VStack(spacing: 28) {
-            // Narrator closing per spec
-            VStack(spacing: 14) {
-                Text("Agentic automation")
-                    .font(.system(size: 32, weight: .light))
-                    .tracking(2)
-                    .foregroundStyle(.white)
-                
-                Text("returns invisible work")
-                    .font(.system(size: 26, weight: .ultraLight))
-                    .foregroundStyle(.white.opacity(0.85))
-                
-                Text("to the people who matter.")
-                    .font(.system(size: 28, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.95, green: 0.85, blue: 0.5),
-                                Color(red: 1, green: 0.9, blue: 0.65)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-            }
-            
-            if progress > 0.25 {
-                VStack(spacing: 14) {
-                    Text("What could your organization become\nwith invisible work returned?")
-                        .font(.system(size: 18, weight: .light))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                    
-                    // Imagine 2026 teaser per spec
-                    HStack(spacing: 10) {
-                        Rectangle().fill(.white.opacity(0.25)).frame(width: 28, height: 1)
-                        Text("Experience the full journey at Imagine 2026")
-                            .font(.system(size: 11, weight: .medium))
-                            .tracking(1)
-                            .foregroundStyle(.white.opacity(0.35))
-                        Rectangle().fill(.white.opacity(0.25)).frame(width: 28, height: 1)
-                    }
-                }
-            }
-            
-            if progress > 0.45 {
-                Button {
-                    Task { await dismissImmersiveSpace() }
-                } label: {
-                    Text("END EXPERIENCE")
-                        .font(.system(size: 13, weight: .semibold))
-                        .tracking(2)
-                        .foregroundStyle(.white.opacity(0.75))
-                        .padding(.horizontal, 30)
-                        .padding(.vertical, 14)
-                        .background(
-                            Capsule().stroke(.white.opacity(0.35), lineWidth: 1.5)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(55)
-        .frame(width: 620)
-        .glassBackgroundEffect()
+        .animation(.easeIn(duration: 1.0), value: progress > 0.15)
+        .animation(.easeIn(duration: 0.8), value: progress > 0.65)
     }
 }
 
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
-        ExitText(progress: 0.8)
+        NarrativeTextOverlay()
+            .environment(ExperienceViewModel())
     }
-    .environment(ExperienceViewModel())
 }

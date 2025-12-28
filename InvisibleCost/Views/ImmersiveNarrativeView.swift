@@ -1,809 +1,613 @@
 import SwiftUI
 import RealityKit
+import RealityKitContent
 
-/// The Invisible Cost - Tier 2 Vision Pro Experience
-/// Per spec: Spatial Overwhelm → Reality Crack → Human Fragment → Data Choreography → Human Restoration → Exit
+/// The Invisible Cost - Pure RealityKit Cinematic Experience
 struct ImmersiveNarrativeView: View {
     @Environment(ExperienceViewModel.self) private var viewModel
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     
-    @State private var sceneRoot = Entity()
-    @State private var floatingWindows: [Entity] = []
-    @State private var shatterParticles: [Entity] = []
-    @State private var lightBeam: Entity?
-    @State private var shardParticles: [Entity] = []   // replaces human figures
-    @State private var dataPoints: [Entity] = []
-    @State private var centralObject: Entity?
-    @State private var ctaArc: Entity?
-    @State private var skyboxModel: ModelEntity?
-    @State private var shockwaveBurst: [Entity] = []
-    @State private var focusOverlay: ModelEntity?
-    @State private var flashOverlay: ModelEntity?
-    @State private var sceneBuilt = false
-    @State private var closeNotification: Entity?
+    @State private var experienceRoot = Entity()
+    @State private var sceneLoaded = false
+    @State private var updateTimer: Timer?
+    @State private var lastUpdateTime = Date()
+    @State private var animationTime: Float = 0
+    
+    // Scene elements
+    @State private var windows: [Entity] = []
+    @State private var windowsParent = Entity()
+    @State private var particles: [Entity] = [] // Replaces rings
+    @State private var particlesParent = Entity()
+    @State private var bloomLight: ModelEntity? // Replaces shards
+    
+    // Exit Arc Attachments
+    @State private var exitCenter: Entity?
+    @State private var exitLeft: Entity?
+    @State private var exitRight: Entity?
     
     var body: some View {
         RealityView { content, attachments in
-            sceneRoot.name = "InvisibleCostScene"
-            content.add(sceneRoot)
-            
+            content.add(experienceRoot)
             await buildScene()
-            sceneBuilt = true
             
-            if let textAttachment = attachments.entity(for: "narrativeText") {
-                textAttachment.position = [0, 1.6, -1.3]
-                sceneRoot.addChild(textAttachment)
+            // Positioning for main narrative text
+            if let textOverlay = attachments.entity(for: "NarrativeText") {
+                textOverlay.position = [0, 1.6, -1.2]
+                textOverlay.components.set(BillboardComponent())
+                experienceRoot.addChild(textOverlay)
             }
             
-        } update: { content, attachments in
+            // Positioning for Exit CTA Arc (Wraps around user)
+            if let center = attachments.entity(for: "ExitCenter") {
+                center.position = [0, 1.6, -1.8]
+                center.components.set(BillboardComponent())
+                experienceRoot.addChild(center)
+                exitCenter = center
+            }
+            
+            if let left = attachments.entity(for: "ExitLeft") {
+                left.position = [-1.8, 1.6, -1.4]
+                left.components.set(BillboardComponent())
+                // Slight yaw to wrap the arc, but keep upright
+                left.orientation = simd_quatf(angle: .pi / 8, axis: [0, 1, 0])
+                experienceRoot.addChild(left)
+                exitLeft = left
+            }
+            
+            if let right = attachments.entity(for: "ExitRight") {
+                right.position = [1.8, 1.6, -1.4]
+                right.components.set(BillboardComponent())
+                right.orientation = simd_quatf(angle: -.pi / 8, axis: [0, 1, 0])
+                experienceRoot.addChild(right)
+                exitRight = right
+            }
+            
         } attachments: {
-            Attachment(id: "narrativeText") {
+            Attachment(id: "NarrativeText") {
                 NarrativeTextOverlay()
                     .environment(viewModel)
             }
+            
+            Attachment(id: "ExitCenter") {
+                ExitCenterCTA()
+                    .environment(viewModel)
+            }
+            
+            Attachment(id: "ExitLeft") {
+                ExitSideText(text: "Agentic automation returns")
+                    .environment(viewModel)
+            }
+            
+            Attachment(id: "ExitRight") {
+                ExitSideText(text: "to the people who matter.")
+                    .environment(viewModel)
+            }
         }
-        .task {
-            await runExperienceLoop()
+        .onAppear {
+            startUpdateLoop()
+            if viewModel.currentPhase == .waiting {
+                viewModel.startExperience()
+            }
+        }
+        .onDisappear {
+            stopUpdateLoop()
+            cleanupScene()
         }
     }
     
-    // MARK: - Scene Setup
+    // MARK: - Build Scene
     
     @MainActor
     private func buildScene() async {
-        // Dark environment
-        let skybox = Entity()
-        let mesh = MeshResource.generateSphere(radius: 50)
-        let material = UnlitMaterial(color: UIColor(red: 0.01, green: 0.01, blue: 0.02, alpha: 1))
-        let model = ModelEntity(mesh: mesh, materials: [material])
-        skyboxModel = model
-        model.scale = SIMD3<Float>(repeating: -1)
-        skybox.addChild(model)
-        sceneRoot.addChild(skybox)
+        print("🎬 Building RealityKit scene...")
         
-        // Create notification windows
-        for i in 0..<40 {
-            let window = createNotificationWindow(index: i, total: 40)
-            sceneRoot.addChild(window)
-            floatingWindows.append(window)
-        }
+        // Glowing materials
+        let windowMat = makeGlowMaterial(base: [0.15, 0.18, 0.25], glow: [0.1, 0.15, 0.25], intensity: 1.5)
+        let titleBlueMat = makeGlowMaterial(base: [0.3, 0.6, 1.0], glow: [0.5, 0.8, 1.0], intensity: 3.0)
+        let titleRedMat = makeGlowMaterial(base: [1.0, 0.4, 0.3], glow: [1.0, 0.6, 0.4], intensity: 3.0)
         
-        // Create one "close" notification that will shatter
-        closeNotification = createCloseNotification()
-        sceneRoot.addChild(closeNotification!)
-    }
-    
-    @MainActor
-    private func createNotificationWindow(index: Int, total: Int) -> Entity {
-        let entity = Entity()
-        entity.name = "Window_\(index)"
+        // Windows container - centered on user
+        windowsParent.name = "WindowsParent"
+        windowsParent.position = [0, 0, 0] // User center
+        experienceRoot.addChild(windowsParent)
         
-        let layer = index % 3
-        let baseRadius: Float = [1.5, 2.2, 2.9][layer]
+        // Create dense clutter of windows, front-biased but still 360°
+        let totalWindows = 140
+        let frontCount = Int(Float(totalWindows) * 0.85) // heavy front bias
+        let surroundCount = totalWindows - frontCount
+        var configs: [(SIMD3<Float>, Bool)] = []
         
-        let angleRange = Float.pi * 1.4
-        let angleOffset = -angleRange / 2
-        let theta = angleOffset + (Float(index) / Float(total)) * angleRange + Float.random(in: -0.12...0.12)
-        
-        let y = Float.random(in: 0.6...2.3)
-        let x = baseRadius * sin(theta)
-        let z = -baseRadius * cos(theta)
-        
-        entity.position = [x, y, z]
-        
-        let width = Float.random(in: 0.28...0.42)
-        let height = Float.random(in: 0.17...0.26)
-        let depth: Float = 0.005
-        let cardMesh = MeshResource.generateBox(width: width, height: height, depth: depth, cornerRadius: 0.012)
-        
-        // Palette for app chrome accents
-        let accents: [UIColor] = [
-            UIColor(red: 0.2, green: 0.5, blue: 0.95, alpha: 1),
-            UIColor(red: 0.65, green: 0.3, blue: 0.85, alpha: 1),
-            UIColor(red: 0.95, green: 0.4, blue: 0.35, alpha: 1),
-            UIColor(red: 0.25, green: 0.75, blue: 0.5, alpha: 1),
-            UIColor(red: 0.95, green: 0.7, blue: 0.2, alpha: 1),
-        ]
-        let accent = accents.randomElement()!
-        
-        // Base panel (dark, slight emissive)
-        var baseMat = PhysicallyBasedMaterial()
-        baseMat.baseColor = .init(tint: UIColor(white: 0.08, alpha: 0.9))
-        baseMat.roughness = .init(floatLiteral: 0.6)
-        baseMat.metallic = .init(floatLiteral: 0.05)
-        baseMat.emissiveColor = .init(color: UIColor(white: 0.12, alpha: 1))
-        baseMat.emissiveIntensity = 0.08
-        let cardModel = ModelEntity(mesh: cardMesh, materials: [baseMat])
-        entity.addChild(cardModel)
-        
-        // Header bar
-        let headerHeight = height * 0.18
-        let headerMesh = MeshResource.generateBox(width: width * 0.96, height: headerHeight, depth: depth * 0.6, cornerRadius: 0.01)
-        var headerMat = PhysicallyBasedMaterial()
-        headerMat.baseColor = .init(tint: accent.withAlphaComponent(0.9))
-        headerMat.emissiveColor = .init(color: accent.withAlphaComponent(0.9))
-        headerMat.emissiveIntensity = 0.15
-        let header = ModelEntity(mesh: headerMesh, materials: [headerMat])
-        header.position = [0, (height * 0.5 - headerHeight * 0.5) - 0.01, depth * 0.6]
-        cardModel.addChild(header)
-        
-        // Avatar/icon circle
-        let avatarMesh = MeshResource.generateSphere(radius: headerHeight * 0.35)
-        let avatarMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.9))
-        let avatar = ModelEntity(mesh: avatarMesh, materials: [avatarMat])
-        avatar.position = [-(width * 0.35), 0, depth * 0.4]
-        header.addChild(avatar)
-        
-        // Title line
-        let titleMesh = MeshResource.generateBox(width: width * 0.35, height: headerHeight * 0.25, depth: depth * 0.4, cornerRadius: 0.002)
-        let titleMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.85))
-        let title = ModelEntity(mesh: titleMesh, materials: [titleMat])
-        title.position = [0, 0, depth * 0.2]
-        header.addChild(title)
-        
-        // Body lines (3 rows)
-        let bodyYStart = height * 0.15
-        for i in 0..<3 {
-            let rowWidth = width * Float(0.75 - 0.08 * Float(i))
-            let rowHeight = height * 0.08
-            let rowMesh = MeshResource.generateBox(width: rowWidth, height: rowHeight, depth: depth * 0.35, cornerRadius: 0.002)
-            let rowMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.35))
-            let row = ModelEntity(mesh: rowMesh, materials: [rowMat])
-            row.position = [-(width * 0.05), bodyYStart - Float(i) * (rowHeight * 1.9), depth * 0.2]
-            cardModel.addChild(row)
-        }
-        
-        entity.look(at: [0, 1.5, 0], from: entity.position, relativeTo: nil)
-        
-        entity.components[WindowAnimData.self] = WindowAnimData(
-            originalPos: entity.position,
-            speed: Float.random(in: 0.3...0.7),
-            phase: Float.random(in: 0...(2 * .pi))
-        )
-        
-        cardModel.scale = [0, 0, 0]
-        return entity
-    }
-    
-    @MainActor
-    private func createCloseNotification() -> Entity {
-        let entity = Entity()
-        entity.name = "CloseNotification"
-        entity.position = [0.3, 1.5, -1.0] // Close to user, slightly right
-        
-        let cardMesh = MeshResource.generateBox(width: 0.35, height: 0.22, depth: 0.005, cornerRadius: 0.01)
-        var baseMat = PhysicallyBasedMaterial()
-        baseMat.baseColor = .init(tint: UIColor(white: 0.08, alpha: 0.95))
-        baseMat.roughness = .init(floatLiteral: 0.6)
-        baseMat.metallic = .init(floatLiteral: 0.05)
-        baseMat.emissiveColor = .init(color: UIColor(white: 0.12, alpha: 1))
-        baseMat.emissiveIntensity = 0.12
-        
-        let cardModel = ModelEntity(mesh: cardMesh, materials: [baseMat])
-        entity.addChild(cardModel)
-        entity.look(at: [0, 1.5, 0], from: entity.position, relativeTo: nil)
-        
-        // Header (red alert)
-        let headerHeight: Float = 0.22 * 0.18
-        let headerMesh = MeshResource.generateBox(width: 0.35 * 0.96, height: headerHeight, depth: 0.003, cornerRadius: 0.01)
-        var headerMat = PhysicallyBasedMaterial()
-        let accent = UIColor(red: 0.9, green: 0.3, blue: 0.3, alpha: 1)
-        headerMat.baseColor = .init(tint: accent.withAlphaComponent(0.95))
-        headerMat.emissiveColor = .init(color: accent.withAlphaComponent(0.95))
-        headerMat.emissiveIntensity = 0.25
-        let header = ModelEntity(mesh: headerMesh, materials: [headerMat])
-        header.position = [0, (0.22 * 0.5 - headerHeight * 0.5) - 0.01, 0.003]
-        cardModel.addChild(header)
-        
-        // Avatar
-        let avatarMesh = MeshResource.generateSphere(radius: headerHeight * 0.35)
-        let avatarMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.9))
-        let avatar = ModelEntity(mesh: avatarMesh, materials: [avatarMat])
-        avatar.position = [-(0.35 * 0.35), 0, 0.002]
-        header.addChild(avatar)
-        
-        // Title
-        let titleMesh = MeshResource.generateBox(width: 0.35 * 0.35, height: headerHeight * 0.25, depth: 0.002, cornerRadius: 0.002)
-        let titleMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.85))
-        let title = ModelEntity(mesh: titleMesh, materials: [titleMat])
-        title.position = [0, 0, 0.001]
-        header.addChild(title)
-        
-        // Body lines
-        let bodyYStart: Float = 0.22 * 0.15
-        for i in 0..<3 {
-            let rowWidth = 0.35 * Float(0.78 - 0.1 * Float(i))
-            let rowHeight = 0.22 * 0.08
-            let rowMesh = MeshResource.generateBox(width: rowWidth, height: rowHeight, depth: 0.002, cornerRadius: 0.002)
-            let rowMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.35))
-            let row = ModelEntity(mesh: rowMesh, materials: [rowMat])
-            row.position = [-(0.35 * 0.04), bodyYStart - Float(i) * (rowHeight * 1.9), 0.001]
-            cardModel.addChild(row)
-        }
-        
-        // Alert badge
-        let badgeMesh = MeshResource.generateBox(width: 0.35 * 0.18, height: 0.22 * 0.12, depth: 0.002, cornerRadius: 0.003)
-        let badgeMat = UnlitMaterial(color: UIColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 0.9))
-        let badge = ModelEntity(mesh: badgeMesh, materials: [badgeMat])
-        badge.position = [0.35 * 0.28, -0.22 * 0.05, 0.002]
-        cardModel.addChild(badge)
-        
-        cardModel.scale = [0, 0, 0]
-        return entity
-    }
-    
-    @MainActor
-    private func createLightBeam() -> Entity {
-        let beam = Entity()
-        beam.name = "LightBeam"
-        beam.position = [0, 1.5, -2.0]
-        
-        // Match bar width roughly to text width (~0.6–0.7m)
-        let coreMesh = MeshResource.generateBox(width: 0.7, height: 8, depth: 0.02)
-        let coreMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.9))
-        let core = ModelEntity(mesh: coreMesh, materials: [coreMat])
-        beam.addChild(core)
-
-        // Subtle glow plane behind bar
-        let glowMesh = MeshResource.generateBox(width: 1.1, height: 8.2, depth: 0.01)
-        let glowMat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.08))
-        let glow = ModelEntity(mesh: glowMesh, materials: [glowMat])
-        glow.position = [0, 0, -0.02]
-        beam.addChild(glow)
-
-        beam.scale = [0, 0, 0]
-        return beam
-    }
-    
-    // Shockwave burst replacing the flat ring
-    @MainActor
-    private func createShockwaveBurst(at position: SIMD3<Float>) {
-        for _ in 0..<30 {
-            let p = Entity()
-            p.position = position
-            let size = Float.random(in: 0.015...0.03)
-            let mesh = MeshResource.generateSphere(radius: size)
-            let mat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.4))
-            let model = ModelEntity(mesh: mesh, materials: [mat])
-            p.addChild(model)
-            let dir = normalize(SIMD3<Float>(
-                Float.random(in: -1...1),
-                Float.random(in: -0.2...1),
-                Float.random(in: -1...1)
-            ))
-            p.components[ShatterData.self] = ShatterData(velocity: dir * Float.random(in: 0.8...1.6))
-            sceneRoot.addChild(p)
-            shockwaveBurst.append(p)
-        }
-    }
-
-    // Overlay planes to fake depth-of-field and a flash
-    @MainActor
-    private func ensureFocusOverlay() {
-        if focusOverlay == nil {
-            let mesh = MeshResource.generatePlane(width: 4, height: 4)
-            var mat = UnlitMaterial(color: UIColor.black.withAlphaComponent(0.0))
-            let plane = ModelEntity(mesh: mesh, materials: [mat])
-            plane.position = [0, 1.5, -1]
-            plane.name = "FocusOverlay"
-            sceneRoot.addChild(plane)
-            focusOverlay = plane
-        }
-        if flashOverlay == nil {
-            let mesh = MeshResource.generatePlane(width: 4, height: 4)
-            var mat = UnlitMaterial(color: UIColor.white.withAlphaComponent(0.0))
-            let plane = ModelEntity(mesh: mesh, materials: [mat])
-            plane.position = [0, 1.5, -0.9]
-            plane.name = "FlashOverlay"
-            sceneRoot.addChild(plane)
-            flashOverlay = plane
-        }
-    }
-    
-    // MARK: - Light shard metaphors (replaces human figures)
-    @MainActor
-    private func createShardParticle() -> Entity {
-        let shard = Entity()
-        let size = Float.random(in: 0.05...0.12)
-        let mesh = MeshResource.generateBox(width: size * 0.4, height: size, depth: size * 0.02, cornerRadius: size * 0.05)
-        var mat = PhysicallyBasedMaterial()
-        mat.baseColor = .init(tint: UIColor(red: 0.8, green: 0.9, blue: 1.0, alpha: 0.35))
-        mat.emissiveColor = .init(color: UIColor(red: 0.4, green: 0.7, blue: 1.0, alpha: 1))
-        mat.emissiveIntensity = 0.35
-        mat.roughness = .init(floatLiteral: 0.4)
-        let model = ModelEntity(mesh: mesh, materials: [mat])
-        shard.addChild(model)
-        shard.scale = [0, 0, 0]
-        return shard
-    }
-    
-    @MainActor
-    private func createDataPoint(index: Int, centerPos: SIMD3<Float>) -> Entity {
-        let point = Entity()
-        point.name = "DataPoint_\(index)"
-        
-        // Start scattered
-        let theta = Float.random(in: 0...(2 * .pi))
-        let phi = Float.random(in: 0.3...2.8)
-        let radius = Float.random(in: 1.5...3.5)
-        
-        let startPos = centerPos + SIMD3<Float>(
-            radius * sin(phi) * cos(theta),
-            radius * cos(phi) * 0.5,
-            radius * sin(phi) * sin(theta) * 0.7
-        )
-        point.position = startPos
-        
-        let size = Float.random(in: 0.015...0.03)
-        let mesh = MeshResource.generateSphere(radius: size)
-        let color = UIColor(
-            red: CGFloat.random(in: 0...0.1),
-            green: CGFloat.random(in: 0.7...0.9),
-            blue: CGFloat.random(in: 0.8...1.0),
-            alpha: 0.9
-        )
-        let mat = UnlitMaterial(color: color)
-        let model = ModelEntity(mesh: mesh, materials: [mat])
-        point.addChild(model)
-        
-        point.components[DataPointData.self] = DataPointData(startPos: startPos, targetPos: centerPos)
-        
-        return point
-    }
-    
-    @MainActor
-    private func createCentralObject() -> Entity {
-        let obj = Entity()
-        obj.name = "CentralObject"
-        obj.position = [0, 1.5, -2.2]
-        
-        // Geometric core - icosahedron-like (approximated with sphere)
-        let coreMesh = MeshResource.generateSphere(radius: 0.18)
-        var coreMat = PhysicallyBasedMaterial()
-        coreMat.baseColor = .init(tint: UIColor(red: 0, green: 0.8, blue: 0.85, alpha: 1))
-        coreMat.roughness = .init(floatLiteral: 0.02)
-        coreMat.metallic = .init(floatLiteral: 0.9)
-        coreMat.emissiveColor = .init(color: UIColor(red: 0, green: 0.85, blue: 0.9, alpha: 1))
-        coreMat.emissiveIntensity = 0.6
-        
-        let core = ModelEntity(mesh: coreMesh, materials: [coreMat])
-        core.name = "Core"
-        obj.addChild(core)
-        
-        // Outer shell
-        let shellMesh = MeshResource.generateSphere(radius: 0.25)
-        var shellMat = PhysicallyBasedMaterial()
-        shellMat.baseColor = .init(tint: UIColor(red: 0, green: 0.5, blue: 0.6, alpha: 0.2))
-        shellMat.emissiveColor = .init(color: UIColor(red: 0, green: 0.6, blue: 0.7, alpha: 1))
-        shellMat.emissiveIntensity = 0.25
-        
-        let shell = ModelEntity(mesh: shellMesh, materials: [shellMat])
-        obj.addChild(shell)
-        
-        obj.scale = [0, 0, 0]
-        return obj
-    }
-    
-    // MARK: - Animation Loop
-    
-    @MainActor
-    private func runExperienceLoop() async {
-        let frameRate: UInt64 = 60
-        let frameDuration: UInt64 = 1_000_000_000 / frameRate
-        
-        while viewModel.isExperienceActive && viewModel.currentPhase != .complete {
-            let deltaTime = 1.0 / Double(frameRate)
-            viewModel.updateProgress(deltaTime: deltaTime)
-            await animatePhase()
-            try? await Task.sleep(nanoseconds: frameDuration)
-        }
-    }
-    
-    @MainActor
-    private func animatePhase() async {
-        let time = viewModel.totalElapsedTime
-        let progress = viewModel.phaseProgress
-        
-        switch viewModel.currentPhase {
-        case .spatialOverwhelm:
-            animateSpatialOverwhelm(time: time, progress: progress)
-        case .realityCrack:
-            await animateRealityCrack(time: time, progress: progress)
-        case .humanFragment:
-            await animateLightFragment(time: time, progress: progress)
-        case .dataChoreography:
-            await animateDataChoreography(time: time, progress: progress)
-        case .humanRestoration:
-            animateLightRestoration(time: time, progress: progress)
-        case .exitMoment:
-            animateExitMoment(time: time, progress: progress)
-        default:
-            break
-        }
-    }
-    
-    // MARK: - Phase: Spatial Overwhelm
-    
-    @MainActor
-    private func animateSpatialOverwhelm(time: TimeInterval, progress: Double) {
-        let intensity = Float(viewModel.overwhelmIntensity)
-        
-        // Animate notification windows
-        for (i, window) in floatingWindows.enumerated() {
-            guard let anim = window.components[WindowAnimData.self],
-                  let model = window.children.first else { continue }
-            
-            // Staggered fade in
-            let stagger = Double(i) / Double(floatingWindows.count) * 0.4
-            let adjusted = max(0, progress - stagger) / (1.0 - stagger)
-            let fadeIn = Float(min(1.0, adjusted * 2.5))
-            model.scale = SIMD3<Float>(repeating: fadeIn)
-            
-            // Drift
-            let drift = SIMD3<Float>(
-                sin(Float(time) * anim.speed + anim.phase) * 0.03,
-                cos(Float(time) * anim.speed * 0.6 + anim.phase) * 0.02,
-                sin(Float(time) * anim.speed * 0.3) * 0.01
-            )
-            window.position = anim.originalPos + drift * (0.5 + intensity * 0.5)
-            
-            // Compress toward user
-            window.position *= (1.0 - intensity * 0.06)
-        }
-        
-        // Close notification drifts toward user
-        if let close = closeNotification, let model = close.children.first {
-            let closeProgress = Float(min(1.0, progress * 1.5))
-            model.scale = SIMD3<Float>(repeating: closeProgress)
-            
-            // Drift closer
-            let startPos = SIMD3<Float>(0.3, 1.5, -1.0)
-            let endPos = SIMD3<Float>(0.15, 1.5, -0.6) // Very close
-            close.position = mix(startPos, endPos, t: Float(progress))
-            
-            // Shatter effect at 80%
-            if viewModel.notificationShattered && shatterParticles.isEmpty {
-                createShatterEffect(at: close.position)
-                close.isEnabled = false
-            }
-        }
-    }
-    
-    @MainActor
-    private func createShatterEffect(at position: SIMD3<Float>) {
-        // Create small particles that fly outward
-        for _ in 0..<30 {
-            let particle = Entity()
-            particle.position = position
-            
-            let size = Float.random(in: 0.008...0.02)
-            let mesh = MeshResource.generateBox(width: size, height: size, depth: size * 0.5)
-            let mat = UnlitMaterial(color: UIColor(red: 0.9, green: 0.3, blue: 0.3, alpha: 0.8))
-            let model = ModelEntity(mesh: mesh, materials: [mat])
-            particle.addChild(model)
-            
-            // Random velocity direction
-            let vel = SIMD3<Float>(
-                Float.random(in: -1...1),
-                Float.random(in: -0.5...1),
-                Float.random(in: -1...1)
-            )
-            particle.components[ShatterData.self] = ShatterData(velocity: normalize(vel) * Float.random(in: 0.5...1.5))
-            
-            sceneRoot.addChild(particle)
-            shatterParticles.append(particle)
-        }
-    }
-    
-    // MARK: - Phase: Reality Crack
-    
-    @MainActor
-    private func animateRealityCrack(time: TimeInterval, progress: Double) async {
-        // Create beam
-        if lightBeam == nil {
-            lightBeam = createLightBeam()
-            sceneRoot.addChild(lightBeam!)
-        }
-        // Ensure overlays for DOF/flash
-        ensureFocusOverlay()
-        
-        // Shockwave burst once
-        if shockwaveBurst.isEmpty {
-            createShockwaveBurst(at: [0, 1.5, -2.0])
-        }
-        
-        // Beam scales in
-        let beamScale = Float(min(1.3, progress * 5))
-        lightBeam?.scale = [beamScale, 1, beamScale]
-        lightBeam?.isEnabled = true
-        
-        // Shockwave particles expand and fade
-        for burst in shockwaveBurst {
-            if let data = burst.components[ShatterData.self],
-               let model = burst.children.first as? ModelEntity {
-                burst.position += data.velocity * 0.016
-                let fade = Float(max(0, 0.4 - progress * 0.4))
-                model.scale = SIMD3<Float>(repeating: fade)
-            }
-        }
-        
-        // Windows freeze and fade
-        let fadeOut = Float(max(0, 1.0 - progress * 2))
-        for window in floatingWindows {
-            if let model = window.children.first {
-                model.scale = SIMD3<Float>(repeating: fadeOut)
-            }
-        }
-        
-        // Darken skybox slightly for drama
-        if let sky = skyboxModel, var mat = sky.model?.materials.first as? UnlitMaterial {
-            let base = CGFloat(0.01)
-            let darken = max(0, base - CGFloat(progress) * 0.008)
-            mat.color = .init(tint: UIColor(red: darken, green: darken, blue: darken + 0.01, alpha: 1))
-            sky.model?.materials = [mat]
-        }
-
-        // Fake DOF: dim overlay, then reduce after mid-progress
-        if let overlay = focusOverlay, var mat = overlay.model?.materials.first as? UnlitMaterial {
-            // ramp in to 0.45 alpha then ease out
-            let alphaIn = min(0.45, progress * 0.9)
-            let alphaOut = max(0.0, 0.45 - max(0, progress - 0.5) * 0.9)
-            let alpha = progress < 0.5 ? alphaIn : alphaOut
-            mat.color = .init(tint: UIColor.black.withAlphaComponent(alpha))
-            overlay.model?.materials = [mat]
-        }
-        
-        // Quick flash at start of crack
-        if let flash = flashOverlay, var mat = flash.model?.materials.first as? UnlitMaterial {
-            let flashAlpha = progress < 0.15 ? CGFloat(0.4 * (1 - progress / 0.15)) : 0
-            mat.color = .init(tint: UIColor.white.withAlphaComponent(flashAlpha))
-            flash.model?.materials = [mat]
-        }
-        
-        // Animate shatter particles outward then fade
-        for particle in shatterParticles {
-            if let data = particle.components[ShatterData.self],
-               let model = particle.children.first {
-                particle.position += data.velocity * 0.016 // ~60fps
-                let fade = Float(max(0, 1.0 - progress * 1.5))
-                model.scale = SIMD3<Float>(repeating: fade)
-            }
-        }
-    }
-    
-    // MARK: - Phase: Human Fragment
-    
-    @MainActor
-    private func animateLightFragment(time: TimeInterval, progress: Double) async {
-        // Hide windows and beam
-        if shardParticles.isEmpty {
-            for window in floatingWindows { window.isEnabled = false }
-            for particle in shatterParticles { particle.isEnabled = false }
-            lightBeam?.isEnabled = false
-            
-            // Spawn shards in a cluster in front of the user
-            for _ in 0..<60 {
-                let shard = createShardParticle()
-                let spread: Float = 1.2
-                shard.position = [
-                    Float.random(in: -spread...spread),
-                    1.3 + Float.random(in: -0.4...0.4),
-                    -2.4 + Float.random(in: -0.3...0.3)
-                ]
-                sceneRoot.addChild(shard)
-                shardParticles.append(shard)
-            }
-        }
-
-        // Reverse DOF shift: quickly clear overlay and restore sky brightness
-        if let overlay = focusOverlay, var mat = overlay.model?.materials.first as? UnlitMaterial {
-            let alpha = max(0, 0.25 - progress * 1.0) // fade out fast
-            mat.color = .init(tint: UIColor.black.withAlphaComponent(alpha))
-            overlay.model?.materials = [mat]
-        }
-        if let flash = flashOverlay, var mat = flash.model?.materials.first as? UnlitMaterial {
-            mat.color = .init(tint: UIColor.white.withAlphaComponent(0))
-            flash.model?.materials = [mat]
-        }
-        if let sky = skyboxModel, var mat = sky.model?.materials.first as? UnlitMaterial {
-            // ease back toward base brightness
-            let base: CGFloat = 0.01
-            let minVal: CGFloat = 0.002
-            let val = minVal + (base - minVal) * CGFloat(min(1.0, progress * 1.2))
-            mat.color = .init(tint: UIColor(red: val, green: val, blue: val + 0.01, alpha: 1))
-            sky.model?.materials = [mat]
-        }
-        
-        // Animate shards drifting outward (fragmentation metaphor)
-        let driftStrength = Float(0.35 * (1.0 - progress * 0.4))
-        let fadeIn = Float(min(1.0, progress * 2))
-        
-        for shard in shardParticles {
-            if let model = shard.children.first as? ModelEntity {
-                model.scale = SIMD3<Float>(repeating: fadeIn)
-            }
-            // drift outward
-            shard.position += SIMD3<Float>(
-                Float.random(in: -driftStrength...driftStrength),
-                Float.random(in: -driftStrength * 0.5...driftStrength * 0.5),
-                Float.random(in: -driftStrength * 0.4...driftStrength * 0.4)
-            ) * 0.01
-            // slow spin
-            shard.orientation = simd_quatf(angle: Float(time) * 0.3, axis: normalize([Float.random(in: -1...1), 1, Float.random(in: -1...1)]))
-        }
-    }
-    
-    // MARK: - Phase: Data Choreography
-    
-    @MainActor
-    private func animateDataChoreography(time: TimeInterval, progress: Double) async {
-        let centerPos = SIMD3<Float>(0, 1.5, -2.2)
-        
-        // Create central object and data points
-        if centralObject == nil {
-            centralObject = createCentralObject()
-            sceneRoot.addChild(centralObject!)
-            
-            // Create data points
-            for i in 0..<120 {
-                let point = createDataPoint(index: i, centerPos: centerPos)
-                sceneRoot.addChild(point)
-                dataPoints.append(point)
-            }
-        }
-        
-        // Central object grows and rotates
-        let objScale = Float(min(1.0, progress * 1.3)) * 0.65
-        centralObject?.scale = SIMD3<Float>(repeating: objScale)
-        centralObject?.orientation = simd_quatf(angle: Float(time) * 0.2, axis: normalize([0.1, 1, 0.05]))
-        
-        // Data points converge
-        for point in dataPoints {
-            guard let data = point.components[DataPointData.self],
-                  let model = point.children.first else { continue }
-            
-            let t = Float(min(1.0, progress * 1.25))
-            let newPos = mix(data.startPos, data.targetPos, t: t)
-            
-            // Spiral motion with easing
-            let ease = (1 - t) * (1 - t)
-            let spiral = SIMD3<Float>(
-                cos(Float(time) * 3 + data.startPos.x * 2) * ease * 0.35,
-                sin(Float(time) * 2.5 + data.startPos.y * 2) * ease * 0.25,
-                sin(Float(time) * 2 + data.startPos.z) * ease * 0.2
-            )
-            point.position = newPos + spiral
-            
-            // Fade as they reach center
-            let dist = length(point.position - centerPos)
-            if dist < 0.3 {
-                model.scale = SIMD3<Float>(repeating: max(0, (dist - 0.05) / 0.25))
-            }
-        }
-        
-        // Increase central object glow
-        if let core = centralObject?.findEntity(named: "Core") as? ModelEntity,
-           var mat = core.model?.materials.first as? PhysicallyBasedMaterial {
-            mat.emissiveIntensity = 0.5 + Float(progress) * 0.5
-            core.model?.materials = [mat]
-        }
-    }
-    
-    // MARK: - Phase: Human Restoration
-    
-    @MainActor
-    private func animateLightRestoration(time: TimeInterval, progress: Double) {
-        // Hide data points
-        for point in dataPoints {
-            point.isEnabled = false
-        }
-        
-        // Shards converge and dissolve into the central object (human restoration metaphor)
-        let centerPos = SIMD3<Float>(0, 1.5, -2.2)
-        for shard in shardParticles {
-            if let model = shard.children.first as? ModelEntity {
-                let toCenter = centerPos - shard.position
-                shard.position += toCenter * 0.02
+        func generatePosition(front: Bool) -> SIMD3<Float> {
+            var pos: SIMD3<Float>
+            repeat {
+                // Azimuth: bias to front (z negative) when requested
+                let theta = front
+                ? Float.random(in: -.pi...0)          // front hemisphere
+                : Float.random(in: 0...(2 * .pi))     // anywhere
                 
-                // Fade as it nears center
-                let dist = length(toCenter)
-                let fade = Float(max(0, min(1, dist / 0.5)))
-                model.scale = SIMD3<Float>(repeating: fade)
+                // Elevation: avoid extreme top/bottom
+                let phi = Float.random(in: (0.35 * .pi)...(0.65 * .pi))
+                // Front windows slightly closer for clutter
+                let radius = front
+                ? Float.random(in: 1.3...3.0)
+                : Float.random(in: 1.5...3.6)
+                
+                let x = radius * sin(phi) * cos(theta)
+                let y = radius * cos(phi) + 1.6
+                let z = radius * sin(phi) * sin(theta)
+                pos = SIMD3<Float>(x, y, z)
+                
+                // Safe zone: keep clear of central text block in front
+            } while (pos.z < -0.4 && pos.z > -2.4) && (abs(pos.x) < 1.2) && (pos.y > 0.9 && pos.y < 2.4)
+            
+            return pos
+        }
+        
+        for _ in 0..<frontCount {
+            configs.append((generatePosition(front: true), Bool.random()))
+        }
+        for _ in 0..<surroundCount {
+            configs.append((generatePosition(front: false), Bool.random()))
+        }
+        
+        let windowConfigs: [(SIMD3<Float>, Bool)] = configs.shuffled()
+        
+        for (i, (pos, isAlert)) in windowConfigs.enumerated() {
+            let window = createNotificationWindow(
+                bodyMat: windowMat,
+                titleMat: isAlert ? titleRedMat : titleBlueMat,
+                index: i
+            )
+            window.position = pos
+            // Look at user (0, 1.6, 0) but ONLY rotate around Y axis (vertical billboard)
+            let dx = 0 - pos.x
+            let dz = 0 - pos.z 
+            let angle = atan2(dx, dz)
+            window.orientation = simd_quatf(angle: angle, axis: [0, 1, 0])
+            
+            window.scale = [0, 0, 0]  // Start invisible
+            windowsParent.addChild(window)
+            windows.append(window)
+        }
+        
+        // Particles Container (Data Dust)
+        particlesParent.name = "ParticlesParent"
+        particlesParent.position = [0, 1.6, 0] // Centered on user head
+        experienceRoot.addChild(particlesParent)
+        
+        let particleMesh = MeshResource.generateSphere(radius: 0.008)
+        let particleMat = UnlitMaterial(color: .white)
+        
+        for _ in 0..<500 {
+            let p = ModelEntity(mesh: particleMesh, materials: [particleMat])
+            let theta = Float.random(in: 0...(2 * .pi))
+            let phi = Float.random(in: 0...(2 * .pi))
+            let r = Float.random(in: 1.3...4.0) // Wide distribution, avoid text center
+            
+            p.position = [r * sin(phi) * cos(theta), r * cos(phi), r * sin(phi) * sin(theta)]
+            p.scale = [0, 0, 0]
+            particlesParent.addChild(p)
+            particles.append(p)
+        }
+        
+        // Bloom Light Effect
+        let bloomMesh = MeshResource.generateSphere(radius: 1.0)
+        var bloomMat = PhysicallyBasedMaterial()
+        bloomMat.baseColor = .init(tint: .white)
+        bloomMat.emissiveColor = .init(color: .white)
+        bloomMat.emissiveIntensity = 20.0
+        bloomMat.blending = .transparent(opacity: 0.8)
+        
+        let bloom = ModelEntity(mesh: bloomMesh, materials: [bloomMat])
+        bloom.name = "BloomLight"
+        bloom.position = [0, 1.6, -1.0] // Bias bloom in front of user
+        bloom.scale = [0, 0, 0]
+        bloom.components.set(OpacityComponent(opacity: 0.0))
+        experienceRoot.addChild(bloom)
+        bloomLight = bloom
+        
+        addSceneLighting()
+        
+        sceneLoaded = true
+        print("✅ Scene ready: \(windows.count) windows, \(particles.count) particles, bloom ready")
+    }
+    
+    private func makeGlowMaterial(base: SIMD3<Float>, glow: SIMD3<Float>, intensity: Float) -> PhysicallyBasedMaterial {
+        var mat = PhysicallyBasedMaterial()
+        mat.baseColor = .init(tint: .init(red: CGFloat(base.x), green: CGFloat(base.y), blue: CGFloat(base.z), alpha: 1))
+        mat.roughness = .init(floatLiteral: 0.2)
+        mat.metallic = .init(floatLiteral: 0.05)
+        mat.emissiveColor = .init(color: .init(red: CGFloat(glow.x), green: CGFloat(glow.y), blue: CGFloat(glow.z), alpha: 1))
+        mat.emissiveIntensity = intensity
+        return mat
+    }
+    
+    private func createNotificationWindow(bodyMat: PhysicallyBasedMaterial, titleMat: PhysicallyBasedMaterial, index: Int) -> Entity {
+        let parent = Entity()
+        parent.name = "Window_\(index)"
+        let bodyMesh = MeshResource.generateBox(width: 0.4, height: 0.28, depth: 0.015, cornerRadius: 0.012)
+        let body = ModelEntity(mesh: bodyMesh, materials: [bodyMat])
+        parent.addChild(body)
+        
+        let titleMesh = MeshResource.generateBox(width: 0.36, height: 0.04, depth: 0.02, cornerRadius: 0.008)
+        let title = ModelEntity(mesh: titleMesh, materials: [titleMat])
+        title.position = [0, 0.11, 0.005]
+        parent.addChild(title)
+        
+        let lineMat = makeGlowMaterial(base: [0.3, 0.35, 0.45], glow: [0.2, 0.25, 0.35], intensity: 1.0)
+        for j in 0..<3 {
+            let w: Float = 0.28 - Float(j) * 0.05
+            let lineMesh = MeshResource.generateBox(width: w, height: 0.015, depth: 0.018, cornerRadius: 0.003)
+            let line = ModelEntity(mesh: lineMesh, materials: [lineMat])
+            line.position = [-0.025, -0.015 - Float(j) * 0.05, 0.005]
+            parent.addChild(line)
+        }
+        
+        addWindowContent(to: parent, index: index)
+        return parent
+    }
+    
+    /// Procedural UI primitives to suggest various “unnecessary work” screens
+    private func addWindowContent(to parent: Entity, index: Int) {
+        let content = Entity()
+        content.position = [0, -0.04, 0.009]
+        parent.addChild(content)
+        
+        // Palette (cool neutrals + a warm accent)
+        let rowBase = UnlitMaterial(color: .init(red: 0.18, green: 0.22, blue: 0.30, alpha: 1))
+        let rowAlt  = UnlitMaterial(color: .init(red: 0.20, green: 0.26, blue: 0.34, alpha: 1))
+        let accent  = UnlitMaterial(color: .init(red: 0.98, green: 0.78, blue: 0.52, alpha: 1))
+        let badge   = UnlitMaterial(color: .init(red: 0.55, green: 0.78, blue: 1.00, alpha: 1))
+        
+        // Helper to add a row
+        func addRow(y: Float, alt: Bool, hasBadge: Bool) {
+            let mat = alt ? rowAlt : rowBase
+            let row = ModelEntity(mesh: MeshResource.generateBox(width: 0.30, height: 0.028, depth: 0.004, cornerRadius: 0.004),
+                                  materials: [mat])
+            row.position = [0.0, y, 0]
+            content.addChild(row)
+            
+            // Leading icon stub
+            let icon = ModelEntity(mesh: MeshResource.generateBox(width: 0.02, height: 0.02, depth: 0.004, cornerRadius: 0.003),
+                                   materials: [badge])
+            icon.position = [-0.13, 0, 0.003]
+            row.addChild(icon)
+            
+            // Optional badge/pill on the right
+            if hasBadge {
+                let pill = ModelEntity(mesh: MeshResource.generateBox(width: 0.06, height: 0.018, depth: 0.003, cornerRadius: 0.006),
+                                       materials: [accent])
+                pill.position = [0.12, 0, 0.003]
+                row.addChild(pill)
             }
         }
         
-        // Central object pulses and warms up
-        if let obj = centralObject {
-            let pulse = 0.6 + sin(Float(time) * 1.5) * 0.02
-            obj.scale = SIMD3<Float>(repeating: pulse)
-            obj.orientation = simd_quatf(angle: Float(time) * 0.1, axis: [0, 1, 0])
+        // Template builders
+        func buildDashboard() {
+            addRow(y: 0.05, alt: false, hasBadge: true)
+            addRow(y: 0.015, alt: true, hasBadge: false)
+            addRow(y: -0.02, alt: false, hasBadge: true)
             
-            if let core = obj.findEntity(named: "Core") as? ModelEntity,
-               var mat = core.model?.materials.first as? PhysicallyBasedMaterial {
-                mat.emissiveColor = .init(color: UIColor(red: 0.1, green: 0.9, blue: 0.85, alpha: 1))
-                mat.emissiveIntensity = 0.8 + Float(progress) * 0.4
-                core.model?.materials = [mat]
+            // Mini chart
+            let chart = Entity()
+            chart.position = [-0.095, -0.065, 0]
+            content.addChild(chart)
+            let barWidths: [Float] = [0.012, 0.012, 0.012, 0.012]
+            let barHeights: [Float] = [
+                0.020 + Float.random(in: 0...0.01),
+                0.030 + Float.random(in: 0...0.01),
+                0.018 + Float.random(in: 0...0.01),
+                0.026 + Float.random(in: 0...0.01)
+            ]
+            for (i, h) in barHeights.enumerated() {
+                let bar = ModelEntity(mesh: MeshResource.generateBox(width: barWidths[i], height: h, depth: 0.003, cornerRadius: 0.002),
+                                      materials: [badge])
+                bar.position = [Float(i) * 0.018, h * 0.5, 0.002]
+                chart.addChild(bar)
             }
+            
+            // Bottom CTA chips
+            let chipLeft = ModelEntity(mesh: MeshResource.generateBox(width: 0.09, height: 0.022, depth: 0.003, cornerRadius: 0.007),
+                                       materials: [rowAlt])
+            chipLeft.position = [-0.06, -0.105, 0.002]
+            content.addChild(chipLeft)
+            
+            let chipRight = ModelEntity(mesh: MeshResource.generateBox(width: 0.09, height: 0.022, depth: 0.003, cornerRadius: 0.007),
+                                        materials: [rowBase])
+            chipRight.position = [0.06, -0.105, 0.002]
+            content.addChild(chipRight)
+        }
+        
+        func buildEmailList() {
+            // Sender + subject rows
+            addRow(y: 0.06, alt: false, hasBadge: true)
+            addRow(y: 0.025, alt: true, hasBadge: false)
+            addRow(y: -0.01, alt: false, hasBadge: false)
+            addRow(y: -0.045, alt: true, hasBadge: true) // unread
+            // Footer buttons
+            let reply = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006),
+                                    materials: [rowAlt])
+            reply.position = [-0.05, -0.1, 0.002]
+            content.addChild(reply)
+            let archive = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006),
+                                      materials: [rowBase])
+            archive.position = [0.05, -0.1, 0.002]
+            content.addChild(archive)
+        }
+        
+        func buildEmailDetail() {
+            // Subject bar
+            let subject = ModelEntity(mesh: MeshResource.generateBox(width: 0.30, height: 0.03, depth: 0.004, cornerRadius: 0.004),
+                                      materials: [rowBase])
+            subject.position = [0, 0.07, 0]
+            content.addChild(subject)
+            // Sender/recipient pills
+            let from = ModelEntity(mesh: MeshResource.generateBox(width: 0.12, height: 0.02, depth: 0.003, cornerRadius: 0.006),
+                                   materials: [badge])
+            from.position = [-0.08, 0.035, 0.002]
+            content.addChild(from)
+            let to = ModelEntity(mesh: MeshResource.generateBox(width: 0.12, height: 0.02, depth: 0.003, cornerRadius: 0.006),
+                                 materials: [rowAlt])
+            to.position = [0.08, 0.035, 0.002]
+            content.addChild(to)
+            // Body lines
+            addRow(y: 0.0, alt: false, hasBadge: false)
+            addRow(y: -0.03, alt: true, hasBadge: false)
+            addRow(y: -0.06, alt: false, hasBadge: false)
+            // CTA
+            let replyAll = ModelEntity(mesh: MeshResource.generateBox(width: 0.14, height: 0.024, depth: 0.003, cornerRadius: 0.007),
+                                       materials: [accent])
+            replyAll.position = [0, -0.1, 0.002]
+            content.addChild(replyAll)
+        }
+        
+        func buildCalendarInvite() {
+            let title = ModelEntity(mesh: MeshResource.generateBox(width: 0.30, height: 0.03, depth: 0.004, cornerRadius: 0.004),
+                                    materials: [rowBase])
+            title.position = [0, 0.07, 0]
+            content.addChild(title)
+            // Time/location rows
+            addRow(y: 0.035, alt: true, hasBadge: false)
+            addRow(y: 0.0, alt: false, hasBadge: false)
+            // Attendee chips
+            let attA = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.02, depth: 0.003, cornerRadius: 0.006),
+                                   materials: [badge])
+            attA.position = [-0.08, -0.035, 0.002]
+            content.addChild(attA)
+            let attB = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.02, depth: 0.003, cornerRadius: 0.006),
+                                   materials: [rowAlt])
+            attB.position = [0.0, -0.035, 0.002]
+            content.addChild(attB)
+            let attC = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.02, depth: 0.003, cornerRadius: 0.006),
+                                   materials: [rowBase])
+            attC.position = [0.08, -0.035, 0.002]
+            content.addChild(attC)
+            // Accept/Maybe/Decline
+            let accept = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006),
+                                     materials: [accent])
+            accept.position = [-0.07, -0.085, 0.002]
+            content.addChild(accept)
+            let maybe = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006),
+                                    materials: [rowAlt])
+            maybe.position = [0.0, -0.085, 0.002]
+            content.addChild(maybe)
+            let decline = ModelEntity(mesh: MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006),
+                                      materials: [rowBase])
+            decline.position = [0.07, -0.085, 0.002]
+            content.addChild(decline)
+        }
+        
+        func buildForm() {
+            // Stacked inputs with “required” chips
+            addRow(y: 0.055, alt: false, hasBadge: true)
+            addRow(y: 0.02, alt: true, hasBadge: true)
+            addRow(y: -0.015, alt: false, hasBadge: true)
+            addRow(y: -0.05, alt: true, hasBadge: false)
+            // Resend / Submit buttons
+            let resend = ModelEntity(mesh: MeshResource.generateBox(width: 0.1, height: 0.024, depth: 0.003, cornerRadius: 0.007),
+                                     materials: [rowAlt])
+            resend.position = [-0.06, -0.095, 0.002]
+            content.addChild(resend)
+            let submit = ModelEntity(mesh: MeshResource.generateBox(width: 0.1, height: 0.024, depth: 0.003, cornerRadius: 0.007),
+                                     materials: [accent])
+            submit.position = [0.06, -0.095, 0.002]
+            content.addChild(submit)
+        }
+        
+        // Pick a template for this window
+        switch index % 5 {
+        case 0: buildDashboard()
+        case 1: buildEmailList()
+        case 2: buildEmailDetail()
+        case 3: buildCalendarInvite()
+        default: buildForm()
         }
     }
     
-    // MARK: - Phase: Exit Moment
+    private func addSceneLighting() {
+        let keyLight = Entity()
+        var keyComp = PointLightComponent()
+        keyComp.intensity = 80000
+        keyComp.color = .white
+        keyComp.attenuationRadius = 30
+        keyLight.components.set(keyComp)
+        keyLight.position = [0, 5, -1]
+        experienceRoot.addChild(keyLight)
+        
+        let fillLight = Entity()
+        var fillComp = PointLightComponent()
+        fillComp.intensity = 40000
+        fillComp.color = .init(red: 0.85, green: 0.9, blue: 1.0, alpha: 1)
+        fillComp.attenuationRadius = 25
+        fillLight.components.set(fillComp)
+        fillLight.position = [0, 1.5, -4]
+        experienceRoot.addChild(fillLight)
+    }
+    
+    private func startUpdateLoop() {
+        lastUpdateTime = Date()
+        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { _ in
+            let now = Date()
+            let dt = Float(min(now.timeIntervalSince(self.lastUpdateTime), 0.05))
+            self.lastUpdateTime = now
+            self.animationTime += dt
+            self.viewModel.updateProgress(deltaTime: Double(dt))
+            self.animateSceneFrame(dt: dt)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        updateTimer = timer
+    }
+    
+    private func animateSceneFrame(dt: Float) {
+        Task { @MainActor in animateScene(dt: dt) }
+    }
     
     @MainActor
-    private func animateExitMoment(time: TimeInterval, progress: Double) {
-        // Gentle ambient motion on central object
-        if let obj = centralObject {
-            let pulse = 0.6 + sin(Float(time) * 1.2) * 0.015
-            obj.scale = SIMD3<Float>(repeating: pulse)
-            obj.orientation = simd_quatf(angle: Float(time) * 0.08, axis: [0, 1, 0])
-        }
+    private func animateScene(dt: Float) {
+        guard sceneLoaded else { return }
+        let phase = viewModel.currentPhase
+        let progress = Float(viewModel.phaseProgress)
         
-        // Volumetric CTA arc - glowing points around the user
-        if ctaArc == nil {
-            ctaArc = createCTAArc()
-            if let arc = ctaArc {
-                sceneRoot.addChild(arc)
+        switch phase {
+        case .spatialOverwhelm:
+            for (i, window) in windows.enumerated() {
+                // Faster, denser pop-in immediately as text appears
+                let delay = Float(i) * 0.05
+                let localProgress = max(0, min(1, (progress * 5.0) - delay))
+                let eased = easeOutBack(localProgress)
+                // Ensure early visibility with a floor scale
+                window.scale = SIMD3<Float>(repeating: max(0.35, eased))
+                let bob = sin(animationTime * 1.5 + Float(i) * 0.8) * 0.015
+                window.position.y += bob * dt * 2
+                
+                // Extra keep-out from center text and gentle outward drift
+                let textCenter = SIMD3<Float>(0, 1.6, -1.2)
+                let toWindow = window.position - textCenter
+                let dist = length(toWindow)
+                let minRadius: Float = 1.4
+                if dist < minRadius {
+                    let push = normalize(toWindow + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * (minRadius - dist)
+                    window.position += push * 0.5
+                }
+                // Slowly drift outward to clear space for upcoming text
+                let outward = normalize(window.position + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * dt * 0.08
+                window.position += outward
             }
+            
+        case .realityCrack:
+            let tremble = sin(animationTime * 30.0) * 0.002
+            windowsParent.position.x += tremble
+            // Keep windows fully visible until shatter
+            for window in windows {
+                window.scale = SIMD3<Float>(repeating: 1.0)
+            }
+            
+        case .humanFragment:
+            // Align bloom/shatter with the "142 were unnecessary." line
+            let triggerPoint: Float = 0.20 // start bloom a bit earlier so it's visible
+            let bloomProgress = max(0, min(1, (progress - triggerPoint) * 4.0)) // faster ramp
+            let shatterDelay: Float = 0.03
+            let shatterProgress = max(0, min(1, (progress - (triggerPoint + shatterDelay)) * 6.0))
+            
+            if bloomProgress > 0 {
+                if bloomProgress < 0.55 {
+                    // Smaller, front-biased bloom to keep it in front of user
+                    let s = easeOutBack(bloomProgress * 1.8) * 32.0
+                    bloomLight?.scale = SIMD3<Float>(repeating: s)
+                    bloomLight?.components.set(OpacityComponent(opacity: 1.0))
+                } else {
+                    let fade = max(0, 1.0 - ((bloomProgress - 0.55) * 1.4))
+                    bloomLight?.components.set(OpacityComponent(opacity: fade))
+                    bloomLight?.scale = SIMD3<Float>(repeating: 32.0 + bloomProgress * 6.0)
+                }
+            } else {
+                bloomLight?.scale = .zero
+            }
+            
+            // Hold windows visible until shatter kicks in
+            for window in windows {
+                let scale = max(0, 1.0 - shatterProgress)
+                window.scale = SIMD3<Float>(repeating: scale)
+            }
+            
+            // Subtle tremble leading into bloom
+            if bloomProgress <= 0 {
+                let tremble = sin(animationTime * 38.0) * 0.003
+                windowsParent.position.x += tremble
+            }
+            
+        case .dataChoreography:
+            // DATA DUST: Chaos -> Sphere Shell (per spec: assembling from floating data points)
+            let chaosToOrder = max(0, min(1, (progress - 0.35) * 4.5)) 
+            
+            // Let the bloom linger briefly into this phase, then fade
+            if progress < 0.2 {
+                let fade = max(0, 1.0 - (progress / 0.2))
+                bloomLight?.components.set(OpacityComponent(opacity: fade))
+                bloomLight?.scale = SIMD3<Float>(repeating: 32.0 + progress * 8.0)
+            } else {
+                bloomLight?.components.set(OpacityComponent(opacity: 0.0))
+                bloomLight?.scale = .zero
+            }
+            
+            for (i, p) in particles.enumerated() {
+                let delay = Float(i) * 0.0015
+                let appearProgress = max(0, min(1, (progress * 8.0) - delay))
+                let twinkle = 0.5 + sin(animationTime * 14.0 + Float(i)) * 0.5
+                p.scale = SIMD3<Float>(repeating: easeOutBack(appearProgress) * twinkle * 0.8)
+                
+                if chaosToOrder > 0 {
+                    // Golden-angle sphere shell radius 2.0
+                    let seed = Float(i)
+                    let theta = seed * 2.39996
+                    let y = 1 - (seed / Float(particles.count - 1)) * 2
+                    let r = sqrt(max(0, 1 - y * y)) * 2.0
+                    let targetPos = SIMD3<Float>(cos(theta) * r, y * 2.0, sin(theta) * r)
+                    p.position = simd_mix(p.position, targetPos, SIMD3<Float>(repeating: dt * 2.5))
+                } else {
+                    p.position += SIMD3<Float>(sin(animationTime + Float(i)), cos(animationTime + Float(i) * 0.5), sin(animationTime * 0.8 + Float(i))) * 0.005
+                }
+            }
+            particlesParent.orientation *= simd_quatf(angle: dt * 0.4 * chaosToOrder, axis: [0, 1, 0])
+            for window in windows { window.scale = .zero }
+            bloomLight?.scale = .zero
+            
+        case .humanRestoration:
+            bloomLight?.scale = .zero
+            let axis = normalize(SIMD3<Float>(1, 1, 0))
+            for p in particles {
+                p.scale *= (1.0 + sin(animationTime * 2.5) * 0.1)
+            }
+            particlesParent.orientation *= simd_quatf(angle: dt * 0.15, axis: axis)
+            
+        case .exitMoment:
+            let fade = max(0.3, 1.0 - progress * 0.7)
+            for p in particles { p.scale = SIMD3<Float>(repeating: fade) }
+            particlesParent.orientation *= simd_quatf(angle: dt * 0.3, axis: [0, 1, 0])
+            
+        default: break
         }
     }
     
-    // MARK: - CTA Arc
-    @MainActor
-    private func createCTAArc() -> Entity {
-        let arc = Entity()
-        let radius: Float = 2.1
-        let count = 28
-        let startAngle: Float = -.pi * 0.65
-        let endAngle: Float = .pi * 0.65
-        
-        for i in 0..<count {
-            let t = Float(i) / Float(count - 1)
-            let angle = startAngle + (endAngle - startAngle) * t
-            let radialJitter = Float.random(in: -0.12...0.12)
-            let r = radius + radialJitter
-            let x = r * sin(angle)
-            let z = -r * cos(angle)
-            let y: Float = 1.4 + sin(angle * 1.7) * 0.18 + Float.random(in: -0.05...0.05)
-            
-            let point = Entity()
-            point.position = [x, y, z]
-            
-            let size = Float.random(in: 0.012...0.025)
-            let mesh = MeshResource.generateSphere(radius: size)
-            let mat = UnlitMaterial(color: UIColor(red: 0.9, green: 0.85, blue: 0.6, alpha: 0.9))
-            let model = ModelEntity(mesh: mesh, materials: [mat])
-            point.addChild(model)
-            
-            arc.addChild(point)
-        }
-        return arc
+    private func easeOutBack(_ t: Float) -> Float {
+        let c1: Float = 1.70158
+        let c3 = c1 + 1
+        return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
     }
-}
-
-// MARK: - Components
-
-struct WindowAnimData: Component {
-    var originalPos: SIMD3<Float>
-    var speed: Float
-    var phase: Float
-}
-
-struct DataPointData: Component {
-    var startPos: SIMD3<Float>
-    var targetPos: SIMD3<Float>
-}
-
-struct ShatterData: Component {
-    var velocity: SIMD3<Float>
-}
-
-// MARK: - Helper
-
-func mix(_ a: SIMD3<Float>, _ b: SIMD3<Float>, t: Float) -> SIMD3<Float> {
-    return a + (b - a) * t
-}
-
-#Preview(immersionStyle: .full) {
-    ImmersiveNarrativeView()
-        .environment(ExperienceViewModel())
+    
+    private func stopUpdateLoop() {
+        updateTimer?.invalidate()
+        updateTimer = nil
+    }
+    
+    private func cleanupScene() {
+        for child in experienceRoot.children { child.removeFromParent() }
+        windows.removeAll()
+        particles.removeAll()
+        bloomLight = nil
+        exitCenter = nil
+        exitLeft = nil
+        exitRight = nil
+        sceneLoaded = false
+    }
 }

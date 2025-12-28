@@ -13,17 +13,20 @@ enum NarrativePhase: Int, CaseIterable {
     case exitMoment            // 02:12-02:42 - CTA
     case complete
     
-    var duration: TimeInterval {
+    func duration(simSpeed: Double = 1.0) -> TimeInterval {
+        // Updated timings for ~2 minute experience
+        let base: TimeInterval
         switch self {
-        case .waiting: return 0
-        case .spatialOverwhelm: return 25
-        case .realityCrack: return 12
-        case .humanFragment: return 25
-        case .dataChoreography: return 35
-        case .humanRestoration: return 35
-        case .exitMoment: return 30
-        case .complete: return 0
+        case .waiting: base = 0
+        case .spatialOverwhelm: base = 25    // Extended window build-up
+        case .realityCrack: base = 12         // Breakout moment
+        case .humanFragment: base = 20       // Shards drifting
+        case .dataChoreography: base = 25    // Rings ordering (Chaos -> Order)
+        case .humanRestoration: base = 20    // Calm restoration
+        case .exitMoment: base = 18          // Fade out
+        case .complete: base = 0
         }
+        return base * simSpeed
     }
     
     var next: NarrativePhase? {
@@ -36,6 +39,15 @@ enum NarrativePhase: Int, CaseIterable {
 
 @Observable
 class ExperienceViewModel {
+    // Simulator-aware speed factor
+    private var simSpeed: Double {
+        #if targetEnvironment(simulator)
+        return 1.0 // Normal speed on simulator now
+        #else
+        return 1.0
+        #endif
+    }
+    
     var currentPhase: NarrativePhase = .waiting
     var phaseProgress: Double = 0
     var isExperienceActive: Bool = false
@@ -83,10 +95,12 @@ class ExperienceViewModel {
     func updateProgress(deltaTime: TimeInterval) {
         guard isExperienceActive, currentPhase != .waiting, currentPhase != .complete else { return }
         
-        phaseElapsedTime += deltaTime
-        totalElapsedTime += deltaTime
+        // Clamp delta to avoid large jumps when the simulator lags
+        let clampedDelta = min(deltaTime, 0.05)
+        phaseElapsedTime += clampedDelta
+        totalElapsedTime += clampedDelta
         
-        let phaseDuration = currentPhase.duration
+        let phaseDuration = currentPhase.duration(simSpeed: simSpeed)
         if phaseDuration > 0 {
             phaseProgress = min(1.0, phaseElapsedTime / phaseDuration)
             

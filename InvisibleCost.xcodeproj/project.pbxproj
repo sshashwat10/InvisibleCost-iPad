@@ -7,118 +7,139 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E70000012B4A1A0000000001 /* InvisibleCostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70000002B4A1A0000000001 /* InvisibleCostApp.swift */; };
-		E70000022B4A1A0000000002 /* ExperienceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70000102B4A1A0000000002 /* ExperienceModel.swift */; };
-		E70000032B4A1A0000000003 /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70000202B4A1A0000000003 /* LaunchView.swift */; };
-		E70000042B4A1A0000000004 /* ImmersiveNarrativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70000302B4A1A0000000004 /* ImmersiveNarrativeView.swift */; };
-		E70000052B4A1A0000000005 /* NarrativeTextOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70000402B4A1A0000000005 /* NarrativeTextOverlay.swift */; };
-		E70000112B4A1A0000000009 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E70000502B4A1A0000000009 /* Assets.xcassets */; };
+		0E001001001 /* InvisibleCostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002001 /* InvisibleCostApp.swift */; };
+		0E001001002 /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002002 /* LaunchView.swift */; };
+		0E001001003 /* ImmersiveNarrativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002003 /* ImmersiveNarrativeView.swift */; };
+		0E001001004 /* NarrativeTextOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002004 /* NarrativeTextOverlay.swift */; };
+		0E001001005 /* ExperienceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002005 /* ExperienceModel.swift */; };
+		0E001001006 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002006 /* AudioManager.swift */; };
+		0E001001007 /* UnrealBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002007 /* UnrealBridge.swift */; };
+		0E001001010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E001002010 /* Assets.xcassets */; };
+		0E001001020 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0E001005020 /* RealityKitContent */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		E7AAAA002B4A1A0000000000 /* InvisibleCost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvisibleCost.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E70000002B4A1A0000000001 /* InvisibleCostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvisibleCostApp.swift; sourceTree = "<group>"; };
-		E70000102B4A1A0000000002 /* ExperienceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceModel.swift; sourceTree = "<group>"; };
-		E70000202B4A1A0000000003 /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
-		E70000302B4A1A0000000004 /* ImmersiveNarrativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveNarrativeView.swift; sourceTree = "<group>"; };
-		E70000402B4A1A0000000005 /* NarrativeTextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeTextOverlay.swift; sourceTree = "<group>"; };
-		E70000502B4A1A0000000009 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		E7000060INFO /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0E001002001 /* InvisibleCostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvisibleCostApp.swift; sourceTree = "<group>"; };
+		0E001002002 /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
+		0E001002003 /* ImmersiveNarrativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveNarrativeView.swift; sourceTree = "<group>"; };
+		0E001002004 /* NarrativeTextOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeTextOverlay.swift; sourceTree = "<group>"; };
+		0E001002005 /* ExperienceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceModel.swift; sourceTree = "<group>"; };
+		0E001002006 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		0E001002007 /* UnrealBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnrealBridge.swift; sourceTree = "<group>"; };
+		0E001002010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0E001002011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0E001003001 /* InvisibleCost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvisibleCost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E001004001 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		E7BBBB002B4A1A0000000000 /* Frameworks */ = {
+		0E001006001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0E001001020 /* RealityKitContent in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		E7CCCC002B4A1A0000000000 = {
+		0E001007001 = {
 			isa = PBXGroup;
 			children = (
-				E7CCCC012B4A1A0000000001 /* InvisibleCost */,
-				E7CCCC022B4A1A0000000002 /* Products */,
+				0E001007002 /* InvisibleCost */,
+				0E001007003 /* Packages */,
+				0E001007004 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		E7CCCC012B4A1A0000000001 /* InvisibleCost */ = {
+		0E001007002 /* InvisibleCost */ = {
 			isa = PBXGroup;
 			children = (
-				E70000002B4A1A0000000001 /* InvisibleCostApp.swift */,
-				E7CCCC032B4A1A0000000003 /* Models */,
-				E7CCCC042B4A1A0000000004 /* Views */,
-				E70000502B4A1A0000000009 /* Assets.xcassets */,
-				E7000060INFO /* Info.plist */,
+				0E001002001 /* InvisibleCostApp.swift */,
+				0E001007005 /* Views */,
+				0E001007006 /* Models */,
+				0E001002010 /* Assets.xcassets */,
+				0E001002011 /* Info.plist */,
 			);
 			path = InvisibleCost;
 			sourceTree = "<group>";
 		};
-		E7CCCC022B4A1A0000000002 /* Products */ = {
+		0E001007003 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				E7AAAA002B4A1A0000000000 /* InvisibleCost.app */,
+				0E001004001 /* RealityKitContent */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		0E001007004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0E001003001 /* InvisibleCost.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E7CCCC032B4A1A0000000003 /* Models */ = {
+		0E001007005 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				E70000102B4A1A0000000002 /* ExperienceModel.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		E7CCCC042B4A1A0000000004 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				E70000202B4A1A0000000003 /* LaunchView.swift */,
-				E70000302B4A1A0000000004 /* ImmersiveNarrativeView.swift */,
-				E70000402B4A1A0000000005 /* NarrativeTextOverlay.swift */,
+				0E001002002 /* LaunchView.swift */,
+				0E001002003 /* ImmersiveNarrativeView.swift */,
+				0E001002004 /* NarrativeTextOverlay.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		0E001007006 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0E001002005 /* ExperienceModel.swift */,
+				0E001002006 /* AudioManager.swift */,
+				0E001002007 /* UnrealBridge.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E7DDDD002B4A1A0000000000 /* InvisibleCost */ = {
+		0E001008001 /* InvisibleCost */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E7EEEE002B4A1A0000000000 /* Build configuration list for PBXNativeTarget "InvisibleCost" */;
+			buildConfigurationList = 0E001009001 /* Build configuration list for PBXNativeTarget "InvisibleCost" */;
 			buildPhases = (
-				E7DDDD012B4A1A0000000001 /* Sources */,
-				E7BBBB002B4A1A0000000000 /* Frameworks */,
-				E7DDDD022B4A1A0000000002 /* Resources */,
+				0E001010001 /* Sources */,
+				0E001006001 /* Frameworks */,
+				0E001010002 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = InvisibleCost;
+			packageProductDependencies = (
+				0E001005020 /* RealityKitContent */,
+			);
 			productName = InvisibleCost;
-			productReference = E7AAAA002B4A1A0000000000 /* InvisibleCost.app */;
+			productReference = 0E001003001 /* InvisibleCost.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		E7FFFF002B4A1A0000000000 /* Project object */ = {
+		0E001011001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					E7DDDD002B4A1A0000000000 = {
+					0E001008001 = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
-			buildConfigurationList = E7FFFF012B4A1A0000000001 /* Build configuration list for PBXProject "InvisibleCost" */;
+			buildConfigurationList = 0E001009002 /* Build configuration list for PBXProject "InvisibleCost" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -126,44 +147,46 @@
 				en,
 				Base,
 			);
-			mainGroup = E7CCCC002B4A1A0000000000;
-			productRefGroup = E7CCCC022B4A1A0000000002 /* Products */;
+			mainGroup = 0E001007001;
+			productRefGroup = 0E001007004 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E7DDDD002B4A1A0000000000 /* InvisibleCost */,
+				0E001008001 /* InvisibleCost */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		E7DDDD022B4A1A0000000002 /* Resources */ = {
+		0E001010002 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E70000112B4A1A0000000009 /* Assets.xcassets in Resources */,
+				0E001001010 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		E7DDDD012B4A1A0000000001 /* Sources */ = {
+		0E001010001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E70000012B4A1A0000000001 /* InvisibleCostApp.swift in Sources */,
-				E70000022B4A1A0000000002 /* ExperienceModel.swift in Sources */,
-				E70000032B4A1A0000000003 /* LaunchView.swift in Sources */,
-				E70000042B4A1A0000000004 /* ImmersiveNarrativeView.swift in Sources */,
-				E70000052B4A1A0000000005 /* NarrativeTextOverlay.swift in Sources */,
+				0E001001001 /* InvisibleCostApp.swift in Sources */,
+				0E001001002 /* LaunchView.swift in Sources */,
+				0E001001003 /* ImmersiveNarrativeView.swift in Sources */,
+				0E001001004 /* NarrativeTextOverlay.swift in Sources */,
+				0E001001005 /* ExperienceModel.swift in Sources */,
+				0E001001006 /* AudioManager.swift in Sources */,
+				0E001001007 /* UnrealBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		E7111100DEBUG /* Debug */ = {
+		0E001012001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -200,6 +223,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -225,7 +249,7 @@
 			};
 			name = Debug;
 		};
-		E7111101RELEASE /* Release */ = {
+		0E001012002 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -262,6 +286,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -280,7 +305,7 @@
 			};
 			name = Release;
 		};
-		E7222200DEBUG /* Debug */ = {
+		0E001012003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -291,7 +316,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = InvisibleCost/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "The Invisible Cost";
+				INFOPLIST_KEY_CFBundleDisplayName = "Invisible Cost";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -299,16 +324,17 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.automationanywhere.invisiblecost;
+				PRODUCT_BUNDLE_IDENTIFIER = com.invisiblecost.visionpro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 7;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
-		E7222201RELEASE /* Release */ = {
+		0E001012004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -319,7 +345,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = InvisibleCost/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "The Invisible Cost";
+				INFOPLIST_KEY_CFBundleDisplayName = "Invisible Cost";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -327,37 +353,51 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.automationanywhere.invisiblecost;
+				PRODUCT_BUNDLE_IDENTIFIER = com.invisiblecost.visionpro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 7;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E7EEEE002B4A1A0000000000 /* Build configuration list for PBXNativeTarget "InvisibleCost" */ = {
+		0E001009001 /* Build configuration list for PBXNativeTarget "InvisibleCost" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E7222200DEBUG /* Debug */,
-				E7222201RELEASE /* Release */,
+				0E001012003 /* Debug */,
+				0E001012004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E7FFFF012B4A1A0000000001 /* Build configuration list for PBXProject "InvisibleCost" */ = {
+		0E001009002 /* Build configuration list for PBXProject "InvisibleCost" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E7111100DEBUG /* Debug */,
-				E7111101RELEASE /* Release */,
+				0E001012001 /* Debug */,
+				0E001012002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0E001005020 /* RealityKitContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RealityKitContent;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = E7FFFF002B4A1A0000000000 /* Project object */;
+	rootObject = 0E001011001 /* Project object */;
 }
+
+
+
+
+
+

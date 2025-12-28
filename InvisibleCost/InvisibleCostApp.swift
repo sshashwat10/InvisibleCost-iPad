@@ -1,31 +1,27 @@
 import SwiftUI
 
-/// The Invisible Cost - Davos 2026 Vision Pro Experience (Tier 2)
-/// A premium spatial narrative revealing the hidden burden of modern work
-/// and how agentic automation transforms it into clarity and human potential.
-///
-/// Emotional Arc: Pressure → Crisis → Pattern Break → Clarity → Human Return
-/// Runtime: 4-5 minutes
+/// The Invisible Cost - A Spatial Narrative Experience for Vision Pro
+/// Davos 2026 Tier 2 Experience
 
 @main
 struct InvisibleCostApp: App {
-    @State private var experienceViewModel = ExperienceViewModel()
+    @State private var viewModel = ExperienceViewModel()
     @State private var immersionStyle: ImmersionStyle = .full
     
     var body: some SwiftUI.Scene {
-        // Launch window - minimal, premium feel
-        WindowGroup {
+        WindowGroup(id: "LaunchWindow") {
             LaunchView()
-                .environment(experienceViewModel)
+                .environment(viewModel)
         }
         .windowStyle(.plain)
-        .defaultSize(width: 600, height: 400)
+        .windowResizability(.contentSize)
+        .defaultSize(width: 600, height: 480)
         
-        // The immersive narrative experience
         ImmersiveSpace(id: "InvisibleCostExperience") {
             ImmersiveNarrativeView()
-                .environment(experienceViewModel)
+                .environment(viewModel)
         }
-        .immersionStyle(selection: $immersionStyle, in: .full)
+        .immersionStyle(selection: $immersionStyle, in: .progressive, .full)
     }
 }
+
