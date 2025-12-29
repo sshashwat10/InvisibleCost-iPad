@@ -24,9 +24,9 @@ enum Tier1Phase: Int, CaseIterable {
         case .humanVignettes: return 38
         case .patternBreak: return 30
         case .agenticOrchestration: return 60
-        case .humanReturn: return 45
-        case .personalization: return 60
-        case .stillnessCTA: return 30
+        case .humanReturn: return 25
+        case .personalization: return 30
+        case .stillnessCTA: return 25
         case .complete: return 0
         }
     }

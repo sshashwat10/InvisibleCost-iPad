@@ -4,36 +4,32 @@ import Foundation
 // MARK: - Narrator Frame Animation (00:07-00:37)
 struct NarratorFrameAnimation: View {
     var progress: Double
-    @State private var notifications: [Int] = Array(0..<20)
+    @Environment(MotionManager.self) private var motion
+    @State private var notifications: [Int] = (0..<25).map { _ in Int.random(in: 0...1000) }
     
     var body: some View {
-        ZStack {
-            Color.black
-            
-            // Abstract overlapping windows and notifications
-            ForEach(notifications, id: \.self) { i in
-                NotificationShape()
-                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                    .frame(width: 250, height: 180)
-                    .offset(x: CGFloat(sin(Double(i) * 0.5 + progress * 2) * 300),
-                            y: CGFloat(cos(Double(i) * 0.3 + progress * 3) * 400))
-                    .scaleEffect(0.5 + progress * 0.5)
-                    .opacity(0.2 + (1.0 - progress) * 0.3)
-            }
-            
-            // Accelerating Timestamps (Spec requirement)
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Text(TimestampGenerator.getTime(for: progress))
-                        .font(.system(size: 120, weight: .thin, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.1))
-                        .padding(40)
+        GeometryReader { geo in
+            ZStack {
+                Color.black
+                
+                // Redundant windows distributed across the ENTIRE screen (not just center)
+                ZStack {
+                    ForEach(0..<notifications.count, id: \.self) { i in
+                        WorkWindowView(index: i)
+                            .frame(width: CGFloat.random(in: 250...400), height: CGFloat.random(in: 200...300))
+                            // Start wide across the whole screen, then drift
+                            .offset(
+                                x: CGFloat(sin(Double(i) * 1.7) * (geo.size.width * 0.6)) + CGFloat(motion.roll * 40),
+                                y: CGFloat(cos(Double(i) * 1.3) * (geo.size.height * 0.6)) + CGFloat(motion.pitch * 40)
+                            )
+                            .scaleEffect(0.6 + progress * 0.4)
+                            .opacity(0.4 + (1.0 - progress) * 0.6)
+                    }
                 }
-            }
-            
-            VStack(spacing: 30) {
+                .drawingGroup()
+                
+                // Narrator Text
+                VStack(spacing: 30) {
                 Text("Every organization carries a hidden cost.")
                     .font(.system(size: 42, weight: .light, design: .serif))
                     .foregroundColor(.white)
@@ -142,24 +138,60 @@ struct PatternBreakView: View {
 // MARK: - Agentic Orchestration (01:45-02:45)
 struct AgenticOrchestrationAnimation: View {
     var progress: Double
-    @State private var particles = (0..<100).map { _ in CGPoint(x: CGFloat.random(in: 0...1), y: CGFloat.random(in: 0...1)) }
+    @Environment(MotionManager.self) private var motion
+    @State private var particles = (0..<120).map { i in 
+        (pos: CGPoint(x: CGFloat.random(in: 0...1), y: CGFloat.random(in: 0...1)), 
+         id: i) 
+    }
     
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 Color.black
                 
-                // Chaos collapsing into clarity
-                ForEach(0..<particles.count, id: \.self) { i in
-                    Circle()
-                        .fill(progress > 0.5 ? Color.blue.opacity(0.8) : Color.white.opacity(0.4))
-                        .frame(width: progress > 0.5 ? 6 : 3, height: progress > 0.5 ? 6 : 3)
+                // Clutter (Windows) collapsing into Clarity (Particles/Blue Glow)
+                ZStack {
+                    ForEach(particles, id: \.id) { particle in
+                        Group {
+                            if progress < 0.6 {
+                                // The "Clutter" Windows
+                                WorkWindowView(index: particle.id)
+                                    .frame(width: 150, height: 100)
+                                    .scaleEffect(1.0 - progress)
+                                    .opacity(0.8 * (1.0 - progress * 1.6))
+                                    .offset(x: CGFloat(motion.roll * 20), y: CGFloat(motion.pitch * 20))
+                            }
+                            
+                            // The "Clarity" Particles (Wow factor: Glow + Parallax)
+                            Circle()
+                                .fill(progress > 0.4 ? Color.blue : Color.white.opacity(0.6))
+                                .frame(width: progress > 0.5 ? 6 : 3, height: progress > 0.5 ? 6 : 3)
+                        }
                         .position(
-                            x: lerp(start: particles[i].x * geo.size.width, end: geo.size.width/2 + CGFloat(sin(Double(i) + progress * 10) * 50 * (1-progress)), t: progress),
-                            y: lerp(start: particles[i].y * geo.size.height, end: geo.size.height/2 + CGFloat(cos(Double(i) + progress * 10) * 50 * (1-progress)), t: progress)
+                            x: lerp(start: particle.pos.x * geo.size.width + CGFloat(motion.roll * 50), 
+                                    end: geo.size.width/2 + CGFloat(sin(Double(particle.id) + progress * 10) * 50 * (1-progress)), 
+                                    t: progress),
+                            y: lerp(start: particle.pos.y * geo.size.height + CGFloat(motion.pitch * 50), 
+                                    end: geo.size.height/2 + CGFloat(cos(Double(particle.id) + progress * 10) * 50 * (1-progress)), 
+                                    t: progress)
                         )
-                        .blur(radius: (1.0 - progress) * 2)
-                        .opacity(progress > 0.9 ? (1.0 - progress) * 10 : 1)
+                    }
+                }
+                .drawingGroup() // Mandatory for 120+ particles at 60fps
+                
+                // Central "Clarity" Ring (Refined: Pulsing Core)
+                if progress > 0.4 {
+                    ZStack {
+                        Circle()
+                            .stroke(Color.blue.opacity(0.5), lineWidth: 2)
+                            .frame(width: 250 * progress, height: 250 * progress)
+                        
+                        Circle()
+                            .fill(RadialGradient(colors: [.blue.opacity(0.4), .clear], center: .center, startRadius: 0, endRadius: 100))
+                            .frame(width: 300 * progress, height: 300 * progress)
+                    }
+                    .position(x: geo.size.width/2, y: geo.size.height/2)
+                    .opacity((progress - 0.4) * 2.5)
                 }
                 
                 if progress > 0.6 {
@@ -189,27 +221,33 @@ struct HumanReturnAnimation: View {
             VStack(spacing: 30) {
                 Image(systemName: "person.and.arrow.left.and.arrow.right")
                     .font(.system(size: 100, weight: .ultraLight))
-                    .foregroundColor(.blue.opacity(0.4))
-                    .scaleEffect(0.8 + progress * 0.2)
+                    .foregroundColor(.blue.opacity(0.6))
+                    .scaleEffect(0.7 + progress * 0.3)
+                    // Removed rotationEffect per user request
                 
                 Text("RESTORATION")
                     .font(.system(size: 20, weight: .bold))
                     .tracking(12)
                     .foregroundColor(.gray)
+                    .opacity(progress > 0.2 ? 1 : 0)
                 
                 VStack(spacing: 15) {
                     Text("Human potential returned.")
                         .font(.system(size: 40, weight: .light, design: .serif))
                         .foregroundColor(.black)
+                        .offset(y: progress > 0.3 ? 0 : 20)
                     
                     Text("Reviewing insights. Approving paths.")
                         .font(.system(size: 24, weight: .regular, design: .serif))
                         .italic()
                         .foregroundColor(.blue)
-                        .opacity(progress > 0.5 ? 1 : 0)
+                        .opacity(progress > 0.6 ? 1 : 0)
+                        .offset(y: progress > 0.6 ? 0 : 10)
                 }
+                .opacity(progress > 0.3 ? 1 : 0)
             }
-            .opacity(progress * 2)
+            .scaleEffect(0.9 + progress * 0.1)
+            .animation(.spring(response: 0.6, dampingFraction: 0.7), value: progress)
         }
     }
 }
@@ -219,34 +257,51 @@ struct PersonalizationView: View {
     @Bindable var viewModel: ExperienceViewModel
     
     var body: some View {
-        VStack(spacing: 50) {
-            Text("How many hours of invisible work does your team lose each week?")
-                .font(.system(size: 34, weight: .light, design: .serif))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 80)
+        ZStack {
+            // Wow factor: Animated background gradient
+            LinearGradient(colors: [.black, Color.blue.opacity(0.15), .black], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
             
-            VStack(spacing: 10) {
-                Text("\(Int(viewModel.lostHoursPerWeek)) hours")
-                    .font(.system(size: 90, weight: .bold, design: .rounded))
-                    .foregroundColor(.blue)
+            VStack(spacing: 50) {
+                Text("How many hours of invisible work does your team lose each week?")
+                    .font(.system(size: 34, weight: .light, design: .serif))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 80)
                 
-                Slider(value: $viewModel.lostHoursPerWeek, in: 0...100, step: 1)
-                    .tint(.blue)
-                    .padding(.horizontal, 150)
+                // Wow factor: Glassmorphism container
+                VStack(spacing: 40) {
+                    VStack(spacing: 10) {
+                        Text("\(Int(viewModel.lostHoursPerWeek)) hours")
+                            .font(.system(size: 90, weight: .bold, design: .rounded))
+                            .foregroundColor(.blue)
+                            .contentTransition(.numericText()) // Smooth number changes
+                        
+                        Slider(value: $viewModel.lostHoursPerWeek, in: 0...100, step: 1)
+                            .tint(.blue)
+                            .padding(.horizontal, 50)
+                    }
+                    
+                    HStack(spacing: 60) {
+                        MetricView(label: "TEAM SIZE", value: "\(Int(viewModel.teamSize))", color: .gray)
+                        MetricView(label: "ANNUAL IMPACT", value: "$\(formatLargeNumber(viewModel.annualImpact))", color: .green)
+                    }
+                }
+                .padding(40)
+                .background(.ultraThinMaterial)
+                .cornerRadius(24)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .padding(.horizontal, 100)
+                
+                Text("Premium simplicity for VIP interaction.")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.3))
             }
-            
-            HStack(spacing: 60) {
-                MetricView(label: "TEAM SIZE", value: "\(Int(viewModel.teamSize))", color: .gray)
-                MetricView(label: "ANNUAL IMPACT", value: "$\(formatLargeNumber(viewModel.annualImpact))", color: .green)
-            }
-            .padding(.top, 40)
-            
-            Text("Premium simplicity for VIP interaction.")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.3))
+            .padding()
         }
-        .padding()
     }
     
     private func formatLargeNumber(_ number: Double) -> String {
@@ -329,6 +384,82 @@ struct FinalCTAView: View {
 }
 
 // MARK: - Helpers
+
+struct WorkWindowView: View {
+    let index: Int
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Title Bar
+            HStack(spacing: 6) {
+                Circle().fill(Color.red.opacity(0.5)).frame(width: 6, height: 6)
+                Circle().fill(Color.yellow.opacity(0.5)).frame(width: 6, height: 6)
+                Circle().fill(Color.green.opacity(0.5)).frame(width: 6, height: 6)
+                Spacer()
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.1))
+                    .frame(width: 40, height: 4)
+                Spacer()
+            }
+            .padding(.horizontal, 8)
+            .frame(height: 20)
+            .background(Color.white.opacity(0.05))
+            
+            // Mock Content
+            VStack(alignment: .leading, spacing: 10) {
+                if index % 3 == 0 {
+                    // Chart variant
+                    HStack(alignment: .bottom, spacing: 4) {
+                        ForEach(0..<6) { _ in
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(Color.white.opacity(0.1))
+                                .frame(width: 15, height: CGFloat.random(in: 20...60))
+                        }
+                    }
+                } else if index % 3 == 1 {
+                    // Text/Email variant
+                    ForEach(0..<4) { _ in
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(Color.white.opacity(0.1))
+                            .frame(height: 4)
+                            .frame(maxWidth: CGFloat.random(in: 60...150))
+                    }
+                } else {
+                    // Grid/Data variant
+                    GridPatternView()
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.black.opacity(0.95))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+        )
+        .compositingGroup()
+        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+    }
+}
+
+struct GridPatternView: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            ForEach(0..<5) { _ in
+                HStack(spacing: 4) {
+                    ForEach(0..<4) { _ in
+                        Rectangle()
+                            .fill(Color.white.opacity(0.05))
+                            .frame(width: 30, height: 10)
+                    }
+                }
+            }
+        }
+    }
+}
 
 struct NotificationShape: Shape {
     func path(in rect: CGRect) -> Path {

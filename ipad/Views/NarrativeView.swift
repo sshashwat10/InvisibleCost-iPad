@@ -3,6 +3,7 @@ import Combine
 
 struct NarrativeView: View {
     @State private var viewModel = ExperienceViewModel()
+    @State private var motionManager = MotionManager()
     @State private var hapticGenerator = UIImpactFeedbackGenerator(style: .medium)
     @State private var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     
@@ -17,12 +18,15 @@ struct NarrativeView: View {
                     Color.black
                 case .narratorFrame:
                     NarratorFrameAnimation(progress: viewModel.phaseProgress)
+                        .environment(motionManager)
                 case .humanVignettes:
                     HumanVignettesAnimation(progress: viewModel.phaseProgress)
+                        .environment(motionManager)
                 case .patternBreak:
                     PatternBreakView(progress: viewModel.phaseProgress)
                 case .agenticOrchestration:
                     AgenticOrchestrationAnimation(progress: viewModel.phaseProgress)
+                        .environment(motionManager)
                 case .humanReturn:
                     HumanReturnAnimation(progress: viewModel.phaseProgress)
                 case .personalization:

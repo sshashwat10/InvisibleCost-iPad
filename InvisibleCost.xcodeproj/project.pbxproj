@@ -22,6 +22,7 @@
 		46B760C62F02506700F1A587 /* Tier1App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760C12F02506700F1A587 /* Tier1App.swift */; };
 		46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BE2F02506700F1A587 /* NarrativeView.swift */; };
 		46B760C82F02506700F1A587 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BC2F02506700F1A587 /* Animations.swift */; };
+		46B760CA2F02563000F1A587 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760C92F02563000F1A587 /* MotionManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +45,7 @@
 		46B760BE2F02506700F1A587 /* NarrativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeView.swift; sourceTree = "<group>"; };
 		46B760C02F02506700F1A587 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		46B760C12F02506700F1A587 /* Tier1App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1App.swift; sourceTree = "<group>"; };
+		46B760C92F02563000F1A587 /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 		46B760BA2F02506700F1A587 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				46B760C92F02563000F1A587 /* MotionManager.swift */,
 				46B760B82F02506700F1A587 /* AudioManager.swift */,
 				46B760B92F02506700F1A587 /* ExperienceViewModel.swift */,
 			);
@@ -325,6 +328,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				46B760C42F02506700F1A587 /* AudioManager.swift in Sources */,
+				46B760CA2F02563000F1A587 /* MotionManager.swift in Sources */,
 				46B760C52F02506700F1A587 /* ExperienceViewModel.swift in Sources */,
 				46B760C62F02506700F1A587 /* Tier1App.swift in Sources */,
 				46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */,
