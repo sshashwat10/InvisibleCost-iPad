@@ -20,7 +20,7 @@ enum NarrativePhase: Int, CaseIterable {
         case .waiting: base = 0
         case .spatialOverwhelm: base = 25    // Extended window build-up
         case .realityCrack: base = 12         // Breakout moment
-        case .humanFragment: base = 20       // Shards drifting
+        case .humanFragment: base = 12       // Shards drifting (tightened)
         case .dataChoreography: base = 25    // Rings ordering (Chaos -> Order)
         case .humanRestoration: base = 20    // Calm restoration
         case .exitMoment: base = 18          // Fade out
