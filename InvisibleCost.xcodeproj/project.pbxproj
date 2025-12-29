@@ -16,6 +16,12 @@
 		0E001001007 /* UnrealBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002007 /* UnrealBridge.swift */; };
 		0E001001010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E001002010 /* Assets.xcassets */; };
 		0E001001020 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0E001005020 /* RealityKitContent */; };
+		46B760C32F02506700F1A587 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 46B760C02F02506700F1A587 /* README.md */; };
+		46B760C42F02506700F1A587 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760B82F02506700F1A587 /* AudioManager.swift */; };
+		46B760C52F02506700F1A587 /* ExperienceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760B92F02506700F1A587 /* ExperienceViewModel.swift */; };
+		46B760C62F02506700F1A587 /* Tier1App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760C12F02506700F1A587 /* Tier1App.swift */; };
+		46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BE2F02506700F1A587 /* NarrativeView.swift */; };
+		46B760C82F02506700F1A587 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BC2F02506700F1A587 /* Animations.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +36,14 @@
 		0E001002011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0E001003001 /* InvisibleCost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvisibleCost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E001004001 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		46B7609E2F024AD600F1A587 /* InvisibleCost-iPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InvisibleCost-iPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		46B760AD2F024FF500F1A587 /* InvisibleCost-iPad1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InvisibleCost-iPad1.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		46B760B82F02506700F1A587 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		46B760B92F02506700F1A587 /* ExperienceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceViewModel.swift; sourceTree = "<group>"; };
+		46B760BC2F02506700F1A587 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
+		46B760BE2F02506700F1A587 /* NarrativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeView.swift; sourceTree = "<group>"; };
+		46B760C02F02506700F1A587 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		46B760C12F02506700F1A587 /* Tier1App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1App.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,12 +55,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		46B7609B2F024AD600F1A587 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46B760AA2F024FF500F1A587 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0E001007001 = {
 			isa = PBXGroup;
 			children = (
+				46B760C22F02506700F1A587 /* ipad */,
 				0E001007002 /* InvisibleCost */,
 				0E001007003 /* Packages */,
 				0E001007004 /* Products */,
@@ -77,6 +106,8 @@
 			isa = PBXGroup;
 			children = (
 				0E001003001 /* InvisibleCost.app */,
+				46B7609E2F024AD600F1A587 /* InvisibleCost-iPad.app */,
+				46B760AD2F024FF500F1A587 /* InvisibleCost-iPad1.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,6 +130,51 @@
 				0E001002007 /* UnrealBridge.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		46B760BA2F02506700F1A587 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				46B760B82F02506700F1A587 /* AudioManager.swift */,
+				46B760B92F02506700F1A587 /* ExperienceViewModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		46B760BB2F02506700F1A587 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		46B760BD2F02506700F1A587 /* SubViews */ = {
+			isa = PBXGroup;
+			children = (
+				46B760BC2F02506700F1A587 /* Animations.swift */,
+			);
+			path = SubViews;
+			sourceTree = "<group>";
+		};
+		46B760BF2F02506700F1A587 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				46B760BD2F02506700F1A587 /* SubViews */,
+				46B760BE2F02506700F1A587 /* NarrativeView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		46B760C22F02506700F1A587 /* ipad */ = {
+			isa = PBXGroup;
+			children = (
+				46B760BA2F02506700F1A587 /* Models */,
+				46B760BB2F02506700F1A587 /* Resources */,
+				46B760BF2F02506700F1A587 /* Views */,
+				46B760C02F02506700F1A587 /* README.md */,
+				46B760C12F02506700F1A587 /* Tier1App.swift */,
+			);
+			path = ipad;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -124,6 +200,44 @@
 			productReference = 0E001003001 /* InvisibleCost.app */;
 			productType = "com.apple.product-type.application";
 		};
+		46B7609D2F024AD600F1A587 /* InvisibleCost-iPad */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 46B760A82F024AD700F1A587 /* Build configuration list for PBXNativeTarget "InvisibleCost-iPad" */;
+			buildPhases = (
+				46B7609A2F024AD600F1A587 /* Sources */,
+				46B7609B2F024AD600F1A587 /* Frameworks */,
+				46B7609C2F024AD600F1A587 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "InvisibleCost-iPad";
+			packageProductDependencies = (
+			);
+			productName = "InvisibleCost-iPad";
+			productReference = 46B7609E2F024AD600F1A587 /* InvisibleCost-iPad.app */;
+			productType = "com.apple.product-type.application";
+		};
+		46B760AC2F024FF500F1A587 /* InvisibleCost-iPad1 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 46B760B52F024FF600F1A587 /* Build configuration list for PBXNativeTarget "InvisibleCost-iPad1" */;
+			buildPhases = (
+				46B760A92F024FF500F1A587 /* Sources */,
+				46B760AA2F024FF500F1A587 /* Frameworks */,
+				46B760AB2F024FF500F1A587 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "InvisibleCost-iPad1";
+			packageProductDependencies = (
+			);
+			productName = "InvisibleCost-iPad1";
+			productReference = 46B760AD2F024FF500F1A587 /* InvisibleCost-iPad1.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -131,11 +245,17 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					0E001008001 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					46B7609D2F024AD600F1A587 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					46B760AC2F024FF500F1A587 = {
+						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
@@ -153,6 +273,8 @@
 			projectRoot = "";
 			targets = (
 				0E001008001 /* InvisibleCost */,
+				46B7609D2F024AD600F1A587 /* InvisibleCost-iPad */,
+				46B760AC2F024FF500F1A587 /* InvisibleCost-iPad1 */,
 			);
 		};
 /* End PBXProject section */
@@ -163,6 +285,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				0E001001010 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46B7609C2F024AD600F1A587 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				46B760C32F02506700F1A587 /* README.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46B760AB2F024FF500F1A587 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,6 +317,25 @@
 				0E001001005 /* ExperienceModel.swift in Sources */,
 				0E001001006 /* AudioManager.swift in Sources */,
 				0E001001007 /* UnrealBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46B7609A2F024AD600F1A587 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				46B760C42F02506700F1A587 /* AudioManager.swift in Sources */,
+				46B760C52F02506700F1A587 /* ExperienceViewModel.swift in Sources */,
+				46B760C62F02506700F1A587 /* Tier1App.swift in Sources */,
+				46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */,
+				46B760C82F02506700F1A587 /* Animations.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46B760A92F024FF500F1A587 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,6 +519,138 @@
 			};
 			name = Release;
 		};
+		46B760A62F024AD700F1A587 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.automationanywhere.InvisibleCost-iPad";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		46B760A72F024AD700F1A587 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.automationanywhere.InvisibleCost-iPad";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		46B760B62F024FF600F1A587 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.automationanywhere.InvisibleCost-iPad1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		46B760B72F024FF600F1A587 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.automationanywhere.InvisibleCost-iPad1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -384,6 +672,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		46B760A82F024AD700F1A587 /* Build configuration list for PBXNativeTarget "InvisibleCost-iPad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				46B760A62F024AD700F1A587 /* Debug */,
+				46B760A72F024AD700F1A587 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		46B760B52F024FF600F1A587 /* Build configuration list for PBXNativeTarget "InvisibleCost-iPad1" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				46B760B62F024FF600F1A587 /* Debug */,
+				46B760B72F024FF600F1A587 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -395,9 +701,3 @@
 	};
 	rootObject = 0E001011001 /* Project object */;
 }
-
-
-
-
-
-
