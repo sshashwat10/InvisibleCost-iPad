@@ -9,8 +9,7 @@ struct ImmersiveNarrativeView: View {
     
     @State private var experienceRoot = Entity()
     @State private var sceneLoaded = false
-    @State private var updateTimer: Timer?
-    @State private var lastUpdateTime = Date()
+    @State private var lastUpdateTime: Date? = nil
     @State private var animationTime: Float = 0
     
     // Scene elements
@@ -67,6 +66,18 @@ struct ImmersiveNarrativeView: View {
                 exitRight = right
             }
             
+        } update: { content, attachments in
+            let now = Date()
+            let dt = Float(now.timeIntervalSince(lastUpdateTime ?? now))
+            lastUpdateTime = now
+            
+            // Clamp dt to 60fps to prevent spikes
+            let clampedDt = min(dt, 0.033)
+            animationTime += clampedDt
+            
+            viewModel.updateProgress(deltaTime: Double(clampedDt))
+            animateScene(dt: clampedDt)
+            
         } attachments: {
             Attachment(id: "NarrativeText") {
                 NarrativeTextOverlay()
@@ -89,13 +100,11 @@ struct ImmersiveNarrativeView: View {
             }
         }
         .onAppear {
-            startUpdateLoop()
             if viewModel.currentPhase == .waiting {
                 viewModel.startExperience()
             }
         }
         .onDisappear {
-            stopUpdateLoop()
             cleanupScene()
         }
     }
@@ -517,24 +526,6 @@ struct ImmersiveNarrativeView: View {
         experienceRoot.addChild(rimLight)
     }
     
-    private func startUpdateLoop() {
-        lastUpdateTime = Date()
-        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { _ in
-            let now = Date()
-            let dt = Float(min(now.timeIntervalSince(self.lastUpdateTime), 0.05))
-            self.lastUpdateTime = now
-            self.animationTime += dt
-            self.viewModel.updateProgress(deltaTime: Double(dt))
-            self.animateSceneFrame(dt: dt)
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        updateTimer = timer
-    }
-    
-    private func animateSceneFrame(dt: Float) {
-        Task { @MainActor in animateScene(dt: dt) }
-    }
-    
     @MainActor
     private func animateScene(dt: Float) {
         guard sceneLoaded else { return }
@@ -547,30 +538,32 @@ struct ImmersiveNarrativeView: View {
         switch phase {
         case .spatialOverwhelm:
             for (i, window) in windows.enumerated() {
-                // Pop in even faster
-                let delay = Float(i) * 0.04
-                let localProgress = max(0, min(1, (progress * 6.0) - delay))
+                // Distributed entry across the entire 18s duration
+                let delay = Float(i) * 0.08 
+                let localProgress = max(0, min(1, (progress * 3.0) - delay)) 
                 let eased = easeOutBack(localProgress)
                 window.scale = SIMD3<Float>(repeating: max(0.4, eased))
-                let bob = sin(animationTime * 1.8 + Float(i) * 0.8) * 0.02
-                window.position.y += bob * dt * 2
+                let bob = sin(animationTime * 2.5 + Float(i) * 0.8) * 0.03
+                window.position.y += bob * dt * 2.5
                 
-                // Keep-out from center text (Matching new text position [0, 1.6, -0.8])
+                // Keep-out from center text
                 let textCenter = SIMD3<Float>(0, 1.6, -0.8)
                 let toWindow = window.position - textCenter
                 let dist = length(toWindow)
-                let minRadius: Float = 1.8 // Push windows even further away
+                let minRadius: Float = 1.8 
                 if dist < minRadius {
                     let push = normalize(toWindow + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * (minRadius - dist)
-                    window.position += push * 0.8 // Stronger push
+                    window.position += push * 0.95
                 }
-                // Drift outward
-                let outward = normalize(window.position + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * dt * 0.1
+                // Drift outward - continuous action
+                let outward = normalize(window.position + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * dt * 0.2
                 window.position += outward
             }
             
         case .realityCrack:
-            let tremble = sin(animationTime * 30.0) * 0.002
+            // Progressive trembling build-up
+            let intensity = progress * 0.004
+            let tremble = sin(animationTime * (30.0 + progress * 20.0)) * intensity
             windowsParent.position.x += tremble
             // Keep windows fully visible until shatter
             for window in windows {
@@ -580,8 +573,8 @@ struct ImmersiveNarrativeView: View {
         case .humanFragment:
             // Sync exactly with "142 were unnecessary" text appearing at 0.25
             let triggerPoint: Float = 0.25
-            let bloomProgress = max(0, min(1, (progress - triggerPoint) * 5.0))
-            let shatterProgress = max(0, min(1, (progress - triggerPoint) * 8.0)) 
+            let bloomProgress = max(0, min(1, (progress - triggerPoint) * 4.0)) // Slightly slower bloom for impact
+            let shatterProgress = max(0, min(1, (progress - triggerPoint) * 6.0)) 
             
             if bloomProgress > 0 {
                 // Narrative Flare: Increase light intensity dramatically during bloom
@@ -640,18 +633,15 @@ struct ImmersiveNarrativeView: View {
             
         case .dataChoreography:
             // Reuse the scaled-down windows as the "data cards"
-            let chaosToOrder = max(0, min(1, (progress - 0.2) * 5.0)) // Start ordering sooner
+            // Slower convergence to fill the 18s duration meaningfully
+            let chaosToOrder = max(0, min(1, (progress - 0.05) * 1.8)) 
             
             bloomLight?.components.set(OpacityComponent(opacity: 0.0))
             bloomLight?.scale = .zero
             bloomShockwave?.scale = .zero
-            textDimming?.components.set(OpacityComponent(opacity: progress < 0.3 ? (0.6 * (1.0 - progress/0.3)) : 0.0))
             
             for (i, window) in windows.enumerated() {
-                let twinkle = 0.8 + sin(animationTime * 15.0 + Float(i)) * 0.2
-                // Add a jitter/noise effect to the chaos
-                let noiseX = sin(animationTime * 2.0 + Float(i)) * 0.01
-                let noiseY = cos(animationTime * 1.8 + Float(i) * 0.5) * 0.01
+                let twinkle = 0.8 + sin(animationTime * 20.0 + Float(i)) * 0.2 // Faster twinkle
                 window.scale = SIMD3<Float>(repeating: 0.22 * twinkle)
                 
                 if chaosToOrder > 0 {
@@ -661,41 +651,38 @@ struct ImmersiveNarrativeView: View {
                     let y = 1 - (seed / Float(windows.count - 1)) * 2
                     let r = sqrt(max(0, 1 - y * y)) * 2.2
                     let targetPos = SIMD3<Float>(cos(theta) * r, y * 2.2 + 1.6, sin(theta) * r)
-                    window.position = simd_mix(window.position, targetPos, SIMD3<Float>(repeating: dt * 2.8))
+                    window.position = simd_mix(window.position, targetPos, SIMD3<Float>(repeating: dt * 1.5 * chaosToOrder)) 
                     
                     // Re-billboard as they move to the shell
-                    // Initial orientation: billboarded to user
                     let dx = 0 - window.position.x
                     let dz = 0 - window.position.z 
                     let angle = atan2(dx, dz)
                     window.orientation = simd_quatf(angle: angle, axis: [0, 1, 0])
                 } else {
                     // Jittery chaos with noise
-                    window.position += SIMD3<Float>(sin(animationTime * 1.5 + Float(i)), cos(animationTime * 1.2 + Float(i) * 0.5), sin(animationTime * 0.8 + Float(i))) * 0.006
-                    window.position.x += noiseX
-                    window.position.y += noiseY
+                    window.position += SIMD3<Float>(sin(animationTime * 2.5 + Float(i)), cos(animationTime * 2.2 + Float(i) * 0.5), sin(animationTime * 1.8 + Float(i))) * 0.008
                 }
             }
-            windowsParent.orientation *= simd_quatf(angle: dt * 0.35 * chaosToOrder, axis: [0, 1, 0])
+            windowsParent.orientation *= simd_quatf(angle: dt * 0.4 * chaosToOrder, axis: [0, 1, 0]) 
             
         case .humanRestoration:
             let axis = normalize(SIMD3<Float>(1, 1, 0))
             for window in windows {
-                window.scale *= (1.0 + sin(animationTime * 2.0) * 0.05)
+                window.scale = SIMD3<Float>(repeating: 0.22 * (1.0 + sin(animationTime * 3.0) * 0.06)) // Snappier pulse
             }
-            windowsParent.orientation *= simd_quatf(angle: dt * 0.15, axis: axis)
+            windowsParent.orientation *= simd_quatf(angle: dt * 0.25, axis: axis) // Faster rotation
             
             // Slow dust drift
             for mote in dataDust {
-                mote.position += SIMD3<Float>(0, sin(animationTime * 0.5) * 0.001, 0)
+                mote.position += SIMD3<Float>(0, sin(animationTime * 0.8) * 0.0015, 0)
             }
             
         case .exitMoment:
-            let fade = max(0.4, 1.0 - progress * 0.6)
+            let fade = max(0.4, 1.0 - progress * 0.8) // Faster fade
             for window in windows { 
                 window.scale = SIMD3<Float>(repeating: 0.22 * fade) 
             }
-            windowsParent.orientation *= simd_quatf(angle: dt * 0.3, axis: [0, 1, 0])
+            windowsParent.orientation *= simd_quatf(angle: dt * 0.45, axis: [0, 1, 0]) // Faster exit spin
             
             for mote in dataDust {
                 if let op = mote.components[OpacityComponent.self] {
@@ -711,11 +698,6 @@ struct ImmersiveNarrativeView: View {
         let c1: Float = 1.70158
         let c3 = c1 + 1
         return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
-    }
-    
-    private func stopUpdateLoop() {
-        updateTimer?.invalidate()
-        updateTimer = nil
     }
     
     private func cleanupScene() {

@@ -14,16 +14,16 @@ enum NarrativePhase: Int, CaseIterable {
     case complete
     
     func duration(simSpeed: Double = 1.0) -> TimeInterval {
-        // Updated timings for ~2 minute experience
+        // Sped up timings for Davos 2026
         let base: TimeInterval
         switch self {
         case .waiting: base = 0
-        case .spatialOverwhelm: base = 25    // Extended window build-up
-        case .realityCrack: base = 12         // Breakout moment
-        case .humanFragment: base = 12       // Shards drifting (tightened)
-        case .dataChoreography: base = 25    // Rings ordering (Chaos -> Order)
-        case .humanRestoration: base = 20    // Calm restoration
-        case .exitMoment: base = 18          // Fade out
+        case .spatialOverwhelm: base = 18    // Fast build-up
+        case .realityCrack: base = 8         // Tighter breakout
+        case .humanFragment: base = 8        // Snappier shatter
+        case .dataChoreography: base = 18    // Faster assembly
+        case .humanRestoration: base = 15    // Calm but shorter
+        case .exitMoment: base = 15          // Snappy exit
         case .complete: base = 0
         }
         return base * simSpeed
