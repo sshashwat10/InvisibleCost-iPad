@@ -143,7 +143,7 @@ struct NarrativeView: View {
             }
             
         case .narratorFrame:
-            // Phase duration: 30s
+            // Phase duration: 25s (synced to 180s ambient)
             // Narrations timed to visual reveals
             triggerAtProgress("opening_1", threshold: 0.05, progress: progress) { // ~1.5s
                 audioManager.playNarration(for: "opening_1")
@@ -156,7 +156,7 @@ struct NarrativeView: View {
             }
             
         case .humanVignettes:
-            // Phase duration: 25s, 3 vignettes
+            // Phase duration: 22s, 3 vignettes (synced to 180s ambient)
             triggerOnce("vignette_transition") {
                 audioManager.playTransition()
             }
@@ -177,14 +177,14 @@ struct NarrativeView: View {
             }
             
         case .patternBreak:
-            // Phase duration: 12s
+            // Phase duration: 10s (synced to 180s ambient)
             // Ambient music continues playing throughout
             triggerAtProgress("pattern_break", threshold: 0.30, progress: progress) { // ~3.6s
                 audioManager.playNarration(for: "pattern_break")
             }
             
         case .agenticOrchestration:
-            // Phase duration: 35s
+            // Phase duration: 32s (synced to 180s ambient)
             // Animation phases: dots appear (0-25%), lines form (20-45%), pulse (40-60%), shrink (55-70%), text (60-75%)
             
             triggerOnce("reveal") {
@@ -242,27 +242,28 @@ struct NarrativeView: View {
             }
             
         case .humanReturn:
-            // Phase duration: 25s - narration should match animation arc
-            triggerOnce("return_reveal") {
+            // Phase duration: 21s - 2 second gap after agentic orchestration (synced to 180s ambient)
+            // Reveal sound at ~2s (12% of 17s)
+            triggerAtProgress("return_reveal", threshold: 0.12, progress: progress) {
                 audioManager.playReveal()
             }
-            // "And just like that, the weight begins to lift" - early, as visual transformation starts
-            triggerAtProgress("restoration", threshold: 0.10, progress: progress) {
+            // "And just like that, the weight begins to lift" - after 2s gap
+            triggerAtProgress("restoration", threshold: 0.18, progress: progress) {
                 audioManager.playNarration(for: "restoration")
             }
             // "The noise fades... clarity returns..." - mid phase, as figure fully appears
-            triggerAtProgress("human_return", threshold: 0.35, progress: progress) {
+            triggerAtProgress("human_return", threshold: 0.45, progress: progress) {
                 audioManager.playNarration(for: "human_return")
             }
             
         case .personalization:
-            // Phase duration: 30s - minimal audio
+            // Phase duration: 25s - minimal audio (synced to 180s ambient)
             triggerOnce("ui_feedback") {
                 audioManager.playUIFeedback()
             }
             
         case .stillnessCTA:
-            // Phase duration: 30s - extended for full narration playback
+            // Phase duration: 36s - extended for full narration (synced to 180s ambient)
             triggerOnce("completion") {
                 audioManager.playCompletion()
             }

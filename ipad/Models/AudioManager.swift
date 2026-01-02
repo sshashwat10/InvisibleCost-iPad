@@ -339,74 +339,89 @@ class AudioManager {
     }
     
     // MARK: - Sound Effects
+    // Uses pre-recorded audio files (generated via ElevenLabs) with synthesized fallback
+    
+    /// Audio player for sound effects
+    private var effectPlayer: AVAudioPlayer?
+    
+    /// Play a sound effect - tries pre-recorded file first, falls back to synthesized
+    private func playSoundEffect(filename: String, fallbackBuffer: @autoclosure () -> AVAudioPCMBuffer, name: String) {
+        // Try pre-recorded file first
+        let formats = ["mp3", "m4a", "wav"]
+        for format in formats {
+            if let url = Bundle.main.url(forResource: filename, withExtension: format) {
+                do {
+                    effectPlayer?.stop()
+                    effectPlayer = try AVAudioPlayer(contentsOf: url)
+                    effectPlayer?.volume = effectsVolume
+                    effectPlayer?.prepareToPlay()
+                    effectPlayer?.play()
+                    print("🔔 \(name) (file)")
+                    return
+                } catch {
+                    print("⚠️ Failed to play \(filename).\(format): \(error)")
+                }
+            }
+        }
+        
+        // Fallback to synthesized
+        let buffer = fallbackBuffer()
+        effectPlayerNode.stop()
+        effectPlayerNode.volume = effectsVolume
+        effectPlayerNode.scheduleBuffer(buffer, at: nil, options: []) { }
+        effectPlayerNode.play()
+        print("🔔 \(name) (synth)")
+    }
     
     /// Play transition/whoosh sound
     func playTransition() {
-        let buffer = generateTransitionBuffer()
-        playEffect(buffer: buffer, name: "Transition")
+        playSoundEffect(filename: "sfx_transition", fallbackBuffer: generateTransitionBuffer(), name: "Transition")
     }
     
     /// Play subtle UI feedback sound
     func playUIFeedback() {
-        // Use system haptic sound for UI feedback (more reliable)
         AudioServicesPlaySystemSound(1104) // Subtle tick
         print("🔔 UI feedback (system)")
     }
     
     /// Play reveal/appearance sound
     func playReveal() {
-        let buffer = generateRevealBuffer()
-        playEffect(buffer: buffer, name: "Reveal")
+        playSoundEffect(filename: "sfx_reveal", fallbackBuffer: generateRevealBuffer(), name: "Reveal")
     }
     
     /// Play completion/success sound
     func playCompletion() {
-        let buffer = generateCompletionBuffer()
-        playEffect(buffer: buffer, name: "Completion")
+        playSoundEffect(filename: "sfx_completion", fallbackBuffer: generateCompletionBuffer(), name: "Completion")
     }
     
     /// Play sphere formation sound (building up)
     func playSphereForming() {
-        let buffer = generateSphereFormingBuffer()
-        playEffect(buffer: buffer, name: "Sphere forming")
+        playSoundEffect(filename: "sfx_sphere_forming", fallbackBuffer: generateSphereFormingBuffer(), name: "Sphere forming")
     }
     
     /// Play connection sound (quick blip)
     func playConnection() {
-        let buffer = generateConnectionBuffer()
-        playEffect(buffer: buffer, name: "Connection")
+        playSoundEffect(filename: "sfx_connection", fallbackBuffer: generateConnectionBuffer(), name: "Connection")
     }
     
     /// Play dot appearing sound (soft crystalline ping)
     func playDotAppear() {
-        let buffer = generateDotAppearBuffer()
-        playEffect(buffer: buffer, name: "Dot appear")
+        playSoundEffect(filename: "sfx_dot_appear", fallbackBuffer: generateDotAppearBuffer(), name: "Dot appear")
     }
     
     /// Play line forming sound (stretchy connection)
     func playLineForming() {
-        let buffer = generateLineFormingBuffer()
-        playEffect(buffer: buffer, name: "Line forming")
+        playSoundEffect(filename: "sfx_line_forming", fallbackBuffer: generateLineFormingBuffer(), name: "Line forming")
     }
     
     /// Play sphere pulse sound (resonant breath)
     func playSpherePulse() {
-        let buffer = generateSpherePulseBuffer()
-        playEffect(buffer: buffer, name: "Sphere pulse")
+        playSoundEffect(filename: "sfx_pulse", fallbackBuffer: generateSpherePulseBuffer(), name: "Sphere pulse")
     }
     
     /// Play sphere shrink sound (compression descent)
     func playSphereShrink() {
-        let buffer = generateSphereShrinkBuffer()
-        playEffect(buffer: buffer, name: "Sphere shrink")
-    }
-    
-    private func playEffect(buffer: AVAudioPCMBuffer, name: String) {
-        effectPlayerNode.stop()
-        effectPlayerNode.volume = effectsVolume
-        effectPlayerNode.scheduleBuffer(buffer, at: nil, options: []) { }
-        effectPlayerNode.play()
-        print("🔔 \(name) sound")
+        playSoundEffect(filename: "sfx_shrink", fallbackBuffer: generateSphereShrinkBuffer(), name: "Sphere shrink")
     }
     
     // MARK: - MINIMAL Professional Sound Design

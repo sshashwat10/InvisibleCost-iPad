@@ -2,31 +2,31 @@ import SwiftUI
 import Observation
 
 /// The Invisible Cost - Tier 1 (iPad) Narrative Phases
-/// TOTAL RUNTIME: ~5 minutes (300 seconds)
+/// TOTAL RUNTIME: 180 seconds (3 minutes) - synced to ambient music
 /// Spec-true implementation for Davos 2026
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
-    case microColdOpen         // 00:00-00:07 - Black screen, ambient audio
-    case narratorFrame         // 00:07-00:37 - "Every organization carries a hidden cost..."
-    case humanVignettes        // 00:37-01:15 - Short emotional flashes (Finance, Supply Chain, Healthcare)
-    case patternBreak          // 01:15-01:45 - White screen, silence, "What if this work... wasn't your work?"
-    case agenticOrchestration  // 01:45-02:45 - Abstract data visualization (Chaos -> Clarity)
-    case humanReturn           // 02:45-03:30 - Workers restored
-    case personalization       // 03:30-04:30 - Interactive slider (Impact calculation)
-    case stillnessCTA          // 04:30-05:00 - Stillness and final CTA
+    case microColdOpen         // 00:00-00:09 - Black screen, ambient audio
+    case narratorFrame         // 00:09-00:34 - "Every organization carries a hidden cost..."
+    case humanVignettes        // 00:34-00:56 - Short emotional flashes (Finance, Supply Chain, Healthcare)
+    case patternBreak          // 00:56-01:06 - White screen, "What if this work... wasn't your work?"
+    case agenticOrchestration  // 01:06-01:38 - Abstract data visualization (Chaos -> Clarity)
+    case humanReturn           // 01:38-01:59 - Workers restored
+    case personalization       // 01:59-02:24 - Interactive slider (Impact calculation)
+    case stillnessCTA          // 02:24-03:00 - Stillness and final CTA
     case complete
     
     var duration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .microColdOpen: return 7          // +2s breathing room
-        case .narratorFrame: return 20         // +2s breathing room
-        case .humanVignettes: return 18        // +2s breathing room
-        case .patternBreak: return 8           // +2s breathing room
-        case .agenticOrchestration: return 26  // +2s breathing room (sphere animation)
-        case .humanReturn: return 17           // +2s breathing room
-        case .personalization: return 20       // +2s breathing room
-        case .stillnessCTA: return 30          // Extended for full narration playback
+        case .microColdOpen: return 9          // Synced to 180s ambient
+        case .narratorFrame: return 25         // Synced to 180s ambient
+        case .humanVignettes: return 22        // Synced to 180s ambient
+        case .patternBreak: return 10          // Synced to 180s ambient
+        case .agenticOrchestration: return 32  // Synced to 180s ambient
+        case .humanReturn: return 21           // Synced to 180s ambient
+        case .personalization: return 25       // Synced to 180s ambient
+        case .stillnessCTA: return 36          // Synced to 180s ambient
         case .complete: return 0
         }
     }

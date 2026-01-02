@@ -109,8 +109,8 @@ NARRATION_LINES = [
     # PATTERN BREAK - the pivot, hope emerges
     {
         "key": "pattern_break",
-        "text": "But what if... tomorrow looked different?",
-        "note": "Hopeful shift, questioning, possibility opens"
+        "text": "But what if tomorrow looked different?",
+        "note": "Smooth flow, no pause - hopeful and questioning"
     },
     
     # AGENTIC - MUST include 'Agentic Orchestration' term

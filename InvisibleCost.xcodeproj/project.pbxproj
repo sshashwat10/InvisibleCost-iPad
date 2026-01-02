@@ -29,6 +29,15 @@
 		469C33F82F07DD48002E908D /* narration_opening_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E42F07DD48002E908D /* narration_opening_1.mp3 */; };
 		469C33F92F07DD48002E908D /* narration_vignette_supply.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33EC2F07DD48002E908D /* narration_vignette_supply.mp3 */; };
 		469C33FB2F07E7BF002E908D /* ambient_music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33FA2F07E7BF002E908D /* ambient_music.mp3 */; };
+		469C34052F07FCB1002E908D /* sfx_completion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33FC2F07FCB1002E908D /* sfx_completion.mp3 */; };
+		469C34062F07FCB1002E908D /* sfx_shrink.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C34022F07FCB1002E908D /* sfx_shrink.mp3 */; };
+		469C34072F07FCB1002E908D /* sfx_connection.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33FD2F07FCB1002E908D /* sfx_connection.mp3 */; };
+		469C34082F07FCB1002E908D /* sfx_transition.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C34042F07FCB1002E908D /* sfx_transition.mp3 */; };
+		469C34092F07FCB1002E908D /* sfx_dot_appear.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33FE2F07FCB1002E908D /* sfx_dot_appear.mp3 */; };
+		469C340A2F07FCB1002E908D /* sfx_line_forming.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33FF2F07FCB1002E908D /* sfx_line_forming.mp3 */; };
+		469C340B2F07FCB1002E908D /* sfx_pulse.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C34002F07FCB1002E908D /* sfx_pulse.mp3 */; };
+		469C340C2F07FCB1002E908D /* sfx_reveal.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C34012F07FCB1002E908D /* sfx_reveal.mp3 */; };
+		469C340D2F07FCB1002E908D /* sfx_sphere_forming.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C34032F07FCB1002E908D /* sfx_sphere_forming.mp3 */; };
 		46B760C32F02506700F1A587 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 46B760C02F02506700F1A587 /* README.md */; };
 		46B760C42F02506700F1A587 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760B82F02506700F1A587 /* AudioManager.swift */; };
 		46B760C52F02506700F1A587 /* ExperienceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760B92F02506700F1A587 /* ExperienceViewModel.swift */; };
@@ -63,6 +72,15 @@
 		469C33EB2F07DD48002E908D /* narration_vignette_health.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_health.mp3; sourceTree = "<group>"; };
 		469C33EC2F07DD48002E908D /* narration_vignette_supply.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_supply.mp3; sourceTree = "<group>"; };
 		469C33FA2F07E7BF002E908D /* ambient_music.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ambient_music.mp3; sourceTree = "<group>"; };
+		469C33FC2F07FCB1002E908D /* sfx_completion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_completion.mp3; sourceTree = "<group>"; };
+		469C33FD2F07FCB1002E908D /* sfx_connection.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_connection.mp3; sourceTree = "<group>"; };
+		469C33FE2F07FCB1002E908D /* sfx_dot_appear.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_dot_appear.mp3; sourceTree = "<group>"; };
+		469C33FF2F07FCB1002E908D /* sfx_line_forming.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_line_forming.mp3; sourceTree = "<group>"; };
+		469C34002F07FCB1002E908D /* sfx_pulse.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_pulse.mp3; sourceTree = "<group>"; };
+		469C34012F07FCB1002E908D /* sfx_reveal.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_reveal.mp3; sourceTree = "<group>"; };
+		469C34022F07FCB1002E908D /* sfx_shrink.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_shrink.mp3; sourceTree = "<group>"; };
+		469C34032F07FCB1002E908D /* sfx_sphere_forming.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_sphere_forming.mp3; sourceTree = "<group>"; };
+		469C34042F07FCB1002E908D /* sfx_transition.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sfx_transition.mp3; sourceTree = "<group>"; };
 		46B7609E2F024AD600F1A587 /* InvisibleCost-iPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InvisibleCost-iPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		46B760AD2F024FF500F1A587 /* InvisibleCost-iPad1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InvisibleCost-iPad1.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		46B760B82F02506700F1A587 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
@@ -163,6 +181,15 @@
 		469C33ED2F07DD48002E908D /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				469C33FC2F07FCB1002E908D /* sfx_completion.mp3 */,
+				469C33FD2F07FCB1002E908D /* sfx_connection.mp3 */,
+				469C33FE2F07FCB1002E908D /* sfx_dot_appear.mp3 */,
+				469C33FF2F07FCB1002E908D /* sfx_line_forming.mp3 */,
+				469C34002F07FCB1002E908D /* sfx_pulse.mp3 */,
+				469C34012F07FCB1002E908D /* sfx_reveal.mp3 */,
+				469C34022F07FCB1002E908D /* sfx_shrink.mp3 */,
+				469C34032F07FCB1002E908D /* sfx_sphere_forming.mp3 */,
+				469C34042F07FCB1002E908D /* sfx_transition.mp3 */,
 				469C33FA2F07E7BF002E908D /* ambient_music.mp3 */,
 				469C33E12F07DD48002E908D /* narration_agentic.mp3 */,
 				469C33E22F07DD48002E908D /* narration_closing.mp3 */,
@@ -347,6 +374,15 @@
 				469C33F02F07DD48002E908D /* narration_restoration.mp3 in Resources */,
 				469C33F12F07DD48002E908D /* narration_pattern_break.mp3 in Resources */,
 				469C33F22F07DD48002E908D /* narration_vignette_finance.mp3 in Resources */,
+				469C34052F07FCB1002E908D /* sfx_completion.mp3 in Resources */,
+				469C34062F07FCB1002E908D /* sfx_shrink.mp3 in Resources */,
+				469C34072F07FCB1002E908D /* sfx_connection.mp3 in Resources */,
+				469C34082F07FCB1002E908D /* sfx_transition.mp3 in Resources */,
+				469C34092F07FCB1002E908D /* sfx_dot_appear.mp3 in Resources */,
+				469C340A2F07FCB1002E908D /* sfx_line_forming.mp3 in Resources */,
+				469C340B2F07FCB1002E908D /* sfx_pulse.mp3 in Resources */,
+				469C340C2F07FCB1002E908D /* sfx_reveal.mp3 in Resources */,
+				469C340D2F07FCB1002E908D /* sfx_sphere_forming.mp3 in Resources */,
 				469C33F32F07DD48002E908D /* narration_human_return.mp3 in Resources */,
 				469C33F42F07DD48002E908D /* narration_opening_2.mp3 in Resources */,
 				469C33FB2F07E7BF002E908D /* ambient_music.mp3 in Resources */,
