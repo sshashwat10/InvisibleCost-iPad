@@ -21,10 +21,11 @@ class AudioManager {
     private(set) var isAmbientPlaying = false
     private(set) var isNarrationPlaying = false
     
-    // Volume controls
-    var ambientVolume: Float = 0.12
-    var narrationVolume: Float = 1.0
-    var effectsVolume: Float = 0.35
+    // Volume controls - balanced mix hierarchy
+    // Ambient is lowest (background bed), effects sit above, narration is clearest
+    var ambientVolume: Float = 0.08      // Very low - fills silence, never competes
+    var narrationVolume: Float = 1.0      // Full volume - always clear
+    var effectsVolume: Float = 0.55       // Raised to ensure subtle sounds cut through ambient
     
     // Audio format
     private var audioFormat: AVAudioFormat!
@@ -74,25 +75,61 @@ class AudioManager {
         }
     }
     
-    // MARK: - Ambient Sounds
+    // MARK: - Ambient Music
     
-    /// Play ambient office/work environment sounds
+    /// Audio player for ambient background music
+    private var ambientMusicPlayer: AVAudioPlayer?
+    
+    /// Play ambient background music (loops continuously)
+    /// 
+    /// Add an ambient music file to your project:
+    /// - Filename: ambient_music.mp3 (or .m4a, .wav)
+    /// - Recommended: Cinematic ambient, 2-5 minutes, seamless loop
+    /// - Sources: Artlist, Epidemic Sound, or royalty-free from Pixabay/Freesound
+    /// - Style: Ethereal pads, subtle tension, contemplative
+    ///
     func playAmbientHum() {
         guard !isAmbientPlaying else { return }
         
+        // Try to play ambient music file first
+        if playAmbientMusicFile() {
+            return
+        }
+        
+        // Fallback to synthesized ambient (if no file)
         isAmbientPlaying = true
         ambientPlayerNode.volume = ambientVolume
         
-        // Generate ambient buffer
         let buffer = generateAmbientBuffer(duration: 10.0)
+        ambientPlayerNode.scheduleBuffer(buffer, at: nil, options: .loops) { }
+        ambientPlayerNode.play()
+        print("🔊 Ambient (synthesized) started")
+    }
+    
+    /// Attempts to play an ambient music file
+    private func playAmbientMusicFile() -> Bool {
+        let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
         
-        // Loop the ambient sound
-        ambientPlayerNode.scheduleBuffer(buffer, at: nil, options: .loops) { [weak self] in
-            // This is called when buffer completes (won't be called with loops)
+        for format in formats {
+            if let url = Bundle.main.url(forResource: "ambient_music", withExtension: format) {
+                do {
+                    ambientMusicPlayer = try AVAudioPlayer(contentsOf: url)
+                    ambientMusicPlayer?.numberOfLoops = -1  // Loop forever
+                    ambientMusicPlayer?.volume = ambientVolume
+                    ambientMusicPlayer?.prepareToPlay()
+                    ambientMusicPlayer?.play()
+                    
+                    isAmbientPlaying = true
+                    print("🎵 Ambient music started: ambient_music.\(format)")
+                    return true
+                } catch {
+                    print("⚠️ Failed to play ambient music: \(error)")
+                }
+            }
         }
         
-        ambientPlayerNode.play()
-        print("🔊 Ambient hum started")
+        print("📝 No ambient_music file found - using synthesized fallback")
+        return false
     }
     
     private func generateAmbientBuffer(duration: Double) -> AVAudioPCMBuffer {
@@ -104,24 +141,13 @@ class AudioManager {
         let leftChannel = buffer.floatChannelData![0]
         let rightChannel = buffer.floatChannelData![1]
         
-        // Generate layered ambient sound
+        // Fallback ambient soundscape
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            
-            // Low frequency drone (60Hz with slow modulation)
-            let modulation = sin(t * 0.3) * 3.0
-            let drone = sin(2.0 * .pi * (60.0 + modulation) * t) * 0.15
-            
-            // Higher harmonic (120Hz)
-            let harmonic1 = sin(2.0 * .pi * 120.0 * t) * 0.05
-            
-            // Very subtle noise
-            let noise = (Double.random(in: -1...1)) * 0.02
-            
-            // Subtle pulsing envelope
-            let pulse = 0.8 + 0.2 * sin(t * 0.5)
-            
-            let sample = Float((drone + harmonic1 + noise) * pulse)
+            let sub = sin(2.0 * .pi * 55.0 * t) * 0.06
+            let pad = sin(2.0 * .pi * 110.0 * t) * 0.04
+            let breath = 0.8 + 0.2 * sin(t * 0.15)
+            let sample = Float((sub + pad) * breath)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }
@@ -129,7 +155,7 @@ class AudioManager {
         return buffer
     }
     
-    /// Fade out and stop ambient sounds
+    /// Fade out and stop ambient sounds/music
     func fadeOutAmbient(duration: TimeInterval = 2.0) {
         guard isAmbientPlaying else { return }
         
@@ -140,7 +166,9 @@ class AudioManager {
         
         for i in 0..<fadeSteps {
             DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
-                self?.ambientPlayerNode.volume = originalVolume - volumeStep * Float(i + 1)
+                let newVolume = originalVolume - volumeStep * Float(i + 1)
+                self?.ambientPlayerNode.volume = newVolume
+                self?.ambientMusicPlayer?.volume = newVolume
             }
         }
         
@@ -152,29 +180,63 @@ class AudioManager {
     
     func stopAmbient() {
         ambientPlayerNode.stop()
+        ambientMusicPlayer?.stop()
+        ambientMusicPlayer = nil
         isAmbientPlaying = false
     }
     
     // MARK: - Narration
     
-    /// Narrator lines for each phase
+    // MARK: - Narration Audio
+    
+    /// Audio player for pre-recorded narration
+    private var narrationPlayer: AVAudioPlayer?
+    
+    /// Narrator lines for each phase (used for TTS fallback)
+    /// Audio file naming: narration_{key}.m4a (e.g., narration_opening_1.m4a)
+    /// NOTE: Each line should FLOW into the next - use trailing tone, connecting words
     private let narratorLines: [String: String] = [
-        "opening_1": "Every organization carries a hidden cost.",
-        "opening_2": "Most leaders never see it.",
-        "opening_3": "You made 247 decisions today. 142 were unnecessary.",
-        "vignette_finance": "In Finance, reconciliation fatigue consumes hours of skilled attention.",
-        "vignette_supply": "Supply chain teams drown in manual tracking overhead.",
-        "vignette_health": "Healthcare professionals spend more time on paperwork than patients.",
-        "pattern_break": "What if this work... wasn't your work?",
-        "agentic": "Agentic orchestration. Intelligence that works while you think.",
-        "human_return": "Human potential returned. Reviewing insights. Approving paths.",
-        "restoration": "Restoration.",
-        "closing": "Agentic automation returns invisible work to the people who matter.",
-        "question": "What could your organization become?"
+        // Opening - mysterious, drawing them in (trailing tone invites next line)
+        "opening_1": "There's something your organization doesn't talk about...",
+        "opening_2": "...a silent drain on every leader, every team, every single day.",
+        "opening_3": "Hundreds of decisions that shouldn't have been yours to make.",
+        
+        // Vignettes - empathy, connected narrative
+        "vignette_finance": "Hours vanishing into tasks that machines were built for.",
+        "vignette_supply": "Brilliant minds, buried in busywork.",
+        "vignette_health": "Healers drowning in paperwork instead of patients.",
+        
+        // Pattern break - the pivot
+        "pattern_break": "But what if tomorrow looked different?",
+        
+        // Agentic - MUST include the term, wonder and power
+        "agentic": "This is Agentic Orchestration. Intelligence that anticipates, acts, and frees you to think.",
+        
+        // Human return - emotional relief, connected
+        "restoration": "And just like that, the weight begins to lift.",
+        "human_return": "The noise fades. Clarity returns. And you remember why you started.",
+        
+        // Closing - powerful, thought-provoking, memorable
+        "closing": "Imagine your brightest minds, unchained from the mundane. Strategists strategizing. Innovators innovating. Leaders... actually leading.",
+        "question": "The invisible cost has been paid for far too long. With Automation Anywhere, the future of work isn't a question... it's already here. The only question is: are you ready to lead it?"
     ]
     
-    /// Play narration for a specific phase using text-to-speech
+    /// Play narration - tries pre-recorded audio first, falls back to TTS
+    /// 
+    /// To use pre-recorded audio:
+    /// 1. Record or generate audio files using ElevenLabs, professional voice-over, etc.
+    /// 2. Name files as: narration_{key}.m4a (e.g., narration_opening_1.m4a)
+    /// 3. Supported formats: .m4a, .mp3, .wav, .aiff
+    /// 4. Add files to your Xcode project (drag into Assets or a Resources folder)
+    /// 5. Make sure "Copy items if needed" and "Add to target" are checked
+    ///
     func playNarration(for key: String, completion: (() -> Void)? = nil) {
+        // Try pre-recorded audio first
+        if playPreRecordedNarration(for: key, completion: completion) {
+            return
+        }
+        
+        // Fallback to TTS
         guard let text = narratorLines[key] else {
             print("⚠️ No narration found for key: \(key)")
             completion?()
@@ -184,23 +246,80 @@ class AudioManager {
         speakNarration(text, completion: completion)
     }
     
+    /// Attempts to play a pre-recorded audio file for narration
+    /// Returns true if audio file was found and is playing
+    private func playPreRecordedNarration(for key: String, completion: (() -> Void)?) -> Bool {
+        // Try different audio formats
+        let formats = ["m4a", "mp3", "wav", "aiff", "caf"]
+        let filename = "narration_\(key)"
+        
+        for format in formats {
+            if let url = Bundle.main.url(forResource: filename, withExtension: format) {
+                do {
+                    narrationPlayer?.stop()
+                    narrationPlayer = try AVAudioPlayer(contentsOf: url)
+                    narrationPlayer?.volume = narrationVolume
+                    narrationPlayer?.prepareToPlay()
+                    
+                    isNarrationPlaying = true
+                    narrationPlayer?.play()
+                    
+                    print("🎙️ Playing pre-recorded: \(filename).\(format)")
+                    
+                    // Schedule completion after audio ends
+                    let duration = narrationPlayer?.duration ?? 2.0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) { [weak self] in
+                        self?.isNarrationPlaying = false
+                        completion?()
+                    }
+                    
+                    return true
+                } catch {
+                    print("⚠️ Failed to play \(filename).\(format): \(error)")
+                }
+            }
+        }
+        
+        print("📝 No audio file for '\(key)' - using TTS fallback")
+        return false
+    }
+    
+    /// Text-to-speech fallback (used when no pre-recorded audio exists)
     private func speakNarration(_ text: String, completion: (() -> Void)?) {
         synthesizer.stopSpeaking(at: .immediate)
         
         let utterance = AVSpeechUtterance(string: text)
         
-        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
-            utterance.voice = voice
+        // Try to use enhanced/premium voice if available
+        // Users can download enhanced voices in Settings > Accessibility > Spoken Content > Voices
+        let preferredVoices = [
+            "com.apple.voice.premium.en-US.Zoe",      // Premium female
+            "com.apple.voice.premium.en-US.Evan",     // Premium male
+            "com.apple.voice.enhanced.en-US.Samantha", // Enhanced female
+            "com.apple.voice.enhanced.en-US.Alex",    // Enhanced male
+            "com.apple.ttsbundle.siri_male_en-US_compact", // Siri male
+            "com.apple.ttsbundle.siri_female_en-US_compact" // Siri female
+        ]
+        
+        var selectedVoice: AVSpeechSynthesisVoice?
+        for voiceId in preferredVoices {
+            if let voice = AVSpeechSynthesisVoice(identifier: voiceId) {
+                selectedVoice = voice
+                break
+            }
         }
         
+        // Fallback to default English voice
+        utterance.voice = selectedVoice ?? AVSpeechSynthesisVoice(language: "en-US")
+        
         utterance.rate = 0.48
-        utterance.pitchMultiplier = 0.92
+        utterance.pitchMultiplier = 0.95  // Slightly lower pitch for gravitas
         utterance.volume = narrationVolume
-        utterance.preUtteranceDelay = 0.2
-        utterance.postUtteranceDelay = 0.3
+        utterance.preUtteranceDelay = 0.15
+        utterance.postUtteranceDelay = 0.25
         
         isNarrationPlaying = true
-        print("🎙️ Narrating: \"\(text)\"")
+        print("🎙️ TTS Narrating: \"\(text)\"")
         
         synthesizer.speak(utterance)
         
@@ -214,6 +333,7 @@ class AudioManager {
     }
     
     func stopNarration() {
+        narrationPlayer?.stop()
         synthesizer.stopSpeaking(at: .immediate)
         isNarrationPlaying = false
     }
@@ -289,10 +409,17 @@ class AudioManager {
         print("🔔 \(name) sound")
     }
     
-    // MARK: - Sound Generation
+    // MARK: - MINIMAL Professional Sound Design
+    // Philosophy: Subtle, understated, never distracting. Like Apple keynotes.
+    // These sounds should feel almost subliminal - you notice when they're gone, not when they're there.
+    
+    /// Subtle random variation
+    private func subtleVariation() -> Double { Double.random(in: 0.95...1.05) }
+    private func subtlePan() -> Double { Double.random(in: -0.15...0.15) }
     
     private func generateTransitionBuffer() -> AVAudioPCMBuffer {
-        let duration = 0.4
+        // Barely-there whoosh - like a gentle breath of air
+        let duration = 0.35
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
@@ -305,23 +432,22 @@ class AudioManager {
             let t = Double(frame) / sampleRate
             let progress = t / duration
             
-            // Descending frequency sweep
-            let freq = 800.0 - 600.0 * progress
+            // Ultra-soft filtered noise - just air movement
+            let envelope = sin(progress * .pi) * 0.12
+            let noise = Double.random(in: -1...1)
             
-            // Envelope
-            let attack = min(t / 0.05, 1.0)
-            let decay = max(0, 1.0 - (t - 0.05) / 0.35)
-            let envelope = attack * decay
+            // Low-pass feel by averaging
+            let sample = Float(noise * envelope)
             
-            let sample = Float(sin(2.0 * .pi * freq * t) * envelope * 0.6)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            leftChannel[frame] = sample * 0.9
+            rightChannel[frame] = sample * 1.1
         }
         
         return buffer
     }
     
     private func generateRevealBuffer() -> AVAudioPCMBuffer {
+        // Soft, warm tone - like a gentle notification
         let duration = 0.8
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
@@ -335,19 +461,17 @@ class AudioManager {
             let t = Double(frame) / sampleRate
             let progress = t / duration
             
-            // Ascending frequency sweep (magical reveal)
-            let freq = 200.0 + 600.0 * progress
+            // Simple warm tone with gentle attack and long decay
+            let freq = 392.0  // G4 - pleasant, not attention-grabbing
+            let attack = min(t / 0.1, 1.0)
+            let decay = exp(-t * 2.5)
+            let envelope = attack * decay * 0.15
             
-            // Softer envelope with longer sustain
-            let attack = min(t / 0.3, 1.0)
-            let decay = max(0, 1.0 - max(0, (t - 0.3)) / 0.5)
-            let envelope = attack * decay
+            // Pure tone with subtle warmth
+            let tone = sin(2.0 * .pi * freq * t)
+            let warmth = sin(2.0 * .pi * freq * 0.5 * t) * 0.3
             
-            // Add harmonics for richness
-            let fundamental = sin(2.0 * .pi * freq * t) * 0.5
-            let harmonic = sin(2.0 * .pi * freq * 2.0 * t) * 0.2
-            
-            let sample = Float((fundamental + harmonic) * envelope)
+            let sample = Float((tone + warmth) * envelope)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }
@@ -356,7 +480,8 @@ class AudioManager {
     }
     
     private func generateCompletionBuffer() -> AVAudioPCMBuffer {
-        let duration = 0.6
+        // Satisfying but subtle resolution - two-note motif
+        let duration = 1.0
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
@@ -367,22 +492,15 @@ class AudioManager {
         
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            let progress = t / duration
             
-            // Two-tone success sound
-            let freq1 = 400.0
-            let freq2 = 600.0
+            // Two notes: G4 then C5 (perfect fourth - pleasing resolution)
+            let note1Env = exp(-t * 4) * 0.12
+            let note2Env = max(0, t - 0.15) < 0.01 ? 0 : exp(-(t - 0.15) * 3) * 0.10
             
-            // Switch between tones
-            let freq = progress < 0.5 ? freq1 : freq2
+            let note1 = sin(2.0 * .pi * 392.0 * t) * note1Env  // G4
+            let note2 = sin(2.0 * .pi * 523.25 * t) * note2Env  // C5
             
-            // Envelope for each tone
-            let toneProgress = progress < 0.5 ? progress * 2 : (progress - 0.5) * 2
-            let attack = min(toneProgress / 0.1, 1.0)
-            let decay = max(0, 1.0 - max(0, toneProgress - 0.1) / 0.9)
-            let envelope = attack * decay
-            
-            let sample = Float(sin(2.0 * .pi * freq * t) * envelope * 0.5)
+            let sample = Float(note1 + note2)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }
@@ -391,6 +509,7 @@ class AudioManager {
     }
     
     private func generateSphereFormingBuffer() -> AVAudioPCMBuffer {
+        // Subtle low hum that builds - almost felt more than heard
         let duration = 1.5
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
@@ -404,21 +523,14 @@ class AudioManager {
             let t = Double(frame) / sampleRate
             let progress = t / duration
             
-            // Building up frequency and intensity
-            let freq = 80.0 + 400.0 * progress * progress // Accelerating rise
+            // Deep, subtle presence that grows
+            let freq = 65.0  // C2 - felt in the chest
+            let intensity = pow(progress, 1.5) * 0.15
             
-            // Gradual build envelope
-            let envelope = progress * 0.8
+            let sub = sin(2.0 * .pi * freq * t) * intensity
+            let octave = sin(2.0 * .pi * freq * 2 * t) * intensity * 0.3
             
-            // Multiple harmonics for richness
-            let fundamental = sin(2.0 * .pi * freq * t) * 0.4
-            let harmonic1 = sin(2.0 * .pi * freq * 1.5 * t) * 0.2
-            let harmonic2 = sin(2.0 * .pi * freq * 2.0 * t) * 0.1
-            
-            // Add subtle pulse
-            let pulse = 1.0 + 0.1 * sin(t * 8.0)
-            
-            let sample = Float((fundamental + harmonic1 + harmonic2) * envelope * pulse)
+            let sample = Float(sub + octave)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }
@@ -427,7 +539,8 @@ class AudioManager {
     }
     
     private func generateConnectionBuffer() -> AVAudioPCMBuffer {
-        let duration = 0.15
+        // Tiny, soft tick - like a gentle tap
+        let duration = 0.06
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
@@ -436,27 +549,26 @@ class AudioManager {
         let leftChannel = buffer.floatChannelData![0]
         let rightChannel = buffer.floatChannelData![1]
         
+        let pan = subtlePan()
+        let pitch = 800.0 * subtleVariation()
+        
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            let progress = t / duration
             
-            // Quick ascending blip
-            let freq = 600.0 + 400.0 * progress
+            // Quick, soft click
+            let envelope = exp(-t * 60) * 0.08
+            let tone = sin(2.0 * .pi * pitch * t)
             
-            // Sharp envelope
-            let attack = min(t / 0.03, 1.0)
-            let decay = max(0, 1.0 - max(0, t - 0.03) / 0.12)
-            let envelope = attack * decay
-            
-            let sample = Float(sin(2.0 * .pi * freq * t) * envelope * 0.4)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            let sample = Float(tone * envelope)
+            leftChannel[frame] = sample * Float(1.0 - pan)
+            rightChannel[frame] = sample * Float(1.0 + pan)
         }
         
         return buffer
     }
     
     private func generateDotAppearBuffer() -> AVAudioPCMBuffer {
+        // Soft, high ping - like a water droplet
         let duration = 0.12
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
@@ -466,34 +578,27 @@ class AudioManager {
         let leftChannel = buffer.floatChannelData![0]
         let rightChannel = buffer.floatChannelData![1]
         
+        let pan = subtlePan()
+        let pitch = 1200.0 * subtleVariation()
+        
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            let progress = t / duration
             
-            // Crystalline ping - high frequency with slight wobble
-            let baseFreq = 1200.0
-            let wobble = sin(t * 40.0) * 50.0
-            let freq = baseFreq + wobble - 200.0 * progress
+            // Gentle, crystalline ping
+            let envelope = exp(-t * 35) * 0.06
+            let tone = sin(2.0 * .pi * pitch * t)
             
-            // Sharp attack, bell-like decay
-            let attack = min(t / 0.01, 1.0)
-            let decay = exp(-t * 25.0)
-            let envelope = attack * decay
-            
-            // Add sparkle with harmonics
-            let fundamental = sin(2.0 * .pi * freq * t) * 0.4
-            let harmonic = sin(2.0 * .pi * freq * 2.5 * t) * 0.15 * decay
-            
-            let sample = Float((fundamental + harmonic) * envelope)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            let sample = Float(tone * envelope)
+            leftChannel[frame] = sample * Float(1.0 - pan)
+            rightChannel[frame] = sample * Float(1.0 + pan)
         }
         
         return buffer
     }
     
     private func generateLineFormingBuffer() -> AVAudioPCMBuffer {
-        let duration = 0.25
+        // Soft zip/stretch - like drawing with light
+        let duration = 0.15
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
@@ -502,32 +607,29 @@ class AudioManager {
         let leftChannel = buffer.floatChannelData![0]
         let rightChannel = buffer.floatChannelData![1]
         
+        let startPan = subtlePan()
+        let endPan = subtlePan()
+        
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
             let progress = t / duration
             
-            // Stretching/zipping sound - frequency glide
-            let freq = 300.0 + 500.0 * progress * progress
+            // Subtle rising tone
+            let freq = 400.0 + 200.0 * progress
+            let envelope = sin(progress * .pi) * 0.05
+            let tone = sin(2.0 * .pi * freq * t)
             
-            // Soft envelope with sustain
-            let attack = min(t / 0.05, 1.0)
-            let sustain = 1.0 - progress * 0.3
-            let decay = max(0, 1.0 - max(0, t - 0.15) / 0.1)
-            let envelope = attack * sustain * decay
-            
-            // Dual oscillator for thickness
-            let osc1 = sin(2.0 * .pi * freq * t)
-            let osc2 = sin(2.0 * .pi * (freq * 1.02) * t) // Slight detune
-            
-            let sample = Float((osc1 * 0.3 + osc2 * 0.2) * envelope)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            let sample = Float(tone * envelope)
+            let pan = startPan + (endPan - startPan) * progress
+            leftChannel[frame] = sample * Float(1.0 - pan)
+            rightChannel[frame] = sample * Float(1.0 + pan)
         }
         
         return buffer
     }
     
     private func generateSpherePulseBuffer() -> AVAudioPCMBuffer {
+        // Deep, warm breath - like a heartbeat
         let duration = 0.5
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
@@ -541,21 +643,14 @@ class AudioManager {
             let t = Double(frame) / sampleRate
             let progress = t / duration
             
-            // Deep resonant pulse - breathing sound
-            let baseFreq = 120.0
-            let freq = baseFreq + 30.0 * sin(t * 6.0) // Subtle frequency modulation
+            // Soft, organic pulse
+            let freq = 80.0  // Deep but warm
+            let envelope = sin(progress * .pi) * 0.12
             
-            // Breath-like envelope (in and out)
-            let breathCurve = sin(.pi * progress)
-            let envelope = breathCurve * 0.6
+            let sub = sin(2.0 * .pi * freq * t)
+            let warmth = sin(2.0 * .pi * freq * 2 * t) * 0.2
             
-            // Rich harmonics for depth
-            let fundamental = sin(2.0 * .pi * freq * t) * 0.4
-            let harmonic1 = sin(2.0 * .pi * freq * 2.0 * t) * 0.2
-            let harmonic2 = sin(2.0 * .pi * freq * 3.0 * t) * 0.1
-            let subHarmonic = sin(2.0 * .pi * freq * 0.5 * t) * 0.15
-            
-            let sample = Float((fundamental + harmonic1 + harmonic2 + subHarmonic) * envelope)
+            let sample = Float((sub + warmth) * envelope)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }
@@ -564,7 +659,8 @@ class AudioManager {
     }
     
     private func generateSphereShrinkBuffer() -> AVAudioPCMBuffer {
-        let duration = 0.8
+        // Gentle descending tone - like exhaling
+        let duration = 0.6
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
@@ -577,26 +673,14 @@ class AudioManager {
             let t = Double(frame) / sampleRate
             let progress = t / duration
             
-            // Compression descent - frequency drops, gets denser
-            let startFreq = 600.0
-            let endFreq = 150.0
-            let freq = startFreq - (startFreq - endFreq) * progress * progress
+            // Smooth descending tone
+            let freq = 200.0 - 80.0 * progress  // Gentle descent
+            let envelope = (1.0 - pow(progress, 2)) * 0.10
             
-            // Compress envelope - gets tighter
-            let attack = min(t / 0.1, 1.0)
-            let sustain = 1.0 - progress * 0.5
-            let tail = max(0, 1.0 - max(0, t - 0.5) / 0.3)
-            let envelope = attack * sustain * tail
+            let tone = sin(2.0 * .pi * freq * t)
+            let sub = sin(2.0 * .pi * freq * 0.5 * t) * 0.3
             
-            // Layered oscillators with increasing density
-            let osc1 = sin(2.0 * .pi * freq * t)
-            let osc2 = sin(2.0 * .pi * freq * 1.5 * t) * (0.5 + progress * 0.5)
-            let osc3 = sin(2.0 * .pi * freq * 2.0 * t) * progress * 0.3
-            
-            // Add subtle vibrato for tension
-            let vibrato = 1.0 + 0.05 * sin(t * 30.0 * (1 + progress))
-            
-            let sample = Float((osc1 * 0.35 + osc2 * 0.15 + osc3 * 0.1) * envelope * vibrato)
+            let sample = Float((tone + sub) * envelope)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }
@@ -618,7 +702,8 @@ class AudioManager {
         case .humanVignettes:
             playTransition()
         case .patternBreak:
-            fadeOutAmbient(duration: 1.5)
+            // Keep ambient playing - don't fade out here
+            break
         case .agenticOrchestration:
             playReveal()
         case .humanReturn:

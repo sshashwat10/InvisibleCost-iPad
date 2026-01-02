@@ -19,14 +19,14 @@ enum Tier1Phase: Int, CaseIterable {
     var duration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .microColdOpen: return 7
-        case .narratorFrame: return 30
-        case .humanVignettes: return 25
-        case .patternBreak: return 12
-        case .agenticOrchestration: return 35
-        case .humanReturn: return 25
-        case .personalization: return 30
-        case .stillnessCTA: return 25
+        case .microColdOpen: return 7          // +2s breathing room
+        case .narratorFrame: return 20         // +2s breathing room
+        case .humanVignettes: return 18        // +2s breathing room
+        case .patternBreak: return 8           // +2s breathing room
+        case .agenticOrchestration: return 26  // +2s breathing room (sphere animation)
+        case .humanReturn: return 17           // +2s breathing room
+        case .personalization: return 20       // +2s breathing room
+        case .stillnessCTA: return 30          // Extended for full narration playback
         case .complete: return 0
         }
     }

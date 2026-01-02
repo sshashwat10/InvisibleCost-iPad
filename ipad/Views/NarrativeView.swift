@@ -178,9 +178,7 @@ struct NarrativeView: View {
             
         case .patternBreak:
             // Phase duration: 12s
-            triggerOnce("fadeout") {
-                audioManager.fadeOutAmbient(duration: 1.5)
-            }
+            // Ambient music continues playing throughout
             triggerAtProgress("pattern_break", threshold: 0.30, progress: progress) { // ~3.6s
                 audioManager.playNarration(for: "pattern_break")
             }
@@ -194,74 +192,66 @@ struct NarrativeView: View {
             }
             
             // === DOTS APPEARING (0-25%) ===
-            // Crystalline pings as each dot materializes
-            triggerAtProgress("dot_1", threshold: 0.04, progress: progress) {
-                audioManager.playDotAppear()
-            }
-            triggerAtProgress("dot_2", threshold: 0.08, progress: progress) {
-                audioManager.playDotAppear()
-            }
-            triggerAtProgress("dot_3", threshold: 0.12, progress: progress) {
-                audioManager.playDotAppear()
-            }
-            triggerAtProgress("dot_4", threshold: 0.16, progress: progress) {
-                audioManager.playDotAppear()
-            }
-            triggerAtProgress("dot_5", threshold: 0.20, progress: progress) {
-                audioManager.playDotAppear()
-            }
-            triggerAtProgress("dot_6", threshold: 0.24, progress: progress) {
-                audioManager.playDotAppear()
-            }
+            // Many crystalline pings as dots materialize across the sphere
+            triggerAtProgress("dot_01", threshold: 0.02, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_02", threshold: 0.04, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_03", threshold: 0.06, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_04", threshold: 0.08, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_05", threshold: 0.10, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_06", threshold: 0.11, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_07", threshold: 0.13, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_08", threshold: 0.14, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_09", threshold: 0.16, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_10", threshold: 0.17, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_11", threshold: 0.19, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_12", threshold: 0.20, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_13", threshold: 0.22, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_14", threshold: 0.23, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_15", threshold: 0.25, progress: progress) { audioManager.playDotAppear() }
             
             // === LINES FORMING (20-45%) ===
-            // Stretchy zipping sounds as connections draw
-            triggerAtProgress("line_1", threshold: 0.22, progress: progress) {
-                audioManager.playLineForming()
-            }
-            triggerAtProgress("line_2", threshold: 0.28, progress: progress) {
-                audioManager.playLineForming()
-            }
-            triggerAtProgress("line_3", threshold: 0.34, progress: progress) {
-                audioManager.playLineForming()
-            }
-            triggerAtProgress("line_4", threshold: 0.40, progress: progress) {
-                audioManager.playLineForming()
-            }
+            // More connection sounds as the network forms
+            triggerAtProgress("line_01", threshold: 0.21, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_02", threshold: 0.24, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_03", threshold: 0.27, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_04", threshold: 0.29, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_05", threshold: 0.31, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_06", threshold: 0.34, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_07", threshold: 0.36, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_08", threshold: 0.38, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_09", threshold: 0.40, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_10", threshold: 0.42, progress: progress) { audioManager.playLineForming() }
             
             // === PULSING (40-60%) ===
-            // Deep resonant breathing pulses
-            triggerAtProgress("pulse_1", threshold: 0.42, progress: progress) {
-                audioManager.playSpherePulse()
-            }
-            triggerAtProgress("pulse_2", threshold: 0.50, progress: progress) {
-                audioManager.playSpherePulse()
-            }
-            triggerAtProgress("pulse_3", threshold: 0.54, progress: progress) {
-                audioManager.playSpherePulse()
-            }
+            // Breathing pulses - the sphere comes alive
+            triggerAtProgress("pulse_1", threshold: 0.44, progress: progress) { audioManager.playSpherePulse() }
+            triggerAtProgress("pulse_2", threshold: 0.48, progress: progress) { audioManager.playSpherePulse() }
+            triggerAtProgress("pulse_3", threshold: 0.52, progress: progress) { audioManager.playSpherePulse() }
+            triggerAtProgress("pulse_4", threshold: 0.55, progress: progress) { audioManager.playSpherePulse() }
             
-            // === SHRINKING (55-70%) ===
-            // Compression descent sound
-            triggerAtProgress("shrink", threshold: 0.56, progress: progress) {
+            // === SHRINKING (55-75%) ===
+            // Elegant convergence sound
+            triggerAtProgress("shrink", threshold: 0.58, progress: progress) {
                 audioManager.playSphereShrink()
             }
             
-            // === TEXT APPEARS (60-75%) ===
-            // Narration when text appears
-            triggerAtProgress("agentic", threshold: 0.65, progress: progress) {
+            // === TEXT APPEARS (70-85%) ===
+            // Narration when text appears - slightly later for sync
+            triggerAtProgress("agentic", threshold: 0.72, progress: progress) {
                 audioManager.playNarration(for: "agentic")
             }
             
         case .humanReturn:
-            // Phase duration: 25s
+            // Phase duration: 25s - narration should match animation arc
             triggerOnce("return_reveal") {
                 audioManager.playReveal()
             }
-            triggerAtProgress("restoration", threshold: 0.15, progress: progress) {
+            // "And just like that, the weight begins to lift" - early, as visual transformation starts
+            triggerAtProgress("restoration", threshold: 0.10, progress: progress) {
                 audioManager.playNarration(for: "restoration")
             }
-            triggerAtProgress("human_return", threshold: 0.45, progress: progress) {
+            // "The noise fades... clarity returns..." - mid phase, as figure fully appears
+            triggerAtProgress("human_return", threshold: 0.35, progress: progress) {
                 audioManager.playNarration(for: "human_return")
             }
             
@@ -272,15 +262,21 @@ struct NarrativeView: View {
             }
             
         case .stillnessCTA:
-            // Phase duration: 25s
+            // Phase duration: 30s - extended for full narration playback
             triggerOnce("completion") {
                 audioManager.playCompletion()
             }
-            triggerAtProgress("closing", threshold: 0.10, progress: progress) { // ~2.5s
+            // "Imagine your brightest minds..." - starts early, runs ~10s
+            triggerAtProgress("closing", threshold: 0.10, progress: progress) {
                 audioManager.playNarration(for: "closing")
             }
-            triggerAtProgress("question", threshold: 0.50, progress: progress) { // ~12.5s
+            // "The invisible cost has been paid..." - powerful closer, runs ~8s
+            triggerAtProgress("question", threshold: 0.45, progress: progress) {
                 audioManager.playNarration(for: "question")
+            }
+            // Gentle fadeout after narration completes
+            triggerAtProgress("ambient_fadeout", threshold: 0.80, progress: progress) {
+                audioManager.fadeOutAmbient(duration: 5.0)
             }
             
         case .complete:

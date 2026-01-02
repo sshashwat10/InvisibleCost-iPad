@@ -16,6 +16,19 @@
 		0E001001007 /* UnrealBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002007 /* UnrealBridge.swift */; };
 		0E001001010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E001002010 /* Assets.xcassets */; };
 		0E001001020 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0E001005020 /* RealityKitContent */; };
+		469C33EE2F07DD48002E908D /* narration_agentic.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E12F07DD48002E908D /* narration_agentic.mp3 */; };
+		469C33EF2F07DD48002E908D /* narration_closing.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E22F07DD48002E908D /* narration_closing.mp3 */; };
+		469C33F02F07DD48002E908D /* narration_restoration.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E92F07DD48002E908D /* narration_restoration.mp3 */; };
+		469C33F12F07DD48002E908D /* narration_pattern_break.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E72F07DD48002E908D /* narration_pattern_break.mp3 */; };
+		469C33F22F07DD48002E908D /* narration_vignette_finance.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33EA2F07DD48002E908D /* narration_vignette_finance.mp3 */; };
+		469C33F32F07DD48002E908D /* narration_human_return.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E32F07DD48002E908D /* narration_human_return.mp3 */; };
+		469C33F42F07DD48002E908D /* narration_opening_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E52F07DD48002E908D /* narration_opening_2.mp3 */; };
+		469C33F52F07DD48002E908D /* narration_question.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E82F07DD48002E908D /* narration_question.mp3 */; };
+		469C33F62F07DD48002E908D /* narration_vignette_health.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33EB2F07DD48002E908D /* narration_vignette_health.mp3 */; };
+		469C33F72F07DD48002E908D /* narration_opening_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E62F07DD48002E908D /* narration_opening_3.mp3 */; };
+		469C33F82F07DD48002E908D /* narration_opening_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E42F07DD48002E908D /* narration_opening_1.mp3 */; };
+		469C33F92F07DD48002E908D /* narration_vignette_supply.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33EC2F07DD48002E908D /* narration_vignette_supply.mp3 */; };
+		469C33FB2F07E7BF002E908D /* ambient_music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33FA2F07E7BF002E908D /* ambient_music.mp3 */; };
 		46B760C32F02506700F1A587 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 46B760C02F02506700F1A587 /* README.md */; };
 		46B760C42F02506700F1A587 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760B82F02506700F1A587 /* AudioManager.swift */; };
 		46B760C52F02506700F1A587 /* ExperienceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760B92F02506700F1A587 /* ExperienceViewModel.swift */; };
@@ -37,6 +50,19 @@
 		0E001002011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0E001003001 /* InvisibleCost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvisibleCost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E001004001 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		469C33E12F07DD48002E908D /* narration_agentic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_agentic.mp3; sourceTree = "<group>"; };
+		469C33E22F07DD48002E908D /* narration_closing.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_closing.mp3; sourceTree = "<group>"; };
+		469C33E32F07DD48002E908D /* narration_human_return.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_human_return.mp3; sourceTree = "<group>"; };
+		469C33E42F07DD48002E908D /* narration_opening_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_opening_1.mp3; sourceTree = "<group>"; };
+		469C33E52F07DD48002E908D /* narration_opening_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_opening_2.mp3; sourceTree = "<group>"; };
+		469C33E62F07DD48002E908D /* narration_opening_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_opening_3.mp3; sourceTree = "<group>"; };
+		469C33E72F07DD48002E908D /* narration_pattern_break.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_pattern_break.mp3; sourceTree = "<group>"; };
+		469C33E82F07DD48002E908D /* narration_question.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_question.mp3; sourceTree = "<group>"; };
+		469C33E92F07DD48002E908D /* narration_restoration.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_restoration.mp3; sourceTree = "<group>"; };
+		469C33EA2F07DD48002E908D /* narration_vignette_finance.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_finance.mp3; sourceTree = "<group>"; };
+		469C33EB2F07DD48002E908D /* narration_vignette_health.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_health.mp3; sourceTree = "<group>"; };
+		469C33EC2F07DD48002E908D /* narration_vignette_supply.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_supply.mp3; sourceTree = "<group>"; };
+		469C33FA2F07E7BF002E908D /* ambient_music.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ambient_music.mp3; sourceTree = "<group>"; };
 		46B7609E2F024AD600F1A587 /* InvisibleCost-iPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InvisibleCost-iPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		46B760AD2F024FF500F1A587 /* InvisibleCost-iPad1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InvisibleCost-iPad1.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		46B760B82F02506700F1A587 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
@@ -134,6 +160,26 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		469C33ED2F07DD48002E908D /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				469C33FA2F07E7BF002E908D /* ambient_music.mp3 */,
+				469C33E12F07DD48002E908D /* narration_agentic.mp3 */,
+				469C33E22F07DD48002E908D /* narration_closing.mp3 */,
+				469C33E32F07DD48002E908D /* narration_human_return.mp3 */,
+				469C33E42F07DD48002E908D /* narration_opening_1.mp3 */,
+				469C33E52F07DD48002E908D /* narration_opening_2.mp3 */,
+				469C33E62F07DD48002E908D /* narration_opening_3.mp3 */,
+				469C33E72F07DD48002E908D /* narration_pattern_break.mp3 */,
+				469C33E82F07DD48002E908D /* narration_question.mp3 */,
+				469C33E92F07DD48002E908D /* narration_restoration.mp3 */,
+				469C33EA2F07DD48002E908D /* narration_vignette_finance.mp3 */,
+				469C33EB2F07DD48002E908D /* narration_vignette_health.mp3 */,
+				469C33EC2F07DD48002E908D /* narration_vignette_supply.mp3 */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
 		46B760BA2F02506700F1A587 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -147,6 +193,7 @@
 		46B760BB2F02506700F1A587 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				469C33ED2F07DD48002E908D /* Audio */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -295,6 +342,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				469C33EE2F07DD48002E908D /* narration_agentic.mp3 in Resources */,
+				469C33EF2F07DD48002E908D /* narration_closing.mp3 in Resources */,
+				469C33F02F07DD48002E908D /* narration_restoration.mp3 in Resources */,
+				469C33F12F07DD48002E908D /* narration_pattern_break.mp3 in Resources */,
+				469C33F22F07DD48002E908D /* narration_vignette_finance.mp3 in Resources */,
+				469C33F32F07DD48002E908D /* narration_human_return.mp3 in Resources */,
+				469C33F42F07DD48002E908D /* narration_opening_2.mp3 in Resources */,
+				469C33FB2F07E7BF002E908D /* ambient_music.mp3 in Resources */,
+				469C33F52F07DD48002E908D /* narration_question.mp3 in Resources */,
+				469C33F62F07DD48002E908D /* narration_vignette_health.mp3 in Resources */,
+				469C33F72F07DD48002E908D /* narration_opening_3.mp3 in Resources */,
+				469C33F82F07DD48002E908D /* narration_opening_1.mp3 in Resources */,
+				469C33F92F07DD48002E908D /* narration_vignette_supply.mp3 in Resources */,
 				46B760C32F02506700F1A587 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
