@@ -257,6 +257,30 @@ class AudioManager {
         playEffect(buffer: buffer, name: "Connection")
     }
     
+    /// Play dot appearing sound (soft crystalline ping)
+    func playDotAppear() {
+        let buffer = generateDotAppearBuffer()
+        playEffect(buffer: buffer, name: "Dot appear")
+    }
+    
+    /// Play line forming sound (stretchy connection)
+    func playLineForming() {
+        let buffer = generateLineFormingBuffer()
+        playEffect(buffer: buffer, name: "Line forming")
+    }
+    
+    /// Play sphere pulse sound (resonant breath)
+    func playSpherePulse() {
+        let buffer = generateSpherePulseBuffer()
+        playEffect(buffer: buffer, name: "Sphere pulse")
+    }
+    
+    /// Play sphere shrink sound (compression descent)
+    func playSphereShrink() {
+        let buffer = generateSphereShrinkBuffer()
+        playEffect(buffer: buffer, name: "Sphere shrink")
+    }
+    
     private func playEffect(buffer: AVAudioPCMBuffer, name: String) {
         effectPlayerNode.stop()
         effectPlayerNode.volume = effectsVolume
@@ -425,6 +449,154 @@ class AudioManager {
             let envelope = attack * decay
             
             let sample = Float(sin(2.0 * .pi * freq * t) * envelope * 0.4)
+            leftChannel[frame] = sample
+            rightChannel[frame] = sample
+        }
+        
+        return buffer
+    }
+    
+    private func generateDotAppearBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.12
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        
+        let leftChannel = buffer.floatChannelData![0]
+        let rightChannel = buffer.floatChannelData![1]
+        
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let progress = t / duration
+            
+            // Crystalline ping - high frequency with slight wobble
+            let baseFreq = 1200.0
+            let wobble = sin(t * 40.0) * 50.0
+            let freq = baseFreq + wobble - 200.0 * progress
+            
+            // Sharp attack, bell-like decay
+            let attack = min(t / 0.01, 1.0)
+            let decay = exp(-t * 25.0)
+            let envelope = attack * decay
+            
+            // Add sparkle with harmonics
+            let fundamental = sin(2.0 * .pi * freq * t) * 0.4
+            let harmonic = sin(2.0 * .pi * freq * 2.5 * t) * 0.15 * decay
+            
+            let sample = Float((fundamental + harmonic) * envelope)
+            leftChannel[frame] = sample
+            rightChannel[frame] = sample
+        }
+        
+        return buffer
+    }
+    
+    private func generateLineFormingBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.25
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        
+        let leftChannel = buffer.floatChannelData![0]
+        let rightChannel = buffer.floatChannelData![1]
+        
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let progress = t / duration
+            
+            // Stretching/zipping sound - frequency glide
+            let freq = 300.0 + 500.0 * progress * progress
+            
+            // Soft envelope with sustain
+            let attack = min(t / 0.05, 1.0)
+            let sustain = 1.0 - progress * 0.3
+            let decay = max(0, 1.0 - max(0, t - 0.15) / 0.1)
+            let envelope = attack * sustain * decay
+            
+            // Dual oscillator for thickness
+            let osc1 = sin(2.0 * .pi * freq * t)
+            let osc2 = sin(2.0 * .pi * (freq * 1.02) * t) // Slight detune
+            
+            let sample = Float((osc1 * 0.3 + osc2 * 0.2) * envelope)
+            leftChannel[frame] = sample
+            rightChannel[frame] = sample
+        }
+        
+        return buffer
+    }
+    
+    private func generateSpherePulseBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.5
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        
+        let leftChannel = buffer.floatChannelData![0]
+        let rightChannel = buffer.floatChannelData![1]
+        
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let progress = t / duration
+            
+            // Deep resonant pulse - breathing sound
+            let baseFreq = 120.0
+            let freq = baseFreq + 30.0 * sin(t * 6.0) // Subtle frequency modulation
+            
+            // Breath-like envelope (in and out)
+            let breathCurve = sin(.pi * progress)
+            let envelope = breathCurve * 0.6
+            
+            // Rich harmonics for depth
+            let fundamental = sin(2.0 * .pi * freq * t) * 0.4
+            let harmonic1 = sin(2.0 * .pi * freq * 2.0 * t) * 0.2
+            let harmonic2 = sin(2.0 * .pi * freq * 3.0 * t) * 0.1
+            let subHarmonic = sin(2.0 * .pi * freq * 0.5 * t) * 0.15
+            
+            let sample = Float((fundamental + harmonic1 + harmonic2 + subHarmonic) * envelope)
+            leftChannel[frame] = sample
+            rightChannel[frame] = sample
+        }
+        
+        return buffer
+    }
+    
+    private func generateSphereShrinkBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.8
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        
+        let leftChannel = buffer.floatChannelData![0]
+        let rightChannel = buffer.floatChannelData![1]
+        
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let progress = t / duration
+            
+            // Compression descent - frequency drops, gets denser
+            let startFreq = 600.0
+            let endFreq = 150.0
+            let freq = startFreq - (startFreq - endFreq) * progress * progress
+            
+            // Compress envelope - gets tighter
+            let attack = min(t / 0.1, 1.0)
+            let sustain = 1.0 - progress * 0.5
+            let tail = max(0, 1.0 - max(0, t - 0.5) / 0.3)
+            let envelope = attack * sustain * tail
+            
+            // Layered oscillators with increasing density
+            let osc1 = sin(2.0 * .pi * freq * t)
+            let osc2 = sin(2.0 * .pi * freq * 1.5 * t) * (0.5 + progress * 0.5)
+            let osc3 = sin(2.0 * .pi * freq * 2.0 * t) * progress * 0.3
+            
+            // Add subtle vibrato for tension
+            let vibrato = 1.0 + 0.05 * sin(t * 30.0 * (1 + progress))
+            
+            let sample = Float((osc1 * 0.35 + osc2 * 0.15 + osc3 * 0.1) * envelope * vibrato)
             leftChannel[frame] = sample
             rightChannel[frame] = sample
         }

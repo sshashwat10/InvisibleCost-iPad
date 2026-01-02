@@ -187,25 +187,69 @@ struct NarrativeView: View {
             
         case .agenticOrchestration:
             // Phase duration: 35s
+            // Animation phases: dots appear (0-25%), lines form (20-45%), pulse (40-60%), shrink (55-70%), text (60-75%)
+            
             triggerOnce("reveal") {
                 audioManager.playReveal()
             }
-            // Sphere forming sound at start
-            triggerOnce("sphere_start") {
-                audioManager.playSphereForming()
+            
+            // === DOTS APPEARING (0-25%) ===
+            // Crystalline pings as each dot materializes
+            triggerAtProgress("dot_1", threshold: 0.04, progress: progress) {
+                audioManager.playDotAppear()
             }
-            // Connection sounds as nodes connect (multiple triggers)
-            triggerAtProgress("connect_1", threshold: 0.15, progress: progress) {
-                audioManager.playConnection()
+            triggerAtProgress("dot_2", threshold: 0.08, progress: progress) {
+                audioManager.playDotAppear()
             }
-            triggerAtProgress("connect_2", threshold: 0.25, progress: progress) {
-                audioManager.playConnection()
+            triggerAtProgress("dot_3", threshold: 0.12, progress: progress) {
+                audioManager.playDotAppear()
             }
-            triggerAtProgress("connect_3", threshold: 0.35, progress: progress) {
-                audioManager.playConnection()
+            triggerAtProgress("dot_4", threshold: 0.16, progress: progress) {
+                audioManager.playDotAppear()
             }
+            triggerAtProgress("dot_5", threshold: 0.20, progress: progress) {
+                audioManager.playDotAppear()
+            }
+            triggerAtProgress("dot_6", threshold: 0.24, progress: progress) {
+                audioManager.playDotAppear()
+            }
+            
+            // === LINES FORMING (20-45%) ===
+            // Stretchy zipping sounds as connections draw
+            triggerAtProgress("line_1", threshold: 0.22, progress: progress) {
+                audioManager.playLineForming()
+            }
+            triggerAtProgress("line_2", threshold: 0.28, progress: progress) {
+                audioManager.playLineForming()
+            }
+            triggerAtProgress("line_3", threshold: 0.34, progress: progress) {
+                audioManager.playLineForming()
+            }
+            triggerAtProgress("line_4", threshold: 0.40, progress: progress) {
+                audioManager.playLineForming()
+            }
+            
+            // === PULSING (40-60%) ===
+            // Deep resonant breathing pulses
+            triggerAtProgress("pulse_1", threshold: 0.42, progress: progress) {
+                audioManager.playSpherePulse()
+            }
+            triggerAtProgress("pulse_2", threshold: 0.50, progress: progress) {
+                audioManager.playSpherePulse()
+            }
+            triggerAtProgress("pulse_3", threshold: 0.54, progress: progress) {
+                audioManager.playSpherePulse()
+            }
+            
+            // === SHRINKING (55-70%) ===
+            // Compression descent sound
+            triggerAtProgress("shrink", threshold: 0.56, progress: progress) {
+                audioManager.playSphereShrink()
+            }
+            
+            // === TEXT APPEARS (60-75%) ===
             // Narration when text appears
-            triggerAtProgress("agentic", threshold: 0.60, progress: progress) {
+            triggerAtProgress("agentic", threshold: 0.65, progress: progress) {
                 audioManager.playNarration(for: "agentic")
             }
             
@@ -252,7 +296,7 @@ struct NarrativeView: View {
     }
     
     /// Trigger action when progress crosses threshold (once per phase)
-    private func triggerAtProgress(_ key: String, threshold: Double, progress: Double, action: () -> Void) {
+    private func triggerAtProgress(_ key: String, threshold: Double, progress: Double, action: @escaping () -> Void) {
         guard !audioTriggered.contains(key) else { return }
         if progress >= threshold {
             audioTriggered.insert(key)

@@ -983,26 +983,99 @@ struct AgenticOrchestrationAnimation: View {
             let shrinkPhase = min(1.0, max(0, (progress - 0.55) / 0.15))  // 55-70%: sphere shrinks
             let textPhase = min(1.0, max(0, (progress - 0.60) / 0.15))    // 60-75%: text appears
             
-            // Sphere scale (shrinks when text appears)
-            let sphereScale = 1.0 - shrinkPhase * 0.45
-            let sphereOffsetY = shrinkPhase * -80
+            // Enhanced shrink with easing curve (ease-in-out cubic)
+            let shrinkEased = shrinkPhase < 0.5 
+                ? 4 * shrinkPhase * shrinkPhase * shrinkPhase 
+                : 1 - pow(-2 * shrinkPhase + 2, 3) / 2
+            
+            // Sphere scale with smoother easing
+            let sphereScale = 1.0 - shrinkEased * 0.55
+            let sphereOffsetY = shrinkEased * -90
+            
+            // Shrink intensity effects
+            let shrinkIntensity = shrinkPhase > 0 ? sin(shrinkPhase * .pi) : 0 // Peak at middle of shrink
+            let compressionGlow = shrinkPhase > 0.8 ? (shrinkPhase - 0.8) / 0.2 : 0 // Flash at end
             
             ZStack {
                 Color.black.ignoresSafeArea()
                 
                 // Ambient background particles (reduced for 60fps)
                 Canvas { context, size in
+                    let centerX = size.width / 2
+                    let centerY = size.height / 2 + CGFloat(sphereOffsetY)
+                    
                     for i in 0..<25 {
                         let seed = Double(i) * 1.618
-                        let x = (sin(time * 0.12 + seed * 2) * 0.5 + 0.5) * size.width
-                        let y = (cos(time * 0.08 + seed * 1.5) * 0.5 + 0.5) * size.height
+                        var x = (sin(time * 0.12 + seed * 2) * 0.5 + 0.5) * size.width
+                        var y = (cos(time * 0.08 + seed * 1.5) * 0.5 + 0.5) * size.height
                         let pulse = sin(time * 1.2 + seed) * 0.5 + 0.5
+                        
+                        // During shrink, particles get pulled toward center
+                        if shrinkPhase > 0 {
+                            let pullStrength = shrinkEased * 0.7
+                            x = x + (centerX - x) * CGFloat(pullStrength)
+                            y = y + (centerY - y) * CGFloat(pullStrength)
+                        }
+                        
                         let particleSize: CGFloat = 1.5 + CGFloat(pulse) * 2
                         
                         context.fill(
                             Circle().path(in: CGRect(x: x, y: y, width: particleSize, height: particleSize)),
                             with: .color(primaryTeal.opacity(0.06 + pulse * 0.06))
                         )
+                    }
+                    
+                    // Converging energy particles during shrink
+                    if shrinkPhase > 0 {
+                        for i in 0..<20 {
+                            let angle = Double(i) * .pi * 2 / 20 + time * 2
+                            let maxRadius = min(size.width, size.height) * 0.6
+                            let radius = maxRadius * (1.0 - shrinkEased * 0.9)
+                            
+                            let px = centerX + CGFloat(cos(angle) * radius)
+                            let py = centerY + CGFloat(sin(angle) * radius)
+                            
+                            // Trail effect
+                            for t in 0..<4 {
+                                let trailRadius = radius + CGFloat(t) * 15
+                                let trailX = centerX + CGFloat(cos(angle) * trailRadius)
+                                let trailY = centerY + CGFloat(sin(angle) * trailRadius)
+                                let trailOpacity = (1.0 - Double(t) / 4.0) * shrinkIntensity * 0.4
+                                let trailSize: CGFloat = 3 - CGFloat(t) * 0.5
+                                
+                                context.fill(
+                                    Circle().path(in: CGRect(x: trailX - trailSize, y: trailY - trailSize,
+                                                              width: trailSize * 2, height: trailSize * 2)),
+                                    with: .color(glowTeal.opacity(trailOpacity))
+                                )
+                            }
+                            
+                            // Main particle
+                            let particleGlow = 3 + CGFloat(shrinkIntensity) * 3
+                            context.fill(
+                                Circle().path(in: CGRect(x: px - particleGlow, y: py - particleGlow,
+                                                          width: particleGlow * 2, height: particleGlow * 2)),
+                                with: .color(glowTeal.opacity(0.6 * shrinkIntensity))
+                            )
+                        }
+                    }
+                    
+                    // Shockwave rings expanding outward at end of shrink
+                    if compressionGlow > 0 {
+                        for ring in 0..<3 {
+                            let ringDelay = Double(ring) * 0.15
+                            let ringProgress = max(0, compressionGlow - ringDelay) / (1.0 - ringDelay)
+                            if ringProgress > 0 {
+                                let ringRadius = CGFloat(ringProgress) * min(size.width, size.height) * 0.4
+                                let ringOpacity = (1.0 - ringProgress) * 0.5
+                                
+                                var ringPath = Path()
+                                ringPath.addEllipse(in: CGRect(x: centerX - ringRadius, y: centerY - ringRadius,
+                                                                width: ringRadius * 2, height: ringRadius * 2))
+                                context.stroke(ringPath, with: .color(glowTeal.opacity(ringOpacity)), 
+                                             lineWidth: 2 - CGFloat(ringProgress))
+                            }
+                        }
                     }
                 }
                 
@@ -1012,9 +1085,10 @@ struct AgenticOrchestrationAnimation: View {
                     let baseRadius: CGFloat = min(size.width, size.height) * 0.30
                     let sphereRadius = baseRadius * CGFloat(sphereScale)
                     
-                    // Rotation over time for 3D effect
-                    let rotationY = time * 0.2
-                    let rotationX = sin(time * 0.1) * 0.2
+                    // Rotation over time for 3D effect (accelerates during shrink)
+                    let rotationSpeed = 0.2 + shrinkPhase * 0.6 // Speed up as it shrinks
+                    let rotationY = time * rotationSpeed
+                    let rotationX = sin(time * 0.1) * 0.2 + shrinkPhase * 0.15
                     
                     // Calculate 3D positions of all points
                     var screenPoints: [(pos: CGPoint, z: Double, visible: Bool)] = []
@@ -1046,18 +1120,79 @@ struct AgenticOrchestrationAnimation: View {
                         }
                     }
                     
-                    // Outer glow
-                    let glowRadius = sphereRadius * 1.6
+                    // Enhanced outer glow with multiple layers
+                    let glowRadius = sphereRadius * 1.8
+                    
+                    // Outer diffuse glow
+                    context.fill(
+                        Circle().path(in: CGRect(x: center.x - glowRadius * 1.3, y: center.y - glowRadius * 1.3,
+                                                  width: glowRadius * 2.6, height: glowRadius * 2.6)),
+                        with: .radialGradient(
+                            Gradient(colors: [
+                                primaryTeal.opacity(0.08 + pulsePhase * 0.08),
+                                primaryTeal.opacity(0.03),
+                                .clear
+                            ]),
+                            center: center, startRadius: 0, endRadius: glowRadius * 1.3
+                        )
+                    )
+                    
+                    // Mid glow layer
                     context.fill(
                         Circle().path(in: CGRect(x: center.x - glowRadius, y: center.y - glowRadius,
                                                   width: glowRadius * 2, height: glowRadius * 2)),
                         with: .radialGradient(
-                            Gradient(colors: [primaryTeal.opacity(0.2 + pulsePhase * 0.15), .clear]),
-                            center: center, startRadius: 0, endRadius: glowRadius
+                            Gradient(colors: [
+                                glowTeal.opacity(0.25 + pulsePhase * 0.2),
+                                primaryTeal.opacity(0.12 + pulsePhase * 0.1),
+                                .clear
+                            ]),
+                            center: center, startRadius: sphereRadius * 0.5, endRadius: glowRadius
                         )
                     )
                     
-                    // Draw connections between nearby points
+                    // Energy waves expanding during formation
+                    if pointsAppear > 0.3 && pointsAppear < 1.0 {
+                        for wave in 0..<2 {
+                            let waveDelay = Double(wave) * 0.3
+                            let waveProgress = fmod((pointsAppear - waveDelay) * 2, 1.0)
+                            if waveProgress > 0 {
+                                let waveRadius = sphereRadius * (0.8 + CGFloat(waveProgress) * 0.6)
+                                let waveOpacity = (1.0 - waveProgress) * 0.4
+                                
+                                var wavePath = Path()
+                                wavePath.addEllipse(in: CGRect(x: center.x - waveRadius, y: center.y - waveRadius,
+                                                               width: waveRadius * 2, height: waveRadius * 2))
+                                context.stroke(wavePath, with: .color(glowTeal.opacity(waveOpacity)), lineWidth: 2)
+                            }
+                        }
+                    }
+                    
+                    // Rotating energy rings during connection phase
+                    if connectPhase > 0.2 {
+                        for ring in 0..<3 {
+                            let ringAngle = time * 0.5 + Double(ring) * .pi * 2 / 3
+                            let ringRadius = sphereRadius * 1.3
+                            
+                            // Draw arc segments
+                            for segment in 0..<8 {
+                                let segmentAngle = Double(segment) * .pi / 4 + ringAngle
+                                let arcStart = segmentAngle
+                                let arcEnd = segmentAngle + .pi / 8
+                                
+                                var arcPath = Path()
+                                arcPath.addArc(center: center, radius: ringRadius, 
+                                             startAngle: Angle(radians: arcStart), 
+                                             endAngle: Angle(radians: arcEnd), 
+                                             clockwise: false)
+                                
+                                let segmentOpacity = (sin(time * 2 + segmentAngle) * 0.5 + 0.5) * connectPhase * 0.3
+                                context.stroke(arcPath, with: .color(glowTeal.opacity(segmentOpacity)), lineWidth: 1.5)
+                            }
+                        }
+                    }
+                    
+                    // Draw connections between nearby points with enhanced effects
                     if connectPhase > 0 {
                         for i in 0..<screenPoints.count {
                             guard screenPoints[i].visible else { continue }
@@ -1077,29 +1212,66 @@ struct AgenticOrchestrationAnimation: View {
                                     let connProgress = min(1.0, max(0, (connectPhase - connectionIndex * 0.5) * 2.5))
                                     
                                     if connProgress > 0 {
-                                        var line = Path()
-                                        line.move(to: p1.pos)
-                                        
                                         // Partial line draw effect
                                         let endX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(connProgress)
                                         let endY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(connProgress)
-                                        line.addLine(to: CGPoint(x: endX, y: endY))
+                                        let endPoint = CGPoint(x: endX, y: endY)
                                         
                                         // Depth-based opacity
                                         let avgZ = (p1.z + p2.z) / 2
-                                        let depthOpacity = 0.15 + max(0, avgZ) * 0.2
+                                        let depthOpacity = 0.2 + max(0, avgZ) * 0.25
                                         
-                                        context.stroke(line, with: .color(primaryTeal.opacity(depthOpacity * connProgress)), lineWidth: 0.8)
+                                        // GLOW LAYER - wider, softer
+                                        var glowLine = Path()
+                                        glowLine.move(to: p1.pos)
+                                        glowLine.addLine(to: endPoint)
+                                        context.stroke(glowLine, with: .color(glowTeal.opacity(depthOpacity * connProgress * 0.4)), lineWidth: 4)
                                         
-                                        // Pulse traveling along connection
+                                        // MAIN LINE - with gradient
+                                        var line = Path()
+                                        line.move(to: p1.pos)
+                                        line.addLine(to: endPoint)
+                                        context.stroke(line, with: .linearGradient(
+                                            Gradient(colors: [primaryTeal.opacity(depthOpacity * connProgress * 0.6), 
+                                                            glowTeal.opacity(depthOpacity * connProgress)]),
+                                            startPoint: p1.pos,
+                                            endPoint: endPoint
+                                        ), lineWidth: 1.2)
+                                        
+                                        // ELECTRIC SPARK at connection tip (when forming)
+                                        if connProgress > 0.1 && connProgress < 0.95 {
+                                            let sparkIntensity = sin(connProgress * .pi) // Peak in middle
+                                            let sparkSize: CGFloat = 4 + CGFloat(sparkIntensity) * 4
+                                            context.fill(
+                                                Circle().path(in: CGRect(x: endX - sparkSize, y: endY - sparkSize,
+                                                                          width: sparkSize * 2, height: sparkSize * 2)),
+                                                with: .radialGradient(
+                                                    Gradient(colors: [Color.white.opacity(0.9 * sparkIntensity), 
+                                                                     glowTeal.opacity(0.5 * sparkIntensity), .clear]),
+                                                    center: endPoint, startRadius: 0, endRadius: sparkSize
+                                                )
+                                            )
+                                        }
+                                        
+                                        // Pulse traveling along connection (enhanced)
                                         if pulsePhase > 0.3 {
                                             let pulseT = fmod(time * 1.5 + connectionIndex * 3, 1.0)
                                             let pulseX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(pulseT)
                                             let pulseY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(pulseT)
+                                            let pulseCenter = CGPoint(x: pulseX, y: pulseY)
                                             
+                                            // Glow around pulse
+                                            context.fill(
+                                                Circle().path(in: CGRect(x: pulseX - 6, y: pulseY - 6, width: 12, height: 12)),
+                                                with: .radialGradient(
+                                                    Gradient(colors: [glowTeal.opacity(0.8 * pulsePhase), .clear]),
+                                                    center: pulseCenter, startRadius: 0, endRadius: 6
+                                                )
+                                            )
+                                            // Bright core
                                             context.fill(
                                                 Circle().path(in: CGRect(x: pulseX - 2, y: pulseY - 2, width: 4, height: 4)),
-                                                with: .color(glowTeal.opacity(0.7 * pulsePhase))
+                                                with: .color(Color.white.opacity(0.9 * pulsePhase))
                                             )
                                         }
                                     }
@@ -1108,48 +1280,146 @@ struct AgenticOrchestrationAnimation: View {
                         }
                     }
                     
-                    // Draw points (nodes)
+                    // Draw points (nodes) with enhanced effects
                     for (i, point) in screenPoints.enumerated() {
                         guard point.visible else { continue }
                         
                         let pointProgress = min(1.0, max(0, (pointsAppear * Double(spherePoints.count) - Double(i)) * 1.5))
+                        let isNewlyAppearing = pointProgress > 0.1 && pointProgress < 0.9
+                        let appearBurst = sin(pointProgress * .pi) // Peak when point is half-formed
                         
                         // Depth-based sizing
                         let depth = (point.z + 1) / 2
-                        let baseSize: CGFloat = 4 + CGFloat(depth) * 4
+                        let baseSize: CGFloat = 4 + CGFloat(depth) * 5
                         let nodeSize = baseSize * CGFloat(pointProgress)
                         
-                        // Glow (stronger when pulsing)
-                        let glowSize = nodeSize * (1.5 + CGFloat(pulsePhase) * 0.5)
+                        // ENTRY BURST - sparkle when node appears
+                        if isNewlyAppearing {
+                            // Outer starburst rays
+                            for ray in 0..<6 {
+                                let rayAngle = Double(ray) * .pi / 3 + time * 2 + Double(i) * 0.5
+                                let rayLength = nodeSize * 3 * CGFloat(appearBurst)
+                                let rayEndX = point.pos.x + CGFloat(cos(rayAngle)) * rayLength
+                                let rayEndY = point.pos.y + CGFloat(sin(rayAngle)) * rayLength
+                                
+                                var rayPath = Path()
+                                rayPath.move(to: point.pos)
+                                rayPath.addLine(to: CGPoint(x: rayEndX, y: rayEndY))
+                                context.stroke(rayPath, with: .linearGradient(
+                                    Gradient(colors: [Color.white.opacity(0.8 * appearBurst), .clear]),
+                                    startPoint: point.pos,
+                                    endPoint: CGPoint(x: rayEndX, y: rayEndY)
+                                ), lineWidth: 1.5)
+                            }
+                            
+                            // Expanding ring
+                            let ringSize = nodeSize * 2.5 * CGFloat(appearBurst)
+                            var ringPath = Path()
+                            ringPath.addEllipse(in: CGRect(x: point.pos.x - ringSize, y: point.pos.y - ringSize,
+                                                           width: ringSize * 2, height: ringSize * 2))
+                            context.stroke(ringPath, with: .color(glowTeal.opacity(0.6 * (1 - appearBurst))), lineWidth: 1)
+                        }
+                        
+                        // OUTER GLOW (stronger when pulsing, larger on appear)
+                        let glowMultiplier = isNewlyAppearing ? (1.5 + CGFloat(appearBurst) * 1.5) : (1.5 + CGFloat(pulsePhase) * 0.5)
+                        let glowSize = nodeSize * glowMultiplier
                         context.fill(
                             Circle().path(in: CGRect(x: point.pos.x - glowSize, y: point.pos.y - glowSize,
                                                       width: glowSize * 2, height: glowSize * 2)),
-                            with: .color(glowTeal.opacity((0.15 + pulsePhase * 0.1) * (0.5 + depth * 0.5)))
+                            with: .radialGradient(
+                                Gradient(colors: [
+                                    glowTeal.opacity((0.25 + pulsePhase * 0.15 + appearBurst * 0.2) * (0.5 + depth * 0.5)),
+                                    primaryTeal.opacity(0.1 * (0.5 + depth * 0.5)),
+                                    .clear
+                                ]),
+                                center: point.pos, startRadius: 0, endRadius: glowSize
+                            )
                         )
                         
-                        // Core node
+                        // MID GLOW RING
+                        let midGlowSize = nodeSize * 1.2
+                        context.fill(
+                            Circle().path(in: CGRect(x: point.pos.x - midGlowSize, y: point.pos.y - midGlowSize,
+                                                      width: midGlowSize * 2, height: midGlowSize * 2)),
+                            with: .radialGradient(
+                                Gradient(colors: [glowTeal.opacity(0.5 + depth * 0.3), primaryTeal.opacity(0.2), .clear]),
+                                center: point.pos, startRadius: nodeSize * 0.3, endRadius: midGlowSize
+                            )
+                        )
+                        
+                        // CORE NODE with gradient
                         context.fill(
                             Circle().path(in: CGRect(x: point.pos.x - nodeSize / 2, y: point.pos.y - nodeSize / 2,
                                                       width: nodeSize, height: nodeSize)),
-                            with: .color(glowTeal.opacity(0.7 + depth * 0.3))
+                            with: .radialGradient(
+                                Gradient(colors: [Color.white.opacity(0.9), glowTeal, primaryTeal.opacity(0.8)]),
+                                center: point.pos, startRadius: 0, endRadius: nodeSize / 2
+                            )
                         )
                         
-                        // Bright center for pulsing effect
+                        // BRIGHT CENTER - pulsing effect (enhanced)
                         if pulsePhase > 0.2 {
                             let pulseIntensity = sin(time * 3 + Double(i) * 0.3) * 0.5 + 0.5
-                            let brightSize = nodeSize * 0.5 * CGFloat(pulseIntensity * pulsePhase)
+                            let brightSize = nodeSize * 0.6 * CGFloat(pulseIntensity * pulsePhase)
+                            
+                            // Glow around bright center
+                            context.fill(
+                                Circle().path(in: CGRect(x: point.pos.x - brightSize * 1.5, y: point.pos.y - brightSize * 1.5,
+                                                          width: brightSize * 3, height: brightSize * 3)),
+                                with: .radialGradient(
+                                    Gradient(colors: [Color.white.opacity(0.5 * pulsePhase * pulseIntensity), .clear]),
+                                    center: point.pos, startRadius: 0, endRadius: brightSize * 1.5
+                                )
+                            )
+                            
                             context.fill(
                                 Circle().path(in: CGRect(x: point.pos.x - brightSize / 2, y: point.pos.y - brightSize / 2,
                                                           width: brightSize, height: brightSize)),
-                                with: .color(Color.white.opacity(0.8 * pulsePhase * pulseIntensity))
+                                with: .color(Color.white.opacity(0.95 * pulsePhase * pulseIntensity))
                             )
+                        }
+                        
+                        // ORBITING MICRO-PARTICLES during pulse
+                        if pulsePhase > 0.5 && depth > 0.4 {
+                            for orbit in 0..<3 {
+                                let orbitAngle = time * 4 + Double(orbit) * .pi * 2 / 3 + Double(i)
+                                let orbitRadius = nodeSize * 1.8
+                                let orbitX = point.pos.x + CGFloat(cos(orbitAngle)) * orbitRadius
+                                let orbitY = point.pos.y + CGFloat(sin(orbitAngle)) * orbitRadius
+                                
+                                context.fill(
+                                    Circle().path(in: CGRect(x: orbitX - 1.5, y: orbitY - 1.5, width: 3, height: 3)),
+                                    with: .color(Color.white.opacity(0.6 * pulsePhase))
+                                )
+                            }
                         }
                     }
                     
-                    // Central core (appears during pulse phase)
+                    // Central core (appears during pulse phase, intensifies during shrink)
                     if pulsePhase > 0 {
-                        let coreSize = sphereRadius * 0.12 * CGFloat(pulsePhase)
+                        // Core grows more intense during shrink
+                        let shrinkBoost = 1.0 + shrinkIntensity * 0.8
+                        let coreSize = sphereRadius * 0.12 * CGFloat(pulsePhase) * CGFloat(shrinkBoost)
                         let corePulse = 1.0 + sin(time * 4) * 0.15
+                        
+                        // Outer glow ring during shrink
+                        if shrinkPhase > 0 {
+                            let glowRingSize = coreSize * 3 * CGFloat(1 + shrinkIntensity * 0.5)
+                            context.fill(
+                                Circle().path(in: CGRect(x: center.x - glowRingSize,
+                                                          y: center.y - glowRingSize,
+                                                          width: glowRingSize * 2,
+                                                          height: glowRingSize * 2)),
+                                with: .radialGradient(
+                                    Gradient(colors: [
+                                        glowTeal.opacity(0.4 * shrinkIntensity),
+                                        primaryTeal.opacity(0.2 * shrinkIntensity),
+                                        .clear
+                                    ]),
+                                    center: center, startRadius: 0, endRadius: glowRingSize
+                                )
+                            )
+                        }
                         
                         context.fill(
                             Circle().path(in: CGRect(x: center.x - coreSize * CGFloat(corePulse),
@@ -1161,6 +1431,50 @@ struct AgenticOrchestrationAnimation: View {
                                 center: center, startRadius: 0, endRadius: coreSize * CGFloat(corePulse)
                             )
                         )
+                        
+                        // Bright flash at compression peak
+                        if compressionGlow > 0 {
+                            let flashSize = sphereRadius * 0.5 * CGFloat(compressionGlow)
+                            context.fill(
+                                Circle().path(in: CGRect(x: center.x - flashSize,
+                                                          y: center.y - flashSize,
+                                                          width: flashSize * 2,
+                                                          height: flashSize * 2)),
+                                with: .radialGradient(
+                                    Gradient(colors: [
+                                        Color.white.opacity(0.9 * compressionGlow),
+                                        glowTeal.opacity(0.6 * compressionGlow),
+                                        .clear
+                                    ]),
+                                    center: center, startRadius: 0, endRadius: flashSize
+                                )
+                            )
+                        }
+                    }
+                    
+                    // Light rays converging during shrink
+                    if shrinkPhase > 0.1 && shrinkPhase < 0.95 {
+                        for ray in 0..<12 {
+                            let angle = Double(ray) * .pi * 2 / 12
+                            let rayLength = sphereRadius * 1.5 * CGFloat(1 - shrinkEased * 0.6)
+                            
+                            let startX = center.x + CGFloat(cos(angle)) * rayLength
+                            let startY = center.y + CGFloat(sin(angle)) * rayLength
+                            let endX = center.x + CGFloat(cos(angle)) * sphereRadius * 0.3
+                            let endY = center.y + CGFloat(sin(angle)) * sphereRadius * 0.3
+                            
+                            var rayPath = Path()
+                            rayPath.move(to: CGPoint(x: startX, y: startY))
+                            rayPath.addLine(to: CGPoint(x: endX, y: endY))
+                            
+                            context.stroke(rayPath, 
+                                         with: .linearGradient(
+                                            Gradient(colors: [.clear, glowTeal.opacity(0.3 * shrinkIntensity)]),
+                                            startPoint: CGPoint(x: startX, y: startY),
+                                            endPoint: CGPoint(x: endX, y: endY)
+                                         ),
+                                         lineWidth: 2)
+                        }
                     }
                 }
                 
