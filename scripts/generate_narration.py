@@ -158,8 +158,8 @@ NARRATION_LINES = [
     },
     {
         "key": "question",
-        "text": "AutomationAnywhere gives you the power to lead in a world that demands more.",
-        "note": "Single word, no hyphen needed - TTS handles it"
+        "text": "With Automationanywhere, you have the power to lead in a world that demands more.",
+        "note": "Added 'With' before - comma after forces pause AFTER not during the name"
     },
     {
         "key": "final_cta",

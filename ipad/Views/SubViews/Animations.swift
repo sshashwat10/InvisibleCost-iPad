@@ -1668,298 +1668,177 @@ struct AgenticOrchestrationAnimation: View {
 }
 
 // MARK: - Human Return (02:45-03:30)
-/// Cinematic reveal: Human silhouette emerges from the network, potential restored
-// MARK: - Human Return: "GRAVITY RELEASE"
-/// Figure weighted by chains that dissolve, then rises into light - anti-gravity liberation
+/// Original animation with teal/blue arcs, particles, and figure
 struct HumanReturnAnimation: View {
     var progress: Double
     
-    // Colors - cinematic palette
-    private let chainGray = Color(red: 0.35, green: 0.35, blue: 0.4)
-    private let liberationGold = Color(red: 1.0, green: 0.85, blue: 0.5)
-    private let skyLight = Color(red: 0.7, green: 0.85, blue: 1.0)
-    private let deepDark = Color(red: 0.03, green: 0.03, blue: 0.06)
-    
-    // Chain/anchor data - visible weights holding figure down
-    private struct ChainAnchor {
-        let id: Int
-        let attachX: CGFloat      // Where it attaches to figure (-1 to 1, relative)
-        let attachY: CGFloat      // Vertical attachment point
-        let icon: String          // The weight icon
-        let dissolveDelay: Double // When it starts dissolving
-    }
-    
-    private let chains: [ChainAnchor] = [
-        ChainAnchor(id: 0, attachX: -0.6, attachY: 0.3, icon: "envelope.badge", dissolveDelay: 0.10),
-        ChainAnchor(id: 1, attachX: 0.6, attachY: 0.35, icon: "clock.badge.exclamationmark", dissolveDelay: 0.15),
-        ChainAnchor(id: 2, attachX: -0.3, attachY: 0.5, icon: "doc.on.doc", dissolveDelay: 0.20),
-        ChainAnchor(id: 3, attachX: 0.35, attachY: 0.55, icon: "chart.bar.doc.horizontal", dissolveDelay: 0.25),
-        ChainAnchor(id: 4, attachX: 0.0, attachY: 0.7, icon: "tray.2.fill", dissolveDelay: 0.30),
-    ]
-    
     var body: some View {
         TimelineView(.animation) { timeline in
-            let time = timeline.date.timeIntervalSinceReferenceDate
-            
-            // Animation phases - cinematic timing
-            let chainsPhase = min(1.0, progress / 0.35)                    // 0-35%: chains visible, dissolving
-            let dissolvePhase = min(1.0, max(0, (progress - 0.15) / 0.35)) // 15-50%: chains dissolve
-            let risePhase = min(1.0, max(0, (progress - 0.40) / 0.35))     // 40-75%: figure rises
-            let gloryPhase = min(1.0, max(0, (progress - 0.65) / 0.35))    // 65-100%: full liberation
-            let textPhase = min(1.0, max(0, (progress - 0.50) / 0.30))     // 50-80%: text appears
-            
-            GeometryReader { geo in
-                let centerX = geo.size.width / 2
-                let centerY = geo.size.height * 0.45
-                let figureSize: CGFloat = 130
+            HumanReturnContent(progress: progress, time: timeline.date.timeIntervalSinceReferenceDate)
+        }
+    }
+}
+
+// Extracted to help compiler
+private struct HumanReturnContent: View {
+    let progress: Double
+    let time: Double
+    
+    // Colors - teal/cyan theme
+    private let accentBlue = Color(red: 0.0, green: 0.6, blue: 0.75)
+    private let glowBlue = Color(red: 0.1, green: 0.7, blue: 0.85)
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                // Background gradient
+                backgroundView
                 
-                // Figure rises as chains dissolve
-                let figureRiseY = centerY - (risePhase * 80) - sin(time * 0.8) * (risePhase * 10)
+                // Light rays
+                lightRaysView(size: geo.size)
                 
-                ZStack {
-                    // ═══════════════════════════════════════════════════════════════
-                    // BACKGROUND: Dark abyss to light sky
-                    // ═══════════════════════════════════════════════════════════════
-                    LinearGradient(
-                        colors: [
-                            deepDark.opacity(1 - gloryPhase * 0.95),
-                            Color(white: 0.1 + gloryPhase * 0.85),
-                            skyLight.opacity(gloryPhase)
-                        ],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                    .ignoresSafeArea()
+                // Energy arcs
+                arcsView(size: geo.size)
+                
+                // Central figure
+                figureView(size: geo.size)
+            }
+        }
+        .drawingGroup()
+    }
+    
+    private var backgroundView: some View {
+        LinearGradient(
+            colors: [
+                Color(white: 0.02 + 0.96 * progress),
+                Color(white: 0.04 + 0.94 * progress),
+                Color(white: 0.06 + 0.92 * progress)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+    
+    private func lightRaysView(size: CGSize) -> some View {
+        let center = CGPoint(x: size.width / 2, y: size.height * 0.35)
+        
+        return Canvas { context, _ in
+            let rayCount = 24
+            for i in 0..<rayCount {
+                let angle = Double(i) * (2 * .pi / Double(rayCount)) + time * 0.02
+                let rayLength = size.width * (0.4 + sin(time * 0.5 + Double(i)) * 0.1)
+                let rayWidth: CGFloat = 25 + CGFloat(sin(time + Double(i) * 0.3)) * 10
+                
+                let endX = center.x + CGFloat(cos(angle)) * rayLength
+                let endY = center.y + CGFloat(sin(angle)) * rayLength
+                
+                var ray = Path()
+                ray.move(to: center)
+                ray.addLine(to: CGPoint(x: endX, y: endY))
+                
+                let rayOpacity = (0.03 + sin(time * 0.8 + Double(i)) * 0.02) * progress
+                context.stroke(ray, with: .color(glowBlue.opacity(rayOpacity)), lineWidth: rayWidth)
+            }
+        }
+        .blur(radius: 30)
+    }
+    
+    private func arcsView(size: CGSize) -> some View {
+        let center = CGPoint(x: size.width / 2, y: size.height * 0.38)
+        
+        return Canvas { context, _ in
+            // Upper arcs
+            for i in 0..<10 {
+                let arcProgress = min(1.0, max(0, (progress - 0.1 - Double(i) * 0.025) * 2.2))
+                if arcProgress > 0 {
+                    let baseAngle = Double(i) * (.pi / 10) - .pi / 2
+                    let wobble = sin(time * 1.8 + Double(i)) * 0.06
+                    let startAngle = baseAngle - 0.45 + wobble
+                    let endAngle = baseAngle + 0.45 + wobble
+                    let radius: CGFloat = 100 + CGFloat(i) * 20
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 1: Light source above (destination)
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        // Growing light from above
-                        let lightY = size.height * 0.15
-                        let lightRadius = size.width * 0.5 * CGFloat(0.3 + gloryPhase * 0.7)
-                        
-                        context.fill(
-                            Ellipse().path(in: CGRect(x: centerX - lightRadius,
-                                                      y: lightY - lightRadius * 0.4,
-                                                      width: lightRadius * 2,
-                                                      height: lightRadius * 0.8)),
-                            with: .radialGradient(
-                                Gradient(colors: [
-                                    liberationGold.opacity(0.5 * (0.2 + gloryPhase * 0.8)),
-                                    skyLight.opacity(0.3 * (0.2 + gloryPhase * 0.8)),
-                                    .clear
-                                ]),
-                                center: CGPoint(x: centerX, y: lightY),
-                                startRadius: 0,
-                                endRadius: lightRadius
-                            )
-                        )
-                        
-                        // Light rays descending
-                        if gloryPhase > 0.2 {
-                            for ray in 0..<8 {
-                                let rayAngle = Double(ray) * .pi / 4 + .pi / 8
-                                let rayLength = size.height * 0.5 * CGFloat(gloryPhase)
-                                
-                                var rayPath = Path()
-                                rayPath.move(to: CGPoint(x: centerX, y: lightY))
-                                let endX = centerX + cos(rayAngle) * rayLength * 0.5
-                                let endY = lightY + sin(rayAngle) * rayLength
-                                rayPath.addLine(to: CGPoint(x: endX, y: endY))
-                                
-                                context.stroke(
-                                    rayPath,
-                                    with: .linearGradient(
-                                        Gradient(colors: [liberationGold.opacity(0.2 * gloryPhase), .clear]),
-                                        startPoint: CGPoint(x: centerX, y: lightY),
-                                        endPoint: CGPoint(x: endX, y: endY)
-                                    ),
-                                    lineWidth: 25
-                                )
-                            }
-                        }
-                    }
-                    .blur(radius: 20)
+                    var arc = Path()
+                    arc.addArc(center: center, radius: radius * CGFloat(arcProgress),
+                               startAngle: .radians(startAngle), endAngle: .radians(endAngle), clockwise: false)
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 2: The Chains - visible weights pulling down
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        for chain in chains {
-                            // Calculate how dissolved this chain is
-                            let chainDissolve = min(1.0, max(0, (dissolvePhase - chain.dissolveDelay) / 0.25))
-                            
-                            if chainDissolve < 1.0 {
-                                // Chain attachment point on figure
-                                let attachX = centerX + chain.attachX * (figureSize * 0.3)
-                                let attachY = figureRiseY + chain.attachY * figureSize
-                                
-                                // Anchor point below (in the abyss)
-                                let anchorY = size.height * 0.85
-                                let anchorX = attachX + chain.attachX * 30
-                                
-                                // Draw chain links from figure down to anchor
-                                let chainLength = anchorY - attachY
-                                let linkCount = 8
-                                let linkSpacing = chainLength / CGFloat(linkCount)
-                                
-                                for link in 0..<linkCount {
-                                    let linkY = attachY + CGFloat(link) * linkSpacing
-                                    let linkX = attachX + (anchorX - attachX) * (CGFloat(link) / CGFloat(linkCount))
-                                    
-                                    // Links dissolve from bottom up
-                                    let linkDissolve = chainDissolve * (CGFloat(linkCount - link) / CGFloat(linkCount))
-                                    let linkOpacity = (1 - linkDissolve) * 0.6
-                                    
-                                    if linkOpacity > 0 {
-                                        // Chain link oval
-                                        var linkPath = Path()
-                                        linkPath.addEllipse(in: CGRect(x: linkX - 4, y: linkY - 8, width: 8, height: 16))
-                                        context.stroke(linkPath, with: .color(chainGray.opacity(linkOpacity)), lineWidth: 2)
-                                    }
-                                }
-                                
-                                // The anchor/weight at bottom
-                                let anchorOpacity = (1 - chainDissolve) * 0.7
-                                if anchorOpacity > 0 {
-                                    // Anchor glow
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: anchorX - 25, y: anchorY - 25, width: 50, height: 50)),
-                                        with: .radialGradient(
-                                            Gradient(colors: [chainGray.opacity(anchorOpacity * 0.3), .clear]),
-                                            center: CGPoint(x: anchorX, y: anchorY),
-                                            startRadius: 0,
-                                            endRadius: 25
-                                        )
-                                    )
-                                }
-                            }
-                            
-                            // Dissolution particles rising from broken chains
-                            if chainDissolve > 0 && chainDissolve < 1.0 {
-                                let attachX = centerX + chain.attachX * (figureSize * 0.3)
-                                let attachY = figureRiseY + chain.attachY * figureSize
-                                
-                                for p in 0..<5 {
-                                    let seed = Double(chain.id * 10 + p)
-                                    let particleT = fmod(time * 1.5 + seed * 0.2, 1.0)
-                                    let px = attachX + CGFloat(sin(seed * 3)) * 20
-                                    let py = attachY + CGFloat(particleT) * 60 - 30
-                                    let pSize: CGFloat = 2 + CGFloat(sin(time * 3 + seed)) * 1
-                                    
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: px - pSize, y: py - pSize, width: pSize * 2, height: pSize * 2)),
-                                        with: .color(liberationGold.opacity(0.5 * chainDissolve * (1 - particleT)))
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 3: The Human Figure - rising into light
-                    // ═══════════════════════════════════════════════════════════════
-                    ZStack {
-                        // Figure glow (grows as it rises)
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [
-                                        liberationGold.opacity(0.3 * risePhase),
-                                        skyLight.opacity(0.15 * risePhase),
-                                        .clear
-                                    ],
-                                    center: .center,
-                                    startRadius: 0,
-                                    endRadius: 100
-                                )
-                            )
-                            .frame(width: 200, height: 200)
-                        
-                        // The figure
-                        Image(systemName: "figure.arms.open")
-                            .font(.system(size: figureSize, weight: .ultraLight))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.4 + gloryPhase * 0.5),
-                                        skyLight.opacity(0.6 + gloryPhase * 0.4)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .shadow(color: liberationGold.opacity(0.4 * gloryPhase), radius: 25)
-                            // Slight float/bob animation when free
-                            .offset(y: risePhase > 0.5 ? sin(time * 1.2) * 5 : 0)
-                    }
-                    .position(x: centerX, y: figureRiseY)
-                    .opacity(min(1.0, progress * 3))
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 4: Rising particles around figure (anti-gravity debris)
-                    // ═══════════════════════════════════════════════════════════════
-                    if risePhase > 0.2 {
-                        Canvas { context, size in
-                            for i in 0..<25 {
-                                let seed = Double(i) * 1.618
-                                let particleT = fmod(time * 0.6 + seed * 0.15, 1.0)
-                                
-                                // Particles rise from around figure
-                                let startX = centerX + CGFloat(sin(seed * 7)) * 100
-                                let startY = figureRiseY + 80
-                                let endY = size.height * 0.1
-                                
-                                let px = startX + CGFloat(sin(time * 0.5 + seed)) * 20
-                                let py = startY + (endY - startY) * CGFloat(particleT)
-                                let pSize: CGFloat = 1.5 + CGFloat(fmod(seed * 2, 1.0)) * 2
-                                
-                                let fadeIn = min(1.0, particleT * 4)
-                                let fadeOut = particleT > 0.7 ? (particleT - 0.7) / 0.3 : 0
-                                
-                                context.fill(
-                                    Circle().path(in: CGRect(x: px - pSize, y: py - pSize, width: pSize * 2, height: pSize * 2)),
-                                    with: .color(skyLight.opacity(0.4 * (risePhase - 0.2) * fadeIn * (1 - fadeOut)))
-                                )
-                            }
-                        }
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 5: Text - screen text DIFFERENT from narration
-                    // ═══════════════════════════════════════════════════════════════
-                    if textPhase > 0 {
-                        VStack(spacing: 16) {
-                            Spacer()
-                            
-                            // Screen text: Short, punchy (Narration provides context)
-                            Text("RELEASED")
-                                .font(.system(size: 14, weight: .bold))
-                                .tracking(10)
-                                .foregroundColor(skyLight.opacity(0.7))
-                                .opacity(textPhase)
-                            
-                            Text("Rise.")
-                                .font(.system(size: 42, weight: .light, design: .serif))
-                                .foregroundColor(gloryPhase > 0.5 ? .black.opacity(0.85) : .white.opacity(0.9))
-                                .opacity(textPhase)
-                                .offset(y: (1 - textPhase) * 20)
-                            
-                            if textPhase > 0.5 {
-                                Text("Your genius awaits.")
-                                    .font(.system(size: 20, weight: .regular, design: .serif))
-                                    .foregroundColor(liberationGold)
-                                    .opacity(min(1, (textPhase - 0.5) * 3))
-                            }
-                            
-                            Spacer().frame(height: 100)
-                        }
-                    }
+                    let opacity = 0.2 + 0.3 * arcProgress - Double(i) * 0.02
+                    context.stroke(arc, with: .color(accentBlue.opacity(opacity)), lineWidth: 2.5)
                 }
             }
-            .drawingGroup()
+            
+            // Particle sparkles
+            for i in 0..<20 {
+                let particleProgress = min(1.0, max(0, (progress - 0.2) * 2))
+                if particleProgress > 0 {
+                    let angle = Double(i) * (2 * .pi / 20) + time * 0.3
+                    let radius = 80 + CGFloat(i) * 12 + CGFloat(sin(time * 2 + Double(i))) * 20
+                    let x = center.x + CGFloat(cos(angle)) * radius * CGFloat(particleProgress)
+                    let y = center.y + CGFloat(sin(angle)) * radius * CGFloat(particleProgress)
+                    let particleSize: CGFloat = 3 + CGFloat(sin(time * 3 + Double(i))) * 2
+                    
+                    context.fill(
+                        Circle().path(in: CGRect(x: x - particleSize/2, y: y - particleSize/2, width: particleSize, height: particleSize)),
+                        with: .color(glowBlue.opacity(0.4 * particleProgress))
+                    )
+                }
+            }
         }
+    }
+    
+    private func figureView(size: CGSize) -> some View {
+        let figureBlend = min(1.0, max(0, (progress - 0.25) / 0.5))
+        let textBlend = min(1.0, max(0, (progress - 0.35) / 0.4))
+        
+        return VStack(spacing: 0) {
+            // Figure with glow
+            ZStack {
+                Image(systemName: "figure.stand")
+                    .font(.system(size: 120, weight: .ultraLight))
+                    .foregroundColor(glowBlue.opacity(0.25 * progress))
+                    .blur(radius: 30)
+                    .scaleEffect(1.15)
+                
+                Image(systemName: "figure.stand")
+                    .font(.system(size: 120, weight: .ultraLight))
+                    .foregroundColor(accentBlue.opacity(0.4 * progress))
+                    .blur(radius: 15)
+                    .scaleEffect(1.05)
+                
+                Image(systemName: "figure.stand")
+                    .font(.system(size: 120, weight: .ultraLight))
+                    .foregroundColor(accentBlue.opacity(0.6 + figureBlend * 0.4))
+                    .scaleEffect(0.8 + progress * 0.2)
+            }
+            .opacity(min(1.0, progress * 2.5))
+            
+            Spacer().frame(height: 40)
+            
+            // Text
+            VStack(spacing: 16) {
+                Text("RESTORATION")
+                    .font(.system(size: 13, weight: .semibold))
+                    .tracking(12)
+                    .foregroundColor(accentBlue.opacity(0.6 + textBlend * 0.4))
+                    .opacity(min(1.0, max(0, (progress - 0.2) * 3)))
+                
+                Text("Human potential returned.")
+                    .font(.system(size: 32, weight: .light, design: .serif))
+                    .foregroundColor(Color(white: 1.0 - progress * 0.9))
+                    .opacity(min(1.0, max(0, (progress - 0.3) * 2.5)))
+                    .offset(y: progress > 0.3 ? 0 : 15)
+                
+                if progress > 0.55 {
+                    Text("Reviewing insights. Approving paths.")
+                        .font(.system(size: 18, weight: .regular, design: .serif))
+                        .italic()
+                        .foregroundColor(glowBlue)
+                        .opacity(min(1.0, max(0, (progress - 0.55) * 2.5)))
+                }
+            }
+            .multilineTextAlignment(.center)
+        }
+        .padding(.bottom, 70)
     }
 }
 
@@ -2161,231 +2040,185 @@ struct FinalCTAView: View {
     var progress: Double
     var isComplete: Bool
     
-    // Colors - refined, premium
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            FinalCTAContent(progress: progress, time: timeline.date.timeIntervalSinceReferenceDate)
+        }
+    }
+}
+
+// Extracted to help compiler
+private struct FinalCTAContent: View {
+    let progress: Double
+    let time: Double
+    
+    // Colors
     private let signalGold = Color(red: 0.95, green: 0.8, blue: 0.4)
     private let pureWhite = Color.white
     private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)
     
+    // Computed phases
+    private var pulsePhase: Double { min(1.0, progress / 0.20) }
+    private var text1Phase: Double { min(1.0, max(0, (progress - 0.15) / 0.20)) }
+    private var text2Phase: Double { min(1.0, max(0, (progress - 0.30) / 0.20)) }
+    private var questionPhase: Double { min(1.0, max(0, (progress - 0.45) / 0.20)) }
+    private var ctaPhase: Double { min(1.0, max(0, (progress - 0.60) / 0.25)) }
+    
     var body: some View {
-        TimelineView(.animation) { timeline in
-            let time = timeline.date.timeIntervalSinceReferenceDate
+        GeometryReader { geo in
+            let centerX = geo.size.width / 2
+            let centerY = geo.size.height * 0.35
             
-            // Animation phases - elegant timing
-            let pulsePhase = min(1.0, progress / 0.20)                    // 0-20%: First pulse
-            let text1Phase = min(1.0, max(0, (progress - 0.15) / 0.20))   // 15-35%: First text
-            let text2Phase = min(1.0, max(0, (progress - 0.30) / 0.20))   // 30-50%: Second text
-            let questionPhase = min(1.0, max(0, (progress - 0.45) / 0.20)) // 45-65%: Question
-            let ctaPhase = min(1.0, max(0, (progress - 0.60) / 0.25))     // 60-85%: CTAs
-            let glowPhase = min(1.0, max(0, (progress - 0.75) / 0.25))    // 75-100%: Final glow
-            
-            GeometryReader { geo in
-                let centerX = geo.size.width / 2
-                let centerY = geo.size.height * 0.35
+            ZStack {
+                // Background
+                voidBlack.ignoresSafeArea()
                 
-                ZStack {
-                    // ═══════════════════════════════════════════════════════════════
-                    // BACKGROUND: Pure black - cinema darkness
-                    // ═══════════════════════════════════════════════════════════════
-                    voidBlack.ignoresSafeArea()
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 1: The Signal - expanding pulse rings
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        let center = CGPoint(x: centerX, y: centerY)
-                        
-                        // Multiple pulse rings emanating from center
-                        for ring in 0..<4 {
-                            let ringDelay = Double(ring) * 0.25
-                            let pulseT = fmod(time * 0.4 + ringDelay, 1.0)
-                            let ringRadius = 20 + CGFloat(pulseT) * 200
-                            let ringOpacity = (1 - pulseT) * pulsePhase * 0.3
-                            
-                            var ringPath = Path()
-                            ringPath.addEllipse(in: CGRect(x: center.x - ringRadius,
-                                                           y: center.y - ringRadius,
-                                                           width: ringRadius * 2,
-                                                           height: ringRadius * 2))
-                            
-                            context.stroke(ringPath, with: .color(signalGold.opacity(ringOpacity)), lineWidth: 1.5)
-                        }
-                        
-                        // Central beacon - the origin point
-                        let beaconPulse = sin(time * 2) * 0.3 + 0.7
-                        let beaconSize: CGFloat = 8 + CGFloat(beaconPulse) * 4
-                        
-                        // Outer glow
-                        context.fill(
-                            Circle().path(in: CGRect(x: center.x - 30, y: center.y - 30, width: 60, height: 60)),
-                            with: .radialGradient(
-                                Gradient(colors: [signalGold.opacity(0.3 * pulsePhase), .clear]),
-                                center: center,
-                                startRadius: 0,
-                                endRadius: 30
-                            )
-                        )
-                        
-                        // Core beacon
-                        context.fill(
-                            Circle().path(in: CGRect(x: center.x - beaconSize/2,
-                                                     y: center.y - beaconSize/2,
-                                                     width: beaconSize, height: beaconSize)),
-                            with: .color(signalGold.opacity(pulsePhase))
-                        )
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 2: Minimal ambient particles (subtle, not distracting)
-                    // ═══════════════════════════════════════════════════════════════
-                    if glowPhase > 0 {
-                        Canvas { context, size in
-                            for i in 0..<15 {
-                                let seed = Double(i) * 1.618
-                                let x = CGFloat(fmod(seed * 137.5, 1.0)) * size.width
-                                let y = CGFloat(fmod(seed * 89.3, 1.0)) * size.height * 0.6 + size.height * 0.1
-                                let twinkle = sin(time * 1.5 + seed * 3) * 0.5 + 0.5
-                                let pSize: CGFloat = 1 + CGFloat(fmod(seed * 2, 1.0))
-                                
-                                context.fill(
-                                    Circle().path(in: CGRect(x: x - pSize, y: y - pSize, width: pSize * 2, height: pSize * 2)),
-                                    with: .color(pureWhite.opacity(0.15 * glowPhase * twinkle))
-                                )
-                            }
-                        }
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 3: Text reveals - one line at a time
-                    // ═══════════════════════════════════════════════════════════════
-                    VStack(spacing: 0) {
-                        Spacer().frame(height: geo.size.height * 0.48)
-                        
-                        VStack(spacing: 24) {
-                            // First line - Screen text (Narration says something different)
-                            if text1Phase > 0 {
-                                Text("One decision.")
-                                    .font(.system(size: 28, weight: .light, design: .serif))
-                                    .foregroundColor(pureWhite.opacity(0.9))
-                                    .opacity(text1Phase)
-                                    .offset(y: (1 - text1Phase) * 15)
-                            }
-                            
-                            // Second line
-                            if text2Phase > 0 {
-                                Text("Infinite possibility.")
-                                    .font(.system(size: 34, weight: .medium, design: .serif))
-                                    .foregroundStyle(
-                                        LinearGradient(
-                                            colors: [signalGold, pureWhite],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .opacity(text2Phase)
-                                    .offset(y: (1 - text2Phase) * 15)
-                            }
-                            
-                            // Subtle separator
-                            if questionPhase > 0 {
-                                Rectangle()
-                                    .fill(signalGold.opacity(0.3))
-                                    .frame(width: 60, height: 1)
-                                    .opacity(questionPhase)
-                                    .padding(.vertical, 8)
-                            }
-                            
-                            // Question - different from narration
-                            if questionPhase > 0 {
-                                Text("Where will you lead?")
-                                    .font(.system(size: 18, weight: .regular))
-                                    .foregroundColor(pureWhite.opacity(0.6))
-                                    .opacity(questionPhase)
-                                    .offset(y: (1 - questionPhase) * 10)
-                            }
-                        }
-                        .multilineTextAlignment(.center)
-                        
-                        Spacer().frame(height: 50)
-                        
-                        // ═══════════════════════════════════════════════════════════════
-                        // LAYER 4: Minimal CTAs - elegant, understated
-                        // ═══════════════════════════════════════════════════════════════
-                        if ctaPhase > 0 {
-                            HStack(spacing: 40) {
-                                // Vision Pro
-                                VStack(spacing: 10) {
-                                    Image(systemName: "visionpro")
-                                        .font(.system(size: 32, weight: .ultraLight))
-                                        .foregroundColor(pureWhite.opacity(0.8))
-                                    
-                                    Text("EXPERIENCE")
-                                        .font(.system(size: 10, weight: .medium))
-                                        .tracking(4)
-                                        .foregroundColor(pureWhite.opacity(0.5))
-                                }
-                                .padding(.vertical, 20)
-                                .padding(.horizontal, 30)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(pureWhite.opacity(0.2), lineWidth: 1)
-                                )
-                                
-                                // Live Demo
-                                Button(action: {
-                                    print("🎯 Live Demo requested")
-                                }) {
-                                    VStack(spacing: 10) {
-                                        ZStack {
-                                            Circle()
-                                                .stroke(signalGold.opacity(0.5), lineWidth: 1)
-                                                .frame(width: 44, height: 44)
-                                            
-                                            Image(systemName: "play.fill")
-                                                .font(.system(size: 18, weight: .medium))
-                                                .foregroundColor(signalGold)
-                                        }
-                                        
-                                        Text("DEMO")
-                                            .font(.system(size: 10, weight: .medium))
-                                            .tracking(4)
-                                            .foregroundColor(signalGold.opacity(0.8))
-                                    }
-                                    .padding(.vertical, 20)
-                                    .padding(.horizontal, 30)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(signalGold.opacity(0.3), lineWidth: 1)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .opacity(ctaPhase)
-                            .offset(y: (1 - ctaPhase) * 20)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 50)
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 5: Final ambient glow (subtle warmth)
-                    // ═══════════════════════════════════════════════════════════════
-                    if glowPhase > 0.5 {
-                        RadialGradient(
-                            colors: [
-                                signalGold.opacity(0.05 * (glowPhase - 0.5) * 2),
-                                .clear
-                            ],
-                            center: UnitPoint(x: 0.5, y: 0.35),
-                            startRadius: 0,
-                            endRadius: geo.size.width * 0.6
-                        )
-                        .ignoresSafeArea()
-                    }
-                }
+                // Signal pulses
+                signalLayer(centerX: centerX, centerY: centerY)
+                
+                // Text and CTAs
+                contentLayer(geo: geo)
             }
-            .drawingGroup()
         }
+        .drawingGroup()
+    }
+    
+    private func signalLayer(centerX: CGFloat, centerY: CGFloat) -> some View {
+        Canvas { context, _ in
+            let center = CGPoint(x: centerX, y: centerY)
+            
+            // Pulse rings
+            for ring in 0..<4 {
+                let ringDelay = Double(ring) * 0.25
+                let pulseT = fmod(time * 0.4 + ringDelay, 1.0)
+                let ringRadius = 20 + CGFloat(pulseT) * 200
+                let ringOpacity = (1 - pulseT) * pulsePhase * 0.3
+                
+                var ringPath = Path()
+                ringPath.addEllipse(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius,
+                                               width: ringRadius * 2, height: ringRadius * 2))
+                context.stroke(ringPath, with: .color(signalGold.opacity(ringOpacity)), lineWidth: 1.5)
+            }
+            
+            // Central beacon
+            let beaconSize: CGFloat = 10
+            context.fill(
+                Circle().path(in: CGRect(x: center.x - 30, y: center.y - 30, width: 60, height: 60)),
+                with: .radialGradient(
+                    Gradient(colors: [signalGold.opacity(0.3 * pulsePhase), .clear]),
+                    center: center, startRadius: 0, endRadius: 30
+                )
+            )
+            context.fill(
+                Circle().path(in: CGRect(x: center.x - beaconSize/2, y: center.y - beaconSize/2,
+                                         width: beaconSize, height: beaconSize)),
+                with: .color(signalGold.opacity(pulsePhase))
+            )
+        }
+    }
+    
+    private func contentLayer(geo: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: geo.size.height * 0.48)
+            
+            textSection
+            
+            Spacer().frame(height: 50)
+            
+            ctaSection
+            
+            Spacer()
+        }
+        .padding(.horizontal, 50)
+    }
+    
+    @ViewBuilder
+    private var textSection: some View {
+        VStack(spacing: 24) {
+            if text1Phase > 0 {
+                Text("One decision.")
+                    .font(.system(size: 28, weight: .light, design: .serif))
+                    .foregroundColor(pureWhite.opacity(0.9))
+                    .opacity(text1Phase)
+            }
+            
+            if text2Phase > 0 {
+                Text("Infinite possibility.")
+                    .font(.system(size: 34, weight: .medium, design: .serif))
+                    .foregroundStyle(LinearGradient(colors: [signalGold, pureWhite], startPoint: .leading, endPoint: .trailing))
+                    .opacity(text2Phase)
+            }
+            
+            if questionPhase > 0 {
+                Rectangle()
+                    .fill(signalGold.opacity(0.3))
+                    .frame(width: 60, height: 1)
+                    .opacity(questionPhase)
+                    .padding(.vertical, 8)
+                
+                Text("Where will you lead?")
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundColor(pureWhite.opacity(0.6))
+                    .opacity(questionPhase)
+            }
+        }
+        .multilineTextAlignment(.center)
+    }
+    
+    @ViewBuilder
+    private var ctaSection: some View {
+        if ctaPhase > 0 {
+            HStack(spacing: 40) {
+                // Vision Pro
+                visionProCTA
+                
+                // Demo
+                demoCTA
+            }
+            .opacity(ctaPhase)
+            .offset(y: (1 - ctaPhase) * 20)
+        }
+    }
+    
+    private var visionProCTA: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "visionpro")
+                .font(.system(size: 32, weight: .ultraLight))
+                .foregroundColor(pureWhite.opacity(0.8))
+            
+            Text("EXPERIENCE")
+                .font(.system(size: 10, weight: .medium))
+                .tracking(4)
+                .foregroundColor(pureWhite.opacity(0.5))
+        }
+        .padding(.vertical, 20)
+        .padding(.horizontal, 30)
+        .background(RoundedRectangle(cornerRadius: 16).stroke(pureWhite.opacity(0.2), lineWidth: 1))
+    }
+    
+    private var demoCTA: some View {
+        Button(action: { print("🎯 Live Demo requested") }) {
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .stroke(signalGold.opacity(0.5), lineWidth: 1)
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(signalGold)
+                }
+                
+                Text("DEMO")
+                    .font(.system(size: 10, weight: .medium))
+                    .tracking(4)
+                    .foregroundColor(signalGold.opacity(0.8))
+            }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 30)
+            .background(RoundedRectangle(cornerRadius: 16).stroke(signalGold.opacity(0.3), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 }
 

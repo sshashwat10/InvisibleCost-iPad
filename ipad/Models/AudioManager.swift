@@ -327,7 +327,7 @@ class AudioManager {
         "vision": "Picture a world where strategists think bigger. Innovators move faster. Leaders focus on what truly matters.",
         "closing": "When your people are free, everything changes. Innovation accelerates. Sustainability becomes possible. People thrive.",
         "proof": "This isn't tomorrow. Organizations are living this today.",
-        "question": "AutomationAnywhere gives you the power to lead in a world that demands more.",
+        "question": "With Automationanywhere, you have the power to lead in a world that demands more.",
         "final_cta": "The invisible cost ends now."
     ]
     
