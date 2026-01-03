@@ -72,11 +72,11 @@ VOICE_SETTINGS = VoiceSettings(
 # - Commas control breath and rhythm
 
 NARRATION_LINES = [
-    # OPENING - each line FLOWS into the next with trailing/connecting tone
+    # OPENING - definitive full stops, no pauses between words
     {
         "key": "opening_1",
         "text": "There's something your organization doesn't talk about.",
-        "note": "Mysterious, trailing tone that invites continuation"
+        "note": "Mysterious, full stop sounds like a full stop"
     },
     {
         "key": "opening_2", 
@@ -85,63 +85,86 @@ NARRATION_LINES = [
     },
     {
         "key": "opening_3",
-        "text": "Hundreds of decisions... that shouldn't have been yours to make.",
-        "note": "Personal revelation, pause before 'that'"
+        "text": "Hundreds of decisions that should never have been yours.",
+        "note": "Definitive ending - hard full stop"
     },
     
-    # VIGNETTES - connected narrative, same emotional thread
+    # VIGNETTES - definitive endings
     {
         "key": "vignette_finance",
-        "text": "Hours vanishing... into tasks that machines were built for.",
-        "note": "Empathetic, slight pause after vanishing"
+        "text": "Hours lost to tasks that machines were made for.",
+        "note": "Definitive, hard full stop"
     },
     {
         "key": "vignette_supply",
-        "text": "Brilliant minds... buried in busywork.",
-        "note": "Tragic waste, weight on 'buried'"
+        "text": "Brilliant minds trapped in busywork.",
+        "note": "Tragic, punchy, hard ending"
     },
     {
         "key": "vignette_health",
-        "text": "Healers... drowning in paperwork instead of patients.",
-        "note": "Sorrowful injustice"
+        "text": "Healers buried under paperwork.",
+        "note": "Short and impactful"
     },
     
-    # PATTERN BREAK - the pivot, hope emerges
+    # PATTERN BREAK
     {
         "key": "pattern_break",
         "text": "But what if tomorrow looked different?",
-        "note": "Smooth flow, no pause - hopeful and questioning"
+        "note": "Hopeful question, smooth flow"
     },
     
-    # AGENTIC - MUST include 'Agentic Orchestration' term
+    # AGENTIC - clean and powerful
     {
         "key": "agentic",
-        "text": "This is Agentic Orchestration. Intelligence that anticipates... that acts... and frees you to think.",
-        "note": "Powerful declaration, term spoken clearly, then flowing description"
+        "text": "This is Agentic Orchestration. Intelligence that anticipates. Acts. And frees you to think.",
+        "note": "Periods create weight on each word"
     },
     
-    # HUMAN RETURN - emotional relief, LONGER for animation sync
+    # HUMAN RETURN - COMPLEMENTS screen text, doesn't read it
+    # Screen shows: "RELEASED" / "Rise." / "Your genius awaits."
+    # Narration provides emotional context
     {
         "key": "restoration",
-        "text": "And just like that... the weight begins to lift.",
-        "note": "Relief washing over, gentle, connected to next"
+        "text": "The chains dissolve. One by one.",
+        "note": "Complements 'Released' visual, doesn't read it"
     },
     {
         "key": "human_return",
-        "text": "The noise fades... clarity returns... and you remember... why you started.",
-        "note": "Emotional journey home, each phrase lands, satisfying conclusion"
+        "text": "And suddenly you remember what it feels like to breathe.",
+        "note": "Emotional complement to 'Rise' visual"
+    },
+    {
+        "key": "potential",
+        "text": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
+        "note": "Complements 'Your genius awaits' - provides why"
     },
     
-    # CLOSING - powerful, thought-provoking, unforgettable ending
+    # CLOSING - COMPLEMENTS screen text, doesn't read it
+    # Screen shows: "One decision." / "Infinite possibility." / "Where will you lead?"
+    {
+        "key": "vision",
+        "text": "Picture a world where strategists think bigger. Innovators move faster. Leaders focus on what truly matters.",
+        "note": "Rhythmic buildup"
+    },
     {
         "key": "closing",
-        "text": "Imagine your brightest minds... unchained from the mundane. Strategists strategizing. Innovators innovating. Leaders... actually leading.",
-        "note": "Paint the vision with rhythmic power, build momentum, pause before 'actually leading'"
+        "text": "When your people are free, everything changes. Innovation accelerates. Sustainability becomes possible. People thrive.",
+        "note": "Davos themes as outcomes"
+    },
+    {
+        "key": "proof",
+        "text": "This isn't tomorrow. Organizations are living this today.",
+        "note": "Urgency - short, punchy"
     },
     {
         "key": "question",
-        "text": "The invisible cost has been paid for far too long. With Automation Anywhere... the future of work isn't a question... it's already here. The only question is: are you ready to lead it?",
-        "note": "POWERFUL CLOSER - weight on 'far too long', Automation Anywhere spoken clearly with pride, ends with direct challenge"
+        "text": "AutomationAnywhere gives you the power to lead in a world that demands more.",
+        "note": "Single word, no hyphen needed - TTS handles it"
+    },
+    {
+        "key": "final_cta",
+        "text": "The invisible cost ends now.",
+        "note": "Simple, powerful, definitive"
     },
 ]
 

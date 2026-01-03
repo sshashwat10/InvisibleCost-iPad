@@ -16,6 +16,11 @@
 		0E001001007 /* UnrealBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E001002007 /* UnrealBridge.swift */; };
 		0E001001010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E001002010 /* Assets.xcassets */; };
 		0E001001020 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0E001005020 /* RealityKitContent */; };
+		467A667A2F0986D700A4E98D /* upbeat_music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 467A66792F0986D700A4E98D /* upbeat_music.mp3 */; };
+		467A667F2F09935200A4E98D /* narration_potential.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 467A667C2F09935200A4E98D /* narration_potential.mp3 */; };
+		467A66802F09935200A4E98D /* narration_final_cta.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 467A667B2F09935200A4E98D /* narration_final_cta.mp3 */; };
+		467A66812F09935200A4E98D /* narration_vision.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 467A667E2F09935200A4E98D /* narration_vision.mp3 */; };
+		467A66822F09935200A4E98D /* narration_proof.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 467A667D2F09935200A4E98D /* narration_proof.mp3 */; };
 		469C33EE2F07DD48002E908D /* narration_agentic.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E12F07DD48002E908D /* narration_agentic.mp3 */; };
 		469C33EF2F07DD48002E908D /* narration_closing.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E22F07DD48002E908D /* narration_closing.mp3 */; };
 		469C33F02F07DD48002E908D /* narration_restoration.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 469C33E92F07DD48002E908D /* narration_restoration.mp3 */; };
@@ -59,6 +64,11 @@
 		0E001002011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0E001003001 /* InvisibleCost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvisibleCost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E001004001 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		467A66792F0986D700A4E98D /* upbeat_music.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = upbeat_music.mp3; sourceTree = "<group>"; };
+		467A667B2F09935200A4E98D /* narration_final_cta.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_final_cta.mp3; sourceTree = "<group>"; };
+		467A667C2F09935200A4E98D /* narration_potential.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_potential.mp3; sourceTree = "<group>"; };
+		467A667D2F09935200A4E98D /* narration_proof.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_proof.mp3; sourceTree = "<group>"; };
+		467A667E2F09935200A4E98D /* narration_vision.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vision.mp3; sourceTree = "<group>"; };
 		469C33E12F07DD48002E908D /* narration_agentic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_agentic.mp3; sourceTree = "<group>"; };
 		469C33E22F07DD48002E908D /* narration_closing.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_closing.mp3; sourceTree = "<group>"; };
 		469C33E32F07DD48002E908D /* narration_human_return.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_human_return.mp3; sourceTree = "<group>"; };
@@ -181,6 +191,11 @@
 		469C33ED2F07DD48002E908D /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				467A667B2F09935200A4E98D /* narration_final_cta.mp3 */,
+				467A667C2F09935200A4E98D /* narration_potential.mp3 */,
+				467A667D2F09935200A4E98D /* narration_proof.mp3 */,
+				467A667E2F09935200A4E98D /* narration_vision.mp3 */,
+				467A66792F0986D700A4E98D /* upbeat_music.mp3 */,
 				469C33FC2F07FCB1002E908D /* sfx_completion.mp3 */,
 				469C33FD2F07FCB1002E908D /* sfx_connection.mp3 */,
 				469C33FE2F07FCB1002E908D /* sfx_dot_appear.mp3 */,
@@ -392,6 +407,11 @@
 				469C33F82F07DD48002E908D /* narration_opening_1.mp3 in Resources */,
 				469C33F92F07DD48002E908D /* narration_vignette_supply.mp3 in Resources */,
 				46B760C32F02506700F1A587 /* README.md in Resources */,
+				467A667A2F0986D700A4E98D /* upbeat_music.mp3 in Resources */,
+				467A667F2F09935200A4E98D /* narration_potential.mp3 in Resources */,
+				467A66802F09935200A4E98D /* narration_final_cta.mp3 in Resources */,
+				467A66812F09935200A4E98D /* narration_vision.mp3 in Resources */,
+				467A66822F09935200A4E98D /* narration_proof.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

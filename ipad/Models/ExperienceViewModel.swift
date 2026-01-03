@@ -2,31 +2,31 @@ import SwiftUI
 import Observation
 
 /// The Invisible Cost - Tier 1 (iPad) Narrative Phases
-/// TOTAL RUNTIME: 180 seconds (3 minutes) - synced to ambient music
-/// Spec-true implementation for Davos 2026
+/// TOTAL RUNTIME: ~189 seconds (3:09) - ENHANCED impact sequence
+/// All narrations complete within their phases at 60fps
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
-    case microColdOpen         // 00:00-00:09 - Black screen, ambient audio
-    case narratorFrame         // 00:09-00:34 - "Every organization carries a hidden cost..."
-    case humanVignettes        // 00:34-00:56 - Short emotional flashes (Finance, Supply Chain, Healthcare)
-    case patternBreak          // 00:56-01:06 - White screen, "What if this work... wasn't your work?"
-    case agenticOrchestration  // 01:06-01:38 - Abstract data visualization (Chaos -> Clarity)
-    case humanReturn           // 01:38-01:59 - Workers restored
-    case personalization       // 01:59-02:24 - Interactive slider (Impact calculation)
-    case stillnessCTA          // 02:24-03:00 - Stillness and final CTA
+    case microColdOpen         // 00:00-00:07 - Black screen, ambient audio
+    case narratorFrame         // 00:07-00:26 - Opening narrations (11s audio)
+    case humanVignettes        // 00:26-00:43 - 3 vignettes (9s audio)
+    case patternBreak          // 00:43-00:51 - Pattern break (2s audio)
+    case agenticOrchestration  // 00:51-01:19 - THE AWAKENING animation (7.3s audio)
+    case humanReturn           // 01:19-01:41 - ENHANCED: 3 narrations (14s audio)
+    case personalization       // 01:41-01:57 - Interactive slider
+    case stillnessCTA          // 01:57-02:52 - ENHANCED: 5 narrations (43s audio) - full impact
     case complete
     
     var duration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .microColdOpen: return 9          // Synced to 180s ambient
-        case .narratorFrame: return 25         // Synced to 180s ambient
-        case .humanVignettes: return 22        // Synced to 180s ambient
-        case .patternBreak: return 10          // Synced to 180s ambient
-        case .agenticOrchestration: return 32  // Synced to 180s ambient
-        case .humanReturn: return 21           // Synced to 180s ambient
-        case .personalization: return 25       // Synced to 180s ambient
-        case .stillnessCTA: return 36          // Synced to 180s ambient
+        case .microColdOpen: return 7          // Ambient intro
+        case .narratorFrame: return 19         // 3 narrations (~11s total)
+        case .humanVignettes: return 17        // 3 vignettes (~9s total)
+        case .patternBreak: return 8           // Single narration (2s)
+        case .agenticOrchestration: return 28  // THE AWAKENING (7.3s narration)
+        case .humanReturn: return 22           // ENHANCED: 3 narrations (~14s total)
+        case .personalization: return 16       // Interactive slider
+        case .stillnessCTA: return 55          // ENHANCED: 5 narrations (~43s) - full impact sequence
         case .complete: return 0
         }
     }

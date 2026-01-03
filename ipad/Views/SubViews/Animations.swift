@@ -948,644 +948,1017 @@ struct MiniWorkWindow: View {
 }
 
 // MARK: - Agentic Orchestration (01:45-02:45)
-/// 3D SPHERE: points appear one by one → connect → pulse → shrink → text
+/// THE AWAKENING: AI agents come to life, organize chaos, sync as one
+/// This is the centerpiece of the Davos experience
 struct AgenticOrchestrationAnimation: View {
     var progress: Double
     @Environment(MotionManager.self) private var motion
     
-    // Teal color palette
-    private let primaryTeal = Color(red: 0.0, green: 0.6, blue: 0.7)
-    private let glowTeal = Color(red: 0.1, green: 0.8, blue: 0.9)
-    private let darkTeal = Color(red: 0.0, green: 0.35, blue: 0.45)
+    // Color palette - electric and alive
+    private let coreGold = Color(red: 1.0, green: 0.85, blue: 0.4)
+    private let electricBlue = Color(red: 0.2, green: 0.6, blue: 1.0)
+    private let plasmaGreen = Color(red: 0.3, green: 0.95, blue: 0.7)
+    private let deepPurple = Color(red: 0.4, green: 0.2, blue: 0.8)
+    private let hotWhite = Color.white
     
-    // 3D sphere points (distributed on a sphere using golden spiral - optimized for 60fps)
-    private let spherePoints: [(theta: Double, phi: Double)] = {
-        var points: [(Double, Double)] = []
-        let n = 32 // Number of points (balanced for visual quality and performance)
-        let goldenRatio = (1 + sqrt(5)) / 2
+    // Agent definitions - each has unique character, shape, and personality
+    enum AgentShape { case hexagon, diamond, triangle, star, octagon, shield, circle }
+    enum AgentRole { case orchestrator, analyst, executor, connector, innovator, optimizer, harmonizer }
+    
+    private struct Agent {
+        let id: Int
+        let role: AgentRole
+        let shape: AgentShape
+        let baseAngle: Double
+        let orbitRadius: Double
+        let speed: Double
+        let primaryColor: Color
+        let accentColor: Color
+        let size: CGFloat
+        let pulseOffset: Double
+        let hasRings: Bool         // Orbital rings around agent
+        let hasAntenna: Bool       // Top antenna/beacon
+        let eyeCount: Int          // 1, 2, or 3 "eyes"
+    }
+    
+    // Create 7 distinct agents with unique visual personalities
+    private let agents: [Agent] = [
+        // ORCHESTRATOR - Central brain, golden, hexagonal with 3 eyes, has antenna
+        Agent(id: 0, role: .orchestrator, shape: .hexagon, baseAngle: 0, orbitRadius: 0.18, speed: 0.5,
+              primaryColor: Color(red: 1.0, green: 0.85, blue: 0.3), accentColor: Color(red: 1.0, green: 0.95, blue: 0.6),
+              size: 28, pulseOffset: 0, hasRings: true, hasAntenna: true, eyeCount: 3),
         
-        for i in 0..<n {
-            let theta = 2 * .pi * Double(i) / goldenRatio
-            let phi = acos(1 - 2 * (Double(i) + 0.5) / Double(n))
-            points.append((theta, phi))
-        }
-        return points
-    }()
+        // ANALYST - Blue diamond, analytical, 2 scanning eyes
+        Agent(id: 1, role: .analyst, shape: .diamond, baseAngle: 0.9, orbitRadius: 0.30, speed: 0.4,
+              primaryColor: Color(red: 0.2, green: 0.5, blue: 1.0), accentColor: Color(red: 0.5, green: 0.8, blue: 1.0),
+              size: 22, pulseOffset: 0.3, hasRings: false, hasAntenna: true, eyeCount: 2),
+        
+        // EXECUTOR - Green triangle pointing forward, action-oriented, 1 focused eye
+        Agent(id: 2, role: .executor, shape: .triangle, baseAngle: 1.8, orbitRadius: 0.34, speed: 0.7,
+              primaryColor: Color(red: 0.2, green: 0.9, blue: 0.5), accentColor: Color(red: 0.5, green: 1.0, blue: 0.7),
+              size: 24, pulseOffset: 0.5, hasRings: false, hasAntenna: false, eyeCount: 1),
+        
+        // CONNECTOR - Coral star shape, reaches out, multiple connection points
+        Agent(id: 3, role: .connector, shape: .star, baseAngle: 2.6, orbitRadius: 0.36, speed: 0.45,
+              primaryColor: Color(red: 1.0, green: 0.5, blue: 0.3), accentColor: Color(red: 1.0, green: 0.7, blue: 0.5),
+              size: 26, pulseOffset: 0.2, hasRings: true, hasAntenna: false, eyeCount: 2),
+        
+        // INNOVATOR - Purple octagon, complex, has orbital rings
+        Agent(id: 4, role: .innovator, shape: .octagon, baseAngle: 3.5, orbitRadius: 0.28, speed: 0.55,
+              primaryColor: Color(red: 0.7, green: 0.3, blue: 0.95), accentColor: Color(red: 0.9, green: 0.6, blue: 1.0),
+              size: 20, pulseOffset: 0.7, hasRings: true, hasAntenna: true, eyeCount: 3),
+        
+        // OPTIMIZER - Cyan shield, protective, efficient, 2 eyes
+        Agent(id: 5, role: .optimizer, shape: .shield, baseAngle: 4.4, orbitRadius: 0.32, speed: 0.6,
+              primaryColor: Color(red: 0.2, green: 0.85, blue: 0.95), accentColor: Color(red: 0.6, green: 0.95, blue: 1.0),
+              size: 22, pulseOffset: 0.4, hasRings: false, hasAntenna: false, eyeCount: 2),
+        
+        // HARMONIZER - Rose circle, smooth, balancing, single calm eye
+        Agent(id: 6, role: .harmonizer, shape: .circle, baseAngle: 5.3, orbitRadius: 0.26, speed: 0.35,
+              primaryColor: Color(red: 1.0, green: 0.6, blue: 0.75), accentColor: Color(red: 1.0, green: 0.85, blue: 0.9),
+              size: 20, pulseOffset: 0.6, hasRings: true, hasAntenna: false, eyeCount: 1)
+    ]
     
     var body: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
-            // Animation phases (0-1 over the progress)
-            let pointsAppear = min(1.0, progress / 0.25)        // 0-25%: points appear one by one
-            let connectPhase = min(1.0, max(0, (progress - 0.20) / 0.25)) // 20-45%: connections draw
-            let pulsePhase = min(1.0, max(0, (progress - 0.40) / 0.20))   // 40-60%: pulsing intensifies
-            let shrinkPhase = min(1.0, max(0, (progress - 0.55) / 0.15))  // 55-70%: sphere shrinks
-            let textPhase = min(1.0, max(0, (progress - 0.60) / 0.15))    // 60-75%: text appears
+            // ═══════════════════════════════════════════════════════════════
+            // THE AWAKENING - Animation Phases
+            // ═══════════════════════════════════════════════════════════════
+            let darknessPhase = max(0, 1.0 - progress * 10)                    // 0-10%: darkness fades
+            let heartbeatPhase = min(1.0, max(0, progress * 5))                // 0-20%: initial pulse
+            let awakenPhase = min(1.0, max(0, (progress - 0.08) / 0.25))       // 8-33%: agents wake up
+            let chaosPhase = min(1.0, max(0, (progress - 0.05) / 0.30))        // 5-35%: chaos visible
+            let organizePhase = min(1.0, max(0, (progress - 0.25) / 0.30))     // 25-55%: agents organize
+            let connectPhase = min(1.0, max(0, (progress - 0.35) / 0.25))      // 35-60%: connections form
+            let syncPhase = min(1.0, max(0, (progress - 0.55) / 0.15))         // 55-70%: all sync together
+            let textPhase = min(1.0, max(0, (progress - 0.62) / 0.20))         // 62-82%: text appears
+            let gloryPhase = min(1.0, max(0, (progress - 0.75) / 0.25))        // 75-100%: final glory
             
-            // Enhanced shrink with easing curve (ease-in-out cubic)
-            let shrinkEased = shrinkPhase < 0.5 
-                ? 4 * shrinkPhase * shrinkPhase * shrinkPhase 
-                : 1 - pow(-2 * shrinkPhase + 2, 3) / 2
+            // Heartbeat pulse effect
+            let heartbeat = sin(time * 3.5) * 0.5 + 0.5
+            let syncPulse = syncPhase > 0.5 ? sin(time * 6) * 0.5 + 0.5 : 0
             
-            // Sphere scale with smoother easing
-            let sphereScale = 1.0 - shrinkEased * 0.55
-            let sphereOffsetY = shrinkEased * -90
-            
-            // Shrink intensity effects
-            let shrinkIntensity = shrinkPhase > 0 ? sin(shrinkPhase * .pi) : 0 // Peak at middle of shrink
-            let compressionGlow = shrinkPhase > 0.8 ? (shrinkPhase - 0.8) / 0.2 : 0 // Flash at end
-            
-            ZStack {
-                Color.black.ignoresSafeArea()
+            GeometryReader { geo in
+                let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2 - 40)
+                let baseRadius = min(geo.size.width, geo.size.height) * 0.35
                 
-                // Ambient background particles (reduced for 60fps)
-                Canvas { context, size in
-                    let centerX = size.width / 2
-                    let centerY = size.height / 2 + CGFloat(sphereOffsetY)
+                ZStack {
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 1: Deep space background
+                    // ═══════════════════════════════════════════════════════════════
+                    Color.black.ignoresSafeArea()
                     
-                    for i in 0..<25 {
-                        let seed = Double(i) * 1.618
-                        var x = (sin(time * 0.12 + seed * 2) * 0.5 + 0.5) * size.width
-                        var y = (cos(time * 0.08 + seed * 1.5) * 0.5 + 0.5) * size.height
-                        let pulse = sin(time * 1.2 + seed) * 0.5 + 0.5
-                        
-                        // During shrink, particles get pulled toward center
-                        if shrinkPhase > 0 {
-                            let pullStrength = shrinkEased * 0.7
-                            x = x + (centerX - x) * CGFloat(pullStrength)
-                            y = y + (centerY - y) * CGFloat(pullStrength)
-                        }
-                        
-                        let particleSize: CGFloat = 1.5 + CGFloat(pulse) * 2
-                        
+                    // Subtle nebula effect
+                    Canvas { context, size in
+                        // Deep space gradient
                         context.fill(
-                            Circle().path(in: CGRect(x: x, y: y, width: particleSize, height: particleSize)),
-                            with: .color(primaryTeal.opacity(0.06 + pulse * 0.06))
+                            Path(CGRect(origin: .zero, size: size)),
+                            with: .radialGradient(
+                                Gradient(colors: [
+                                    Color(red: 0.05, green: 0.02, blue: 0.1).opacity(0.8),
+                                    Color.black
+                                ]),
+                                center: center,
+                                startRadius: 0,
+                                endRadius: max(size.width, size.height) * 0.8
+                            )
                         )
                     }
+                    .opacity(1 - darknessPhase)
                     
-                    // Converging energy particles during shrink
-                    if shrinkPhase > 0 {
-                        for i in 0..<20 {
-                            let angle = Double(i) * .pi * 2 / 20 + time * 2
-                            let maxRadius = min(size.width, size.height) * 0.6
-                            let radius = maxRadius * (1.0 - shrinkEased * 0.9)
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 2: Chaos particles (the invisible cost - disorganized work)
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        let chaosCount = 60
+                        for i in 0..<chaosCount {
+                            let seed = Double(i) * 2.718
                             
-                            let px = centerX + CGFloat(cos(angle) * radius)
-                            let py = centerY + CGFloat(sin(angle) * radius)
+                            // Initial chaotic positions
+                            var x = sin(seed * 3.7 + time * 0.3) * size.width * 0.45 + size.width / 2
+                            var y = cos(seed * 2.3 + time * 0.25) * size.height * 0.4 + size.height / 2
                             
-                            // Trail effect
-                            for t in 0..<4 {
-                                let trailRadius = radius + CGFloat(t) * 15
-                                let trailX = centerX + CGFloat(cos(angle) * trailRadius)
-                                let trailY = centerY + CGFloat(sin(angle) * trailRadius)
-                                let trailOpacity = (1.0 - Double(t) / 4.0) * shrinkIntensity * 0.4
-                                let trailSize: CGFloat = 3 - CGFloat(t) * 0.5
+                            // As organize phase progresses, particles get pulled to agents
+                            if organizePhase > 0 {
+                                let targetAgent = i % agents.count
+                                let agentAngle = agents[targetAgent].baseAngle + time * agents[targetAgent].speed * 0.3
+                                let agentRadius = baseRadius * CGFloat(agents[targetAgent].orbitRadius) * 2.5
+                                let targetX = center.x + cos(agentAngle) * agentRadius
+                                let targetY = center.y + sin(agentAngle) * agentRadius * 0.6
                                 
-                                context.fill(
-                                    Circle().path(in: CGRect(x: trailX - trailSize, y: trailY - trailSize,
-                                                              width: trailSize * 2, height: trailSize * 2)),
-                                    with: .color(glowTeal.opacity(trailOpacity))
-                                )
+                                // Smooth pull toward agent
+                                let pullStrength = organizePhase * organizePhase // Ease-in
+                                x = x + (targetX - CGFloat(x)) * pullStrength
+                                y = y + (targetY - CGFloat(y)) * pullStrength
                             }
                             
-                            // Main particle
-                            let particleGlow = 3 + CGFloat(shrinkIntensity) * 3
+                            // Particles fade as they're organized
+                            let particleOpacity = chaosPhase * (1 - organizePhase * 0.8)
+                            let particleSize: CGFloat = 2 + CGFloat(sin(time + seed) * 0.5 + 0.5) * 2
+                            
+                            // Chaos particles are dim red/orange (stress colors)
+                            let chaosColor = Color(
+                                red: 0.8 + sin(seed) * 0.2,
+                                green: 0.3 + cos(seed) * 0.1,
+                                blue: 0.2
+                            )
+                            
                             context.fill(
-                                Circle().path(in: CGRect(x: px - particleGlow, y: py - particleGlow,
-                                                          width: particleGlow * 2, height: particleGlow * 2)),
-                                with: .color(glowTeal.opacity(0.6 * shrinkIntensity))
+                                Circle().path(in: CGRect(x: x - particleSize, y: y - particleSize, 
+                                                         width: particleSize * 2, height: particleSize * 2)),
+                                with: .color(chaosColor.opacity(particleOpacity * 0.4))
                             )
                         }
                     }
                     
-                    // Shockwave rings expanding outward at end of shrink
-                    if compressionGlow > 0 {
-                        for ring in 0..<3 {
-                            let ringDelay = Double(ring) * 0.15
-                            let ringProgress = max(0, compressionGlow - ringDelay) / (1.0 - ringDelay)
-                            if ringProgress > 0 {
-                                let ringRadius = CGFloat(ringProgress) * min(size.width, size.height) * 0.4
-                                let ringOpacity = (1.0 - ringProgress) * 0.5
-                                
-                                var ringPath = Path()
-                                ringPath.addEllipse(in: CGRect(x: centerX - ringRadius, y: centerY - ringRadius,
-                                                                width: ringRadius * 2, height: ringRadius * 2))
-                                context.stroke(ringPath, with: .color(glowTeal.opacity(ringOpacity)), 
-                                             lineWidth: 2 - CGFloat(ringProgress))
-                            }
-                        }
-                    }
-                }
-                
-                // 3D SPHERE with points, connections, and pulses
-                Canvas { context, size in
-                    let center = CGPoint(x: size.width / 2, y: size.height / 2 + CGFloat(sphereOffsetY))
-                    let baseRadius: CGFloat = min(size.width, size.height) * 0.30
-                    let sphereRadius = baseRadius * CGFloat(sphereScale)
-                    
-                    // Rotation over time for 3D effect (accelerates during shrink)
-                    let rotationSpeed = 0.2 + shrinkPhase * 0.6 // Speed up as it shrinks
-                    let rotationY = time * rotationSpeed
-                    let rotationX = sin(time * 0.1) * 0.2 + shrinkPhase * 0.15
-                    
-                    // Calculate 3D positions of all points
-                    var screenPoints: [(pos: CGPoint, z: Double, visible: Bool)] = []
-                    
-                    for (i, point) in spherePoints.enumerated() {
-                        // Point appears based on progress (one by one)
-                        let pointProgress = min(1.0, max(0, (pointsAppear * Double(spherePoints.count) - Double(i)) * 1.5))
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 3: Central core pulse (the heartbeat of intelligence)
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        let pulseIntensity = heartbeatPhase * (0.3 + heartbeat * 0.7)
+                        let syncBoost = 1 + syncPhase * 0.5
                         
-                        if pointProgress > 0 {
-                            // 3D sphere position
-                            var x3d = sin(point.phi) * cos(point.theta + rotationY)
-                            var y3d = cos(point.phi)
-                            var z3d = sin(point.phi) * sin(point.theta + rotationY)
+                        // Outer glow rings
+                        for ring in 0..<4 {
+                            let ringDelay = Double(ring) * 0.15
+                            let ringPulse = sin(time * 2.5 - ringDelay * 3) * 0.3 + 0.7
+                            let ringRadius = baseRadius * CGFloat(0.15 + Double(ring) * 0.08) * CGFloat(syncBoost) * CGFloat(ringPulse)
                             
-                            // Apply X rotation
-                            let y3dRotated = y3d * cos(rotationX) - z3d * sin(rotationX)
-                            let z3dRotated = y3d * sin(rotationX) + z3d * cos(rotationX)
-                            y3d = y3dRotated
-                            z3d = z3dRotated
-                            
-                            // Project to 2D with perspective
-                            let perspective = 1.0 + z3d * 0.3
-                            let screenX = center.x + CGFloat(x3d * Double(sphereRadius) * perspective)
-                            let screenY = center.y + CGFloat(y3d * Double(sphereRadius) * perspective * 0.9)
-                            
-                            screenPoints.append((CGPoint(x: screenX, y: screenY), z3d, pointProgress > 0.5))
-                        } else {
-                            screenPoints.append((.zero, 0, false))
+                            context.fill(
+                                Circle().path(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius,
+                                                         width: ringRadius * 2, height: ringRadius * 2)),
+                                with: .radialGradient(
+                                    Gradient(colors: [
+                                        coreGold.opacity(pulseIntensity * 0.4 / Double(ring + 1)),
+                                        electricBlue.opacity(pulseIntensity * 0.2 / Double(ring + 1)),
+                                        .clear
+                                    ]),
+                                    center: center,
+                                    startRadius: 0,
+                                    endRadius: ringRadius
+                                )
+                            )
                         }
-                    }
-                    
-                    // Enhanced outer glow with multiple layers
-                    let glowRadius = sphereRadius * 1.8
-                    
-                    // Outer diffuse glow
-                    context.fill(
-                        Circle().path(in: CGRect(x: center.x - glowRadius * 1.3, y: center.y - glowRadius * 1.3,
-                                                  width: glowRadius * 2.6, height: glowRadius * 2.6)),
-                        with: .radialGradient(
-                            Gradient(colors: [
-                                primaryTeal.opacity(0.08 + pulsePhase * 0.08),
-                                primaryTeal.opacity(0.03),
-                                .clear
-                            ]),
-                            center: center, startRadius: 0, endRadius: glowRadius * 1.3
+                        
+                        // Core bright center
+                        let coreSize = baseRadius * 0.08 * CGFloat(1 + heartbeat * 0.3) * CGFloat(syncBoost)
+                        context.fill(
+                            Circle().path(in: CGRect(x: center.x - coreSize, y: center.y - coreSize,
+                                                     width: coreSize * 2, height: coreSize * 2)),
+                            with: .radialGradient(
+                                Gradient(colors: [hotWhite, coreGold, .clear]),
+                                center: center,
+                                startRadius: 0,
+                                endRadius: coreSize
+                            )
                         )
-                    )
-                    
-                    // Mid glow layer
-                    context.fill(
-                        Circle().path(in: CGRect(x: center.x - glowRadius, y: center.y - glowRadius,
-                                                  width: glowRadius * 2, height: glowRadius * 2)),
-                        with: .radialGradient(
-                            Gradient(colors: [
-                                glowTeal.opacity(0.25 + pulsePhase * 0.2),
-                                primaryTeal.opacity(0.12 + pulsePhase * 0.1),
-                                .clear
-                            ]),
-                            center: center, startRadius: sphereRadius * 0.5, endRadius: glowRadius
-                        )
-                    )
-                    
-                    // Rotating energy arc segments (only during pulse phase, not earlier)
-                    if pulsePhase > 0.3 {
-                        for ring in 0..<2 {
-                            let ringAngle = time * 0.5 + Double(ring) * .pi
-                            let ringRadius = sphereRadius * 1.2
-                            
-                            // Draw subtle arc segments (not full circles)
-                            for segment in 0..<4 {
-                                let segmentAngle = Double(segment) * .pi / 2 + ringAngle
-                                let arcStart = segmentAngle
-                                let arcEnd = segmentAngle + .pi / 6
-                                
-                                var arcPath = Path()
-                                arcPath.addArc(center: center, radius: ringRadius, 
-                                             startAngle: Angle(radians: arcStart), 
-                                             endAngle: Angle(radians: arcEnd), 
-                                             clockwise: false)
-                                
-                                let segmentOpacity = (sin(time * 2 + segmentAngle) * 0.5 + 0.5) * (pulsePhase - 0.3) * 0.25
-                                context.stroke(arcPath, with: .color(glowTeal.opacity(segmentOpacity)), lineWidth: 1)
-                            }
-                        }
                     }
+                    .opacity(heartbeatPhase)
                     
-                    // Draw connections - OPTIMIZED for 60fps (single pass, no gradients)
-                    if connectPhase > 0 {
-                        for i in 0..<screenPoints.count {
-                            guard screenPoints[i].visible else { continue }
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 4: The Agents - awakening one by one with PURPOSE
+                    // Each agent has unique shape, eyes, rings, and antenna
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        for (index, agent) in agents.enumerated() {
+                            // Each agent awakens sequentially
+                            let awakeDelay = Double(index) * 0.10
+                            let agentAwake = min(1.0, max(0, (awakenPhase - awakeDelay) * 2.0))
                             
-                            for j in (i+1)..<screenPoints.count {
-                                guard screenPoints[j].visible else { continue }
+                            if agentAwake > 0 {
+                                // Agent position - purposeful orbital movement
+                                let orbitSpeed = agent.speed * (1 + syncPhase * 0.5)
+                                let angle = agent.baseAngle + time * orbitSpeed * 0.4
+                                let orbitRadius = baseRadius * CGFloat(agent.orbitRadius) * 2.5 * CGFloat(1 - syncPhase * 0.3)
                                 
-                                let p1 = screenPoints[i]
-                                let p2 = screenPoints[j]
-                                let dist = hypot(p2.pos.x - p1.pos.x, p2.pos.y - p1.pos.y)
+                                // Slight vertical compression for 3D feel
+                                let agentX = center.x + cos(angle) * orbitRadius
+                                let agentY = center.y + sin(angle) * orbitRadius * 0.55
+                                let agentCenter = CGPoint(x: agentX, y: agentY)
                                 
-                                // Only connect nearby points
-                                let maxDist = sphereRadius * 0.55
-                                if dist < maxDist {
-                                    let connectionIndex = Double(i + j) / Double(spherePoints.count * 2)
-                                    let connProgress = min(1.0, max(0, (connectPhase - connectionIndex * 0.4) * 2.0))
+                                // Agent size with pulse
+                                let agentPulse = sin(time * 2.5 + agent.pulseOffset * 6) * 0.12 + 0.88
+                                let syncPulseBoost = syncPhase > 0 ? (1 + syncPulse * 0.25) : 1.0
+                                let finalSize = agent.size * CGFloat(agentAwake) * CGFloat(agentPulse) * CGFloat(syncPulseBoost)
+                                
+                                // ══════════════════════════════════════════════════
+                                // ORBITAL RINGS (if agent has them)
+                                // ══════════════════════════════════════════════════
+                                if agent.hasRings && agentAwake > 0.5 {
+                                    for ringIndex in 0..<2 {
+                                        let ringRadius = finalSize * CGFloat(1.4 + Double(ringIndex) * 0.3)
+                                        let ringRotation = time * (1.5 - Double(ringIndex) * 0.5) + Double(agent.id)
+                                        
+                                        // Tilted ellipse ring
+                                        var ringPath = Path()
+                                        ringPath.addEllipse(in: CGRect(x: agentX - ringRadius, y: agentY - ringRadius * 0.3,
+                                                                       width: ringRadius * 2, height: ringRadius * 0.6))
+                                        
+                                        context.stroke(
+                                            ringPath.applying(CGAffineTransform(rotationAngle: CGFloat(ringRotation * 0.3))),
+                                            with: .color(agent.accentColor.opacity(0.5 * agentAwake)),
+                                            lineWidth: 1.5
+                                        )
+                                    }
+                                }
+                                
+                                // ══════════════════════════════════════════════════
+                                // OUTER GLOW
+                                // ══════════════════════════════════════════════════
+                                let glowSize = finalSize * 2.5
+                                context.fill(
+                                    Circle().path(in: CGRect(x: agentX - glowSize, y: agentY - glowSize,
+                                                             width: glowSize * 2, height: glowSize * 2)),
+                                    with: .radialGradient(
+                                        Gradient(colors: [
+                                            agent.primaryColor.opacity(0.5 * agentAwake),
+                                            agent.primaryColor.opacity(0.15 * agentAwake),
+                                            .clear
+                                        ]),
+                                        center: agentCenter,
+                                        startRadius: 0,
+                                        endRadius: glowSize
+                                    )
+                                )
+                                
+                                // ══════════════════════════════════════════════════
+                                // AGENT BODY SHAPE
+                                // ══════════════════════════════════════════════════
+                                let bodyPath = createAgentShape(agent.shape, center: agentCenter, size: finalSize)
+                                
+                                // Body fill with gradient
+                                context.fill(
+                                    bodyPath,
+                                    with: .radialGradient(
+                                        Gradient(colors: [agent.accentColor, agent.primaryColor, agent.primaryColor.opacity(0.7)]),
+                                        center: CGPoint(x: agentX, y: agentY - finalSize * 0.2),
+                                        startRadius: 0,
+                                        endRadius: finalSize
+                                    )
+                                )
+                                
+                                // Body outline
+                                context.stroke(
+                                    bodyPath,
+                                    with: .color(agent.accentColor.opacity(0.8)),
+                                    lineWidth: 2
+                                )
+                                
+                                // ══════════════════════════════════════════════════
+                                // EYES (scanning/processing indicators)
+                                // ══════════════════════════════════════════════════
+                                let eyeSize = finalSize * 0.18
+                                let eyeY = agentY - finalSize * 0.05
+                                let eyePulse = sin(time * 4 + agent.pulseOffset * 5) * 0.3 + 0.7
+                                
+                                if agent.eyeCount == 1 {
+                                    // Single centered eye
+                                    drawAgentEye(context: context, x: agentX, y: eyeY, size: eyeSize * 1.3, 
+                                                 color: agent.accentColor, pulse: eyePulse, time: time)
+                                } else if agent.eyeCount == 2 {
+                                    // Two eyes
+                                    let eyeSpacing = finalSize * 0.25
+                                    drawAgentEye(context: context, x: agentX - eyeSpacing, y: eyeY, size: eyeSize, 
+                                                 color: agent.accentColor, pulse: eyePulse, time: time)
+                                    drawAgentEye(context: context, x: agentX + eyeSpacing, y: eyeY, size: eyeSize, 
+                                                 color: agent.accentColor, pulse: eyePulse, time: time)
+                                } else if agent.eyeCount == 3 {
+                                    // Three eyes (triangle formation)
+                                    let eyeSpacing = finalSize * 0.22
+                                    drawAgentEye(context: context, x: agentX, y: eyeY - eyeSize * 0.8, size: eyeSize, 
+                                                 color: agent.accentColor, pulse: eyePulse, time: time)
+                                    drawAgentEye(context: context, x: agentX - eyeSpacing, y: eyeY + eyeSize * 0.4, size: eyeSize * 0.85, 
+                                                 color: agent.accentColor, pulse: eyePulse, time: time + 0.3)
+                                    drawAgentEye(context: context, x: agentX + eyeSpacing, y: eyeY + eyeSize * 0.4, size: eyeSize * 0.85, 
+                                                 color: agent.accentColor, pulse: eyePulse, time: time + 0.6)
+                                }
+                                
+                                // ══════════════════════════════════════════════════
+                                // ANTENNA (beacon/receiver)
+                                // ══════════════════════════════════════════════════
+                                if agent.hasAntenna && agentAwake > 0.6 {
+                                    let antennaHeight = finalSize * 0.6
+                                    let antennaBaseY = agentY - finalSize * 0.5
+                                    let antennaTipY = antennaBaseY - antennaHeight
                                     
-                                    if connProgress > 0.1 {
-                                        let endX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(connProgress)
-                                        let endY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(connProgress)
-                                        
-                                        // Depth-based opacity
-                                        let avgZ = (p1.z + p2.z) / 2
-                                        let depthOpacity = 0.25 + max(0, avgZ) * 0.3
-                                        
-                                        // Single line (no glow layer for performance)
-                                        var line = Path()
-                                        line.move(to: p1.pos)
-                                        line.addLine(to: CGPoint(x: endX, y: endY))
-                                        context.stroke(line, with: .color(glowTeal.opacity(depthOpacity * connProgress)), lineWidth: 1.0)
-                                        
-                                        // Simple pulse dot (only every 4th connection for performance)
-                                        if pulsePhase > 0.3 && (i + j) % 4 == 0 {
-                                            let pulseT = fmod(time * 1.5 + connectionIndex * 3, 1.0)
-                                            let pulseX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(pulseT)
-                                            let pulseY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(pulseT)
+                                    // Antenna line
+                                    var antennaPath = Path()
+                                    antennaPath.move(to: CGPoint(x: agentX, y: antennaBaseY))
+                                    antennaPath.addLine(to: CGPoint(x: agentX, y: antennaTipY))
+                                    context.stroke(antennaPath, with: .color(agent.accentColor.opacity(0.8)), lineWidth: 2)
+                                    
+                                    // Antenna tip beacon (pulsing)
+                                    let beaconSize = eyeSize * 0.8 * CGFloat(0.8 + sin(time * 5) * 0.2)
+                                    context.fill(
+                                        Circle().path(in: CGRect(x: agentX - beaconSize, y: antennaTipY - beaconSize,
+                                                                 width: beaconSize * 2, height: beaconSize * 2)),
+                                        with: .radialGradient(
+                                            Gradient(colors: [hotWhite, agent.primaryColor, .clear]),
+                                            center: CGPoint(x: agentX, y: antennaTipY),
+                                            startRadius: 0,
+                                            endRadius: beaconSize * 1.5
+                                        )
+                                    )
+                                    
+                                    // Signal waves from antenna
+                                    if syncPhase > 0.3 {
+                                        for wave in 0..<3 {
+                                            let waveProgress = fmod(time * 1.5 + Double(wave) * 0.33, 1.0)
+                                            let waveRadius = CGFloat(waveProgress) * finalSize * 0.6
+                                            let waveOpacity = (1 - waveProgress) * 0.4 * syncPhase
                                             
-                                            context.fill(
-                                                Circle().path(in: CGRect(x: pulseX - 2, y: pulseY - 2, width: 4, height: 4)),
-                                                with: .color(Color.white.opacity(0.8 * pulsePhase))
-                                            )
+                                            var wavePath = Path()
+                                            wavePath.addArc(center: CGPoint(x: agentX, y: antennaTipY),
+                                                           radius: waveRadius,
+                                                           startAngle: .degrees(-60),
+                                                           endAngle: .degrees(-120),
+                                                           clockwise: true)
+                                            context.stroke(wavePath, with: .color(agent.accentColor.opacity(waveOpacity)), lineWidth: 1.5)
                                         }
+                                    }
+                                }
+                                
+                                // ══════════════════════════════════════════════════
+                                // MOTION TRAIL
+                                // ══════════════════════════════════════════════════
+                                if agentAwake > 0.5 {
+                                    for trail in 1..<5 {
+                                        let trailAngle = angle - Double(trail) * 0.06 * orbitSpeed
+                                        let trailX = center.x + cos(trailAngle) * orbitRadius
+                                        let trailY = center.y + sin(trailAngle) * orbitRadius * 0.55
+                                        let trailSize = finalSize * CGFloat(0.6 - Double(trail) * 0.12)
+                                        let trailOpacity = (1 - Double(trail) / 5) * 0.35
+                                        
+                                        context.fill(
+                                            Circle().path(in: CGRect(x: trailX - trailSize / 2, y: trailY - trailSize / 2,
+                                                                     width: trailSize, height: trailSize)),
+                                            with: .color(agent.primaryColor.opacity(trailOpacity * agentAwake))
+                                        )
                                     }
                                 }
                             }
                         }
                     }
                     
-                    // Draw points (nodes) - OPTIMIZED for 60fps
-                    for (i, point) in screenPoints.enumerated() {
-                        guard point.visible else { continue }
-                        
-                        let pointProgress = min(1.0, max(0, (pointsAppear * Double(spherePoints.count) - Double(i)) * 1.5))
-                        
-                        // Depth-based sizing
-                        let depth = (point.z + 1) / 2
-                        let baseSize: CGFloat = 4 + CGFloat(depth) * 5
-                        let nodeSize = baseSize * CGFloat(pointProgress)
-                        
-                        // Single glow layer (combined for performance)
-                        let glowSize = nodeSize * (1.8 + CGFloat(pulsePhase) * 0.4)
-                        let pulseGlow = pulsePhase > 0.2 ? (sin(time * 3 + Double(i) * 0.3) * 0.3 + 0.7) : 1.0
-                        
-                        context.fill(
-                            Circle().path(in: CGRect(x: point.pos.x - glowSize, y: point.pos.y - glowSize,
-                                                      width: glowSize * 2, height: glowSize * 2)),
-                            with: .radialGradient(
-                                Gradient(colors: [
-                                    glowTeal.opacity(0.4 * (0.5 + depth * 0.5) * pulseGlow),
-                                    primaryTeal.opacity(0.15 * (0.5 + depth * 0.5)),
-                                    .clear
-                                ]),
-                                center: point.pos, startRadius: 0, endRadius: glowSize
-                            )
-                        )
-                        
-                        // Core node with gradient
-                        context.fill(
-                            Circle().path(in: CGRect(x: point.pos.x - nodeSize / 2, y: point.pos.y - nodeSize / 2,
-                                                      width: nodeSize, height: nodeSize)),
-                            with: .radialGradient(
-                                Gradient(colors: [Color.white.opacity(0.95), glowTeal, primaryTeal.opacity(0.8)]),
-                                center: point.pos, startRadius: 0, endRadius: nodeSize / 2
-                            )
-                        )
-                        
-                        // Bright center during pulse (simple)
-                        if pulsePhase > 0.3 && pulseGlow > 0.85 {
-                            let brightSize = nodeSize * 0.4
-                            context.fill(
-                                Circle().path(in: CGRect(x: point.pos.x - brightSize / 2, y: point.pos.y - brightSize / 2,
-                                                          width: brightSize, height: brightSize)),
-                                with: .color(Color.white.opacity(0.9 * pulsePhase))
-                            )
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 5: Connection arcs between agents (energy transfer)
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        if connectPhase > 0 {
+                            // Calculate current agent positions
+                            var agentPositions: [(pos: CGPoint, color: Color)] = []
+                            for agent in agents {
+                                let angle = agent.baseAngle + time * agent.speed * 0.4
+                                let orbitRadius = baseRadius * CGFloat(agent.orbitRadius) * 2.5 * CGFloat(1 - syncPhase * 0.3)
+                                let x = center.x + cos(angle) * orbitRadius
+                                let y = center.y + sin(angle) * orbitRadius * 0.55
+                                agentPositions.append((CGPoint(x: x, y: y), agent.primaryColor))
+                            }
+                            
+                            // Draw connections
+                            for i in 0..<agentPositions.count {
+                                for j in (i+1)..<agentPositions.count {
+                                    let p1 = agentPositions[i]
+                                    let p2 = agentPositions[j]
+                                    
+                                    // Connection appears based on progress
+                                    let connDelay = Double(i + j) * 0.08
+                                    let connProgress = min(1.0, max(0, (connectPhase - connDelay) * 2.0))
+                                    
+                                    if connProgress > 0.1 {
+                                        // Arc connection (curved, not straight)
+                                        let midX = (p1.pos.x + p2.pos.x) / 2
+                                        let midY = (p1.pos.y + p2.pos.y) / 2 - 30 // Curve upward
+                                        
+                                        var arcPath = Path()
+                                        arcPath.move(to: p1.pos)
+                                        arcPath.addQuadCurve(to: p2.pos, control: CGPoint(x: midX, y: midY))
+                                        
+                                        // Blend colors
+                                        let blendColor = Color(
+                                            red: 0.5,
+                                            green: 0.7,
+                                            blue: 0.9
+                                        )
+                                        
+                                        context.stroke(arcPath, with: .color(blendColor.opacity(0.4 * connProgress)), lineWidth: 1.5)
+                                        
+                                        // Energy pulse traveling along connection
+                                        let pulseT = fmod(time * 1.2 + Double(i + j) * 0.5, 1.0)
+                                        let pulsePos = quadraticBezier(p1.pos, CGPoint(x: midX, y: midY), p2.pos, CGFloat(pulseT))
+                                        
+                                        context.fill(
+                                            Circle().path(in: CGRect(x: pulsePos.x - 4, y: pulsePos.y - 4, width: 8, height: 8)),
+                                            with: .radialGradient(
+                                                Gradient(colors: [hotWhite.opacity(0.9 * connProgress), blendColor.opacity(0.5 * connProgress), .clear]),
+                                                center: pulsePos,
+                                                startRadius: 0,
+                                                endRadius: 6
+                                            )
+                                        )
+                                    }
+                                }
+                                
+                                // Connection from agent to center (during sync)
+                                if syncPhase > 0 {
+                                    let p = agentPositions[i]
+                                    
+                                    var centerLine = Path()
+                                    centerLine.move(to: p.pos)
+                                    centerLine.addLine(to: center)
+                                    
+                                    context.stroke(centerLine, with: .color(coreGold.opacity(0.3 * syncPhase)), lineWidth: 1)
+                                    
+                                    // Energy flowing to center
+                                    let flowT = fmod(time * 2 + Double(i) * 0.3, 1.0)
+                                    let flowX = p.pos.x + (center.x - p.pos.x) * CGFloat(flowT)
+                                    let flowY = p.pos.y + (center.y - p.pos.y) * CGFloat(flowT)
+                                    
+                                    context.fill(
+                                        Circle().path(in: CGRect(x: flowX - 3, y: flowY - 3, width: 6, height: 6)),
+                                        with: .color(p.color.opacity(0.7 * syncPhase * (1 - flowT)))
+                                    )
+                                }
+                            }
                         }
                     }
                     
-                    // Central core (appears during pulse phase, intensifies during shrink)
-                    if pulsePhase > 0 {
-                        // Core grows more intense during shrink
-                        let shrinkBoost = 1.0 + shrinkIntensity * 0.8
-                        let coreSize = sphereRadius * 0.12 * CGFloat(pulsePhase) * CGFloat(shrinkBoost)
-                        let corePulse = 1.0 + sin(time * 4) * 0.15
-                        
-                        // Outer glow ring during shrink
-                        if shrinkPhase > 0 {
-                            let glowRingSize = coreSize * 3 * CGFloat(1 + shrinkIntensity * 0.5)
-                            context.fill(
-                                Circle().path(in: CGRect(x: center.x - glowRingSize,
-                                                          y: center.y - glowRingSize,
-                                                          width: glowRingSize * 2,
-                                                          height: glowRingSize * 2)),
-                                with: .radialGradient(
-                                    Gradient(colors: [
-                                        glowTeal.opacity(0.4 * shrinkIntensity),
-                                        primaryTeal.opacity(0.2 * shrinkIntensity),
-                                        .clear
-                                    ]),
-                                    center: center, startRadius: 0, endRadius: glowRingSize
-                                )
-                            )
-                        }
-                        
-                        context.fill(
-                            Circle().path(in: CGRect(x: center.x - coreSize * CGFloat(corePulse),
-                                                      y: center.y - coreSize * CGFloat(corePulse),
-                                                      width: coreSize * 2 * CGFloat(corePulse),
-                                                      height: coreSize * 2 * CGFloat(corePulse))),
-                            with: .radialGradient(
-                                Gradient(colors: [glowTeal, primaryTeal.opacity(0.6), .clear]),
-                                center: center, startRadius: 0, endRadius: coreSize * CGFloat(corePulse)
-                            )
-                        )
-                        
-                        // Bright flash at compression peak
-                        if compressionGlow > 0 {
-                            let flashSize = sphereRadius * 0.5 * CGFloat(compressionGlow)
-                            context.fill(
-                                Circle().path(in: CGRect(x: center.x - flashSize,
-                                                          y: center.y - flashSize,
-                                                          width: flashSize * 2,
-                                                          height: flashSize * 2)),
-                                with: .radialGradient(
-                                    Gradient(colors: [
-                                        Color.white.opacity(0.9 * compressionGlow),
-                                        glowTeal.opacity(0.6 * compressionGlow),
-                                        .clear
-                                    ]),
-                                    center: center, startRadius: 0, endRadius: flashSize
-                                )
-                            )
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 6: Sync shockwave (the moment everything clicks)
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        if syncPhase > 0.3 {
+                            // Expanding rings when agents sync
+                            for ring in 0..<3 {
+                                let ringProgress = fmod(time * 0.8 + Double(ring) * 0.33, 1.0)
+                                let ringRadius = baseRadius * CGFloat(0.3 + ringProgress * 1.2)
+                                let ringOpacity = (1 - ringProgress) * syncPhase * 0.4
+                                
+                                var ringPath = Path()
+                                ringPath.addEllipse(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius * 0.55,
+                                                               width: ringRadius * 2, height: ringRadius * 2 * 0.55))
+                                
+                                context.stroke(ringPath, with: .color(coreGold.opacity(ringOpacity)), lineWidth: 2 - CGFloat(ringProgress))
+                            }
                         }
                     }
                     
-                    // Light rays converging during shrink
-                    if shrinkPhase > 0.1 && shrinkPhase < 0.95 {
-                        for ray in 0..<12 {
-                            let angle = Double(ray) * .pi * 2 / 12
-                            let rayLength = sphereRadius * 1.5 * CGFloat(1 - shrinkEased * 0.6)
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 7: THE TEXT - "AGENTIC ORCHESTRATION" with power
+                    // ═══════════════════════════════════════════════════════════════
+                    if textPhase > 0 {
+                        VStack(spacing: 12) {
+                            Spacer()
                             
-                            let startX = center.x + CGFloat(cos(angle)) * rayLength
-                            let startY = center.y + CGFloat(sin(angle)) * rayLength
-                            let endX = center.x + CGFloat(cos(angle)) * sphereRadius * 0.3
-                            let endY = center.y + CGFloat(sin(angle)) * sphereRadius * 0.3
+                            // Subtitle
+                            Text("THIS IS")
+                                .font(.system(size: 14, weight: .medium))
+                                .tracking(8)
+                                .foregroundColor(.white.opacity(0.5))
+                                .opacity(textPhase)
                             
-                            var rayPath = Path()
-                            rayPath.move(to: CGPoint(x: startX, y: startY))
-                            rayPath.addLine(to: CGPoint(x: endX, y: endY))
+                            // Main title with epic reveal
+                            ZStack {
+                                // Outer glow layer
+                                Text("AGENTIC ORCHESTRATION")
+                                    .font(.system(size: 32, weight: .black))
+                                    .tracking(6)
+                                    .foregroundColor(coreGold.opacity(0.3))
+                                    .blur(radius: 20)
+                                
+                                // Mid glow
+                                Text("AGENTIC ORCHESTRATION")
+                                    .font(.system(size: 32, weight: .black))
+                                    .tracking(6)
+                                    .foregroundColor(electricBlue.opacity(0.5))
+                                    .blur(radius: 10)
+                                
+                                // Main text with gradient
+                                Text("AGENTIC ORCHESTRATION")
+                                    .font(.system(size: 32, weight: .black))
+                                    .tracking(6)
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [coreGold, hotWhite, electricBlue],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .shadow(color: coreGold.opacity(0.8), radius: 15)
+                                    .shadow(color: electricBlue.opacity(0.5), radius: 30)
+                            }
+                            .opacity(textPhase)
+                            .scaleEffect(0.9 + textPhase * 0.1)
+                            .offset(y: (1 - textPhase) * 30)
                             
-                            context.stroke(rayPath, 
-                                         with: .linearGradient(
-                                            Gradient(colors: [.clear, glowTeal.opacity(0.3 * shrinkIntensity)]),
-                                            startPoint: CGPoint(x: startX, y: startY),
-                                            endPoint: CGPoint(x: endX, y: endY)
-                                         ),
-                                         lineWidth: 2)
+                            // Tagline
+                            Text("Intelligence that orchestrates. Agents that deliver.")
+                                .font(.system(size: 16, weight: .light))
+                                .foregroundColor(.white.opacity(0.7))
+                                .opacity(min(1, (textPhase - 0.3) * 2))
+                                .offset(y: (1 - textPhase) * 20)
+                            
+                            Spacer()
+                                .frame(height: 80)
                         }
+                        .animation(.easeOut(duration: 0.8), value: textPhase > 0.5)
                     }
-                }
-                
-                // Text overlay (appears after shrink)
-                if textPhase > 0 {
-                    VStack {
-                        Spacer()
-                        
-                        ZStack {
-                            Text("AGENTIC ORCHESTRATION")
-                                .font(.system(size: 24, weight: .bold))
-                                .tracking(12)
-                                .foregroundColor(glowTeal.opacity(0.3))
-                                .blur(radius: 15)
-                            
-                            Text("AGENTIC ORCHESTRATION")
-                                .font(.system(size: 24, weight: .bold))
-                                .tracking(12)
-                                .foregroundColor(glowTeal)
-                                .shadow(color: glowTeal, radius: 20)
-                                .shadow(color: primaryTeal.opacity(0.5), radius: 35)
+                    
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 8: Glory phase - final flourish
+                    // ═══════════════════════════════════════════════════════════════
+                    if gloryPhase > 0 {
+                        Canvas { context, size in
+                            // Starburst rays from center
+                            for ray in 0..<24 {
+                                let rayAngle = Double(ray) * .pi * 2 / 24 + time * 0.1
+                                let rayLength = baseRadius * CGFloat(1.5 + gloryPhase * 0.5)
+                                let rayWidth: CGFloat = 1.5
+                                
+                                var rayPath = Path()
+                                rayPath.move(to: center)
+                                let endX = center.x + cos(rayAngle) * rayLength
+                                let endY = center.y + sin(rayAngle) * rayLength * 0.55
+                                rayPath.addLine(to: CGPoint(x: endX, y: endY))
+                                
+                                context.stroke(
+                                    rayPath,
+                                    with: .linearGradient(
+                                        Gradient(colors: [coreGold.opacity(0.4 * gloryPhase), .clear]),
+                                        startPoint: center,
+                                        endPoint: CGPoint(x: endX, y: endY)
+                                    ),
+                                    lineWidth: rayWidth
+                                )
+                            }
                         }
-                        .opacity(textPhase)
-                        .offset(y: (1 - textPhase) * 20)
-                        
-                        Spacer()
-                            .frame(height: 100)
                     }
                 }
             }
             .drawingGroup() // Metal-accelerated rendering for 60fps
         }
     }
+    
+    // Helper function for bezier curve position
+    private func quadraticBezier(_ p0: CGPoint, _ p1: CGPoint, _ p2: CGPoint, _ t: CGFloat) -> CGPoint {
+        let oneMinusT = 1 - t
+        let x = oneMinusT * oneMinusT * p0.x + 2 * oneMinusT * t * p1.x + t * t * p2.x
+        let y = oneMinusT * oneMinusT * p0.y + 2 * oneMinusT * t * p1.y + t * t * p2.y
+        return CGPoint(x: x, y: y)
+    }
+    
+    // Create unique agent body shapes
+    private func createAgentShape(_ shape: AgentShape, center: CGPoint, size: CGFloat) -> Path {
+        var path = Path()
+        let cx = center.x
+        let cy = center.y
+        let r = size * 0.5
+        
+        switch shape {
+        case .hexagon:
+            // 6-sided polygon - leadership, authority
+            for i in 0..<6 {
+                let angle = Double(i) * .pi / 3 - .pi / 2
+                let x = cx + cos(angle) * r
+                let y = cy + sin(angle) * r
+                if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                else { path.addLine(to: CGPoint(x: x, y: y)) }
+            }
+            path.closeSubpath()
+            
+        case .diamond:
+            // Diamond/rhombus - analytical, precise
+            path.move(to: CGPoint(x: cx, y: cy - r * 1.2))
+            path.addLine(to: CGPoint(x: cx + r * 0.8, y: cy))
+            path.addLine(to: CGPoint(x: cx, y: cy + r * 1.2))
+            path.addLine(to: CGPoint(x: cx - r * 0.8, y: cy))
+            path.closeSubpath()
+            
+        case .triangle:
+            // Triangle pointing right - action, forward motion
+            path.move(to: CGPoint(x: cx + r * 1.1, y: cy))
+            path.addLine(to: CGPoint(x: cx - r * 0.7, y: cy - r * 0.9))
+            path.addLine(to: CGPoint(x: cx - r * 0.7, y: cy + r * 0.9))
+            path.closeSubpath()
+            
+        case .star:
+            // 5-pointed star - connection, reaching out
+            for i in 0..<10 {
+                let angle = Double(i) * .pi / 5 - .pi / 2
+                let radius = i % 2 == 0 ? r * 1.1 : r * 0.5
+                let x = cx + cos(angle) * radius
+                let y = cy + sin(angle) * radius
+                if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                else { path.addLine(to: CGPoint(x: x, y: y)) }
+            }
+            path.closeSubpath()
+            
+        case .octagon:
+            // 8-sided - complex, innovative
+            for i in 0..<8 {
+                let angle = Double(i) * .pi / 4 - .pi / 8
+                let x = cx + cos(angle) * r
+                let y = cy + sin(angle) * r
+                if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                else { path.addLine(to: CGPoint(x: x, y: y)) }
+            }
+            path.closeSubpath()
+            
+        case .shield:
+            // Shield shape - protective, optimizing
+            path.move(to: CGPoint(x: cx, y: cy - r * 1.1))
+            path.addQuadCurve(to: CGPoint(x: cx + r, y: cy - r * 0.3), control: CGPoint(x: cx + r * 0.8, y: cy - r * 1.0))
+            path.addLine(to: CGPoint(x: cx + r * 0.8, y: cy + r * 0.5))
+            path.addQuadCurve(to: CGPoint(x: cx, y: cy + r * 1.1), control: CGPoint(x: cx + r * 0.4, y: cy + r * 1.0))
+            path.addQuadCurve(to: CGPoint(x: cx - r * 0.8, y: cy + r * 0.5), control: CGPoint(x: cx - r * 0.4, y: cy + r * 1.0))
+            path.addLine(to: CGPoint(x: cx - r, y: cy - r * 0.3))
+            path.addQuadCurve(to: CGPoint(x: cx, y: cy - r * 1.1), control: CGPoint(x: cx - r * 0.8, y: cy - r * 1.0))
+            path.closeSubpath()
+            
+        case .circle:
+            // Perfect circle - harmony, balance
+            path.addEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+        }
+        
+        return path
+    }
+    
+    // Draw agent "eye" - glowing processing indicator
+    private func drawAgentEye(context: GraphicsContext, x: CGFloat, y: CGFloat, size: CGFloat, color: Color, pulse: Double, time: Double) {
+        let eyeCenter = CGPoint(x: x, y: y)
+        
+        // Outer glow
+        context.fill(
+            Circle().path(in: CGRect(x: x - size * 1.5, y: y - size * 1.5, width: size * 3, height: size * 3)),
+            with: .radialGradient(
+                Gradient(colors: [color.opacity(0.4 * pulse), .clear]),
+                center: eyeCenter,
+                startRadius: 0,
+                endRadius: size * 1.5
+            )
+        )
+        
+        // Eye socket
+        context.fill(
+            Circle().path(in: CGRect(x: x - size, y: y - size, width: size * 2, height: size * 2)),
+            with: .color(Color.black.opacity(0.6))
+        )
+        
+        // Inner iris
+        let irisSize = size * 0.7
+        context.fill(
+            Circle().path(in: CGRect(x: x - irisSize, y: y - irisSize, width: irisSize * 2, height: irisSize * 2)),
+            with: .radialGradient(
+                Gradient(colors: [hotWhite, color]),
+                center: eyeCenter,
+                startRadius: 0,
+                endRadius: irisSize
+            )
+        )
+        
+        // Scanning line effect
+        let scanY = y + sin(time * 3) * size * 0.5
+        var scanLine = Path()
+        scanLine.move(to: CGPoint(x: x - size * 0.8, y: scanY))
+        scanLine.addLine(to: CGPoint(x: x + size * 0.8, y: scanY))
+        context.stroke(scanLine, with: .color(hotWhite.opacity(0.6 * pulse)), lineWidth: 1)
+    }
 }
 
 // MARK: - Human Return (02:45-03:30)
 /// Cinematic reveal: Human silhouette emerges from the network, potential restored
+// MARK: - Human Return: "GRAVITY RELEASE"
+/// Figure weighted by chains that dissolve, then rises into light - anti-gravity liberation
 struct HumanReturnAnimation: View {
     var progress: Double
     
-    // Colors - deeper teal/cyan for differentiation
-    private let accentBlue = Color(red: 0.0, green: 0.6, blue: 0.75)   // Teal
-    private let glowBlue = Color(red: 0.1, green: 0.7, blue: 0.85)     // Lighter teal glow
-    private let warmWhite = Color(red: 0.98, green: 0.98, blue: 0.96)
+    // Colors - cinematic palette
+    private let chainGray = Color(red: 0.35, green: 0.35, blue: 0.4)
+    private let liberationGold = Color(red: 1.0, green: 0.85, blue: 0.5)
+    private let skyLight = Color(red: 0.7, green: 0.85, blue: 1.0)
+    private let deepDark = Color(red: 0.03, green: 0.03, blue: 0.06)
+    
+    // Chain/anchor data - visible weights holding figure down
+    private struct ChainAnchor {
+        let id: Int
+        let attachX: CGFloat      // Where it attaches to figure (-1 to 1, relative)
+        let attachY: CGFloat      // Vertical attachment point
+        let icon: String          // The weight icon
+        let dissolveDelay: Double // When it starts dissolving
+    }
+    
+    private let chains: [ChainAnchor] = [
+        ChainAnchor(id: 0, attachX: -0.6, attachY: 0.3, icon: "envelope.badge", dissolveDelay: 0.10),
+        ChainAnchor(id: 1, attachX: 0.6, attachY: 0.35, icon: "clock.badge.exclamationmark", dissolveDelay: 0.15),
+        ChainAnchor(id: 2, attachX: -0.3, attachY: 0.5, icon: "doc.on.doc", dissolveDelay: 0.20),
+        ChainAnchor(id: 3, attachX: 0.35, attachY: 0.55, icon: "chart.bar.doc.horizontal", dissolveDelay: 0.25),
+        ChainAnchor(id: 4, attachX: 0.0, attachY: 0.7, icon: "tray.2.fill", dissolveDelay: 0.30),
+    ]
     
     var body: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
-            ZStack {
-                // Gradient background: transitions from dark to light with warmth
-                LinearGradient(
-                    colors: [
-                        Color(white: 0.02 + 0.96 * progress),
-                        Color(white: 0.04 + 0.94 * progress),
-                        Color(white: 0.06 + 0.92 * progress)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+            // Animation phases - cinematic timing
+            let chainsPhase = min(1.0, progress / 0.35)                    // 0-35%: chains visible, dissolving
+            let dissolvePhase = min(1.0, max(0, (progress - 0.15) / 0.35)) // 15-50%: chains dissolve
+            let risePhase = min(1.0, max(0, (progress - 0.40) / 0.35))     // 40-75%: figure rises
+            let gloryPhase = min(1.0, max(0, (progress - 0.65) / 0.35))    // 65-100%: full liberation
+            let textPhase = min(1.0, max(0, (progress - 0.50) / 0.30))     // 50-80%: text appears
+            
+            GeometryReader { geo in
+                let centerX = geo.size.width / 2
+                let centerY = geo.size.height * 0.45
+                let figureSize: CGFloat = 130
                 
-                // Cinematic light rays from behind figure
-                Canvas { context, size in
-                    let center = CGPoint(x: size.width / 2, y: size.height * 0.35)
-                    let colorBlend = min(1.0, max(0, (progress - 0.3) / 0.5))
+                // Figure rises as chains dissolve
+                let figureRiseY = centerY - (risePhase * 80) - sin(time * 0.8) * (risePhase * 10)
+                
+                ZStack {
+                    // ═══════════════════════════════════════════════════════════════
+                    // BACKGROUND: Dark abyss to light sky
+                    // ═══════════════════════════════════════════════════════════════
+                    LinearGradient(
+                        colors: [
+                            deepDark.opacity(1 - gloryPhase * 0.95),
+                            Color(white: 0.1 + gloryPhase * 0.85),
+                            skyLight.opacity(gloryPhase)
+                        ],
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+                    .ignoresSafeArea()
                     
-                    // Light rays emanating from center
-                    let rayCount = 24
-                    for i in 0..<rayCount {
-                        let angle = Double(i) * (2 * .pi / Double(rayCount)) + time * 0.02
-                        let rayLength = size.width * (0.4 + sin(time * 0.5 + Double(i)) * 0.1)
-                        let rayWidth: CGFloat = 25 + CGFloat(sin(time + Double(i) * 0.3)) * 10
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 1: Light source above (destination)
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        // Growing light from above
+                        let lightY = size.height * 0.15
+                        let lightRadius = size.width * 0.5 * CGFloat(0.3 + gloryPhase * 0.7)
                         
-                        let endX = center.x + CGFloat(cos(angle)) * rayLength
-                        let endY = center.y + CGFloat(sin(angle)) * rayLength
-                        
-                        var ray = Path()
-                        ray.move(to: center)
-                        ray.addLine(to: CGPoint(x: endX, y: endY))
-                        
-                        let rayOpacity = (0.03 + sin(time * 0.8 + Double(i)) * 0.02) * progress
-                        let rayColor = Color(
-                            red: 0.8 * (1 - colorBlend) + 0.1 * colorBlend,
-                            green: 0.8 * (1 - colorBlend) + 0.7 * colorBlend,
-                            blue: 0.8 * (1 - colorBlend) + 0.85 * colorBlend
+                        context.fill(
+                            Ellipse().path(in: CGRect(x: centerX - lightRadius,
+                                                      y: lightY - lightRadius * 0.4,
+                                                      width: lightRadius * 2,
+                                                      height: lightRadius * 0.8)),
+                            with: .radialGradient(
+                                Gradient(colors: [
+                                    liberationGold.opacity(0.5 * (0.2 + gloryPhase * 0.8)),
+                                    skyLight.opacity(0.3 * (0.2 + gloryPhase * 0.8)),
+                                    .clear
+                                ]),
+                                center: CGPoint(x: centerX, y: lightY),
+                                startRadius: 0,
+                                endRadius: lightRadius
+                            )
                         )
-                        context.stroke(ray, with: .color(rayColor.opacity(rayOpacity)), lineWidth: rayWidth)
+                        
+                        // Light rays descending
+                        if gloryPhase > 0.2 {
+                            for ray in 0..<8 {
+                                let rayAngle = Double(ray) * .pi / 4 + .pi / 8
+                                let rayLength = size.height * 0.5 * CGFloat(gloryPhase)
+                                
+                                var rayPath = Path()
+                                rayPath.move(to: CGPoint(x: centerX, y: lightY))
+                                let endX = centerX + cos(rayAngle) * rayLength * 0.5
+                                let endY = lightY + sin(rayAngle) * rayLength
+                                rayPath.addLine(to: CGPoint(x: endX, y: endY))
+                                
+                                context.stroke(
+                                    rayPath,
+                                    with: .linearGradient(
+                                        Gradient(colors: [liberationGold.opacity(0.2 * gloryPhase), .clear]),
+                                        startPoint: CGPoint(x: centerX, y: lightY),
+                                        endPoint: CGPoint(x: endX, y: endY)
+                                    ),
+                                    lineWidth: 25
+                                )
+                            }
+                        }
                     }
-                }
-                .blur(radius: 30)
-                
-                // Animated energy arcs behind the figure
-                Canvas { context, size in
-                    let center = CGPoint(x: size.width / 2, y: size.height * 0.38)
-                    let colorBlend = min(1.0, max(0, (progress - 0.3) / 0.5))
+                    .blur(radius: 20)
                     
-                    // Draw flowing arc lines emanating from center
-                    let arcCount = 10
-                    for i in 0..<arcCount {
-                        let arcProgress = min(1.0, max(0, (progress - 0.1 - Double(i) * 0.025) * 2.2))
-                        if arcProgress > 0 {
-                            let baseAngle = Double(i) * (.pi / Double(arcCount)) - .pi / 2
-                            let wobble = sin(time * 1.8 + Double(i)) * 0.06
-                            let startAngle = baseAngle - 0.45 + wobble
-                            let endAngle = baseAngle + 0.45 + wobble
-                            let radius: CGFloat = 100 + CGFloat(i) * 20
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 2: The Chains - visible weights pulling down
+                    // ═══════════════════════════════════════════════════════════════
+                    Canvas { context, size in
+                        for chain in chains {
+                            // Calculate how dissolved this chain is
+                            let chainDissolve = min(1.0, max(0, (dissolvePhase - chain.dissolveDelay) / 0.25))
                             
-                            var arc = Path()
-                            arc.addArc(center: center, radius: radius * CGFloat(arcProgress),
-                                       startAngle: .radians(startAngle), endAngle: .radians(endAngle), clockwise: false)
+                            if chainDissolve < 1.0 {
+                                // Chain attachment point on figure
+                                let attachX = centerX + chain.attachX * (figureSize * 0.3)
+                                let attachY = figureRiseY + chain.attachY * figureSize
+                                
+                                // Anchor point below (in the abyss)
+                                let anchorY = size.height * 0.85
+                                let anchorX = attachX + chain.attachX * 30
+                                
+                                // Draw chain links from figure down to anchor
+                                let chainLength = anchorY - attachY
+                                let linkCount = 8
+                                let linkSpacing = chainLength / CGFloat(linkCount)
+                                
+                                for link in 0..<linkCount {
+                                    let linkY = attachY + CGFloat(link) * linkSpacing
+                                    let linkX = attachX + (anchorX - attachX) * (CGFloat(link) / CGFloat(linkCount))
+                                    
+                                    // Links dissolve from bottom up
+                                    let linkDissolve = chainDissolve * (CGFloat(linkCount - link) / CGFloat(linkCount))
+                                    let linkOpacity = (1 - linkDissolve) * 0.6
+                                    
+                                    if linkOpacity > 0 {
+                                        // Chain link oval
+                                        var linkPath = Path()
+                                        linkPath.addEllipse(in: CGRect(x: linkX - 4, y: linkY - 8, width: 8, height: 16))
+                                        context.stroke(linkPath, with: .color(chainGray.opacity(linkOpacity)), lineWidth: 2)
+                                    }
+                                }
+                                
+                                // The anchor/weight at bottom
+                                let anchorOpacity = (1 - chainDissolve) * 0.7
+                                if anchorOpacity > 0 {
+                                    // Anchor glow
+                                    context.fill(
+                                        Circle().path(in: CGRect(x: anchorX - 25, y: anchorY - 25, width: 50, height: 50)),
+                                        with: .radialGradient(
+                                            Gradient(colors: [chainGray.opacity(anchorOpacity * 0.3), .clear]),
+                                            center: CGPoint(x: anchorX, y: anchorY),
+                                            startRadius: 0,
+                                            endRadius: 25
+                                        )
+                                    )
+                                }
+                            }
                             
-                            let opacity = 0.2 + 0.3 * arcProgress - Double(i) * 0.02
-                            let arcColor = Color(
-                                red: 0.6 * (1 - colorBlend) + 0.0 * colorBlend,
-                                green: 0.6 * (1 - colorBlend) + 0.6 * colorBlend,
-                                blue: 0.6 * (1 - colorBlend) + 0.75 * colorBlend
-                            )
-                            context.stroke(arc, with: .color(arcColor.opacity(opacity)), lineWidth: 2.5)
+                            // Dissolution particles rising from broken chains
+                            if chainDissolve > 0 && chainDissolve < 1.0 {
+                                let attachX = centerX + chain.attachX * (figureSize * 0.3)
+                                let attachY = figureRiseY + chain.attachY * figureSize
+                                
+                                for p in 0..<5 {
+                                    let seed = Double(chain.id * 10 + p)
+                                    let particleT = fmod(time * 1.5 + seed * 0.2, 1.0)
+                                    let px = attachX + CGFloat(sin(seed * 3)) * 20
+                                    let py = attachY + CGFloat(particleT) * 60 - 30
+                                    let pSize: CGFloat = 2 + CGFloat(sin(time * 3 + seed)) * 1
+                                    
+                                    context.fill(
+                                        Circle().path(in: CGRect(x: px - pSize, y: py - pSize, width: pSize * 2, height: pSize * 2)),
+                                        with: .color(liberationGold.opacity(0.5 * chainDissolve * (1 - particleT)))
+                                    )
+                                }
+                            }
                         }
                     }
                     
-                    // Lower arcs (mirrored)
-                    for i in 0..<arcCount {
-                        let arcProgress = min(1.0, max(0, (progress - 0.15 - Double(i) * 0.025) * 2.2))
-                        if arcProgress > 0 {
-                            let baseAngle = Double(i) * (.pi / Double(arcCount)) + .pi / 2
-                            let wobble = sin(time * 1.4 + Double(i) + 2) * 0.06
-                            let startAngle = baseAngle - 0.4 + wobble
-                            let endAngle = baseAngle + 0.4 + wobble
-                            let radius: CGFloat = 90 + CGFloat(i) * 18
-                            
-                            var arc = Path()
-                            arc.addArc(center: center, radius: radius * CGFloat(arcProgress),
-                                       startAngle: .radians(startAngle), endAngle: .radians(endAngle), clockwise: false)
-                            
-                            let opacity = 0.15 + 0.25 * arcProgress - Double(i) * 0.015
-                            let arcColor = Color(
-                                red: 0.6 * (1 - colorBlend) + 0.0 * colorBlend,
-                                green: 0.6 * (1 - colorBlend) + 0.6 * colorBlend,
-                                blue: 0.6 * (1 - colorBlend) + 0.75 * colorBlend
-                            )
-                            context.stroke(arc, with: .color(arcColor.opacity(opacity)), lineWidth: 2)
-                        }
-                    }
-                    
-                    // Particle sparkles
-                    for i in 0..<20 {
-                        let particleProgress = min(1.0, max(0, (progress - 0.2) * 2))
-                        if particleProgress > 0 {
-                            let angle = Double(i) * (2 * .pi / 20) + time * 0.3
-                            let radius = 80 + CGFloat(i) * 12 + CGFloat(sin(time * 2 + Double(i))) * 20
-                            let x = center.x + CGFloat(cos(angle)) * radius * CGFloat(particleProgress)
-                            let y = center.y + CGFloat(sin(angle)) * radius * CGFloat(particleProgress)
-                            let particleSize: CGFloat = 3 + CGFloat(sin(time * 3 + Double(i))) * 2
-                            
-                            context.fill(
-                                Circle().path(in: CGRect(x: x - particleSize/2, y: y - particleSize/2, width: particleSize, height: particleSize)),
-                                with: .color(glowBlue.opacity(0.4 * particleProgress))
-                            )
-                        }
-                    }
-                }
-                
-                // Central human figure silhouette
-                VStack(spacing: 0) {
-                    // Smooth color blend for figure
-                    let figureBlend = min(1.0, max(0, (progress - 0.25) / 0.5))
-                    let figureColor = Color(
-                        red: 0.5 * (1 - figureBlend) + 0.0 * figureBlend,
-                        green: 0.5 * (1 - figureBlend) + 0.6 * figureBlend,
-                        blue: 0.5 * (1 - figureBlend) + 0.75 * figureBlend
-                    )
-                    
-                    // Figure icon with glow
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 3: The Human Figure - rising into light
+                    // ═══════════════════════════════════════════════════════════════
                     ZStack {
-                        // Outer glow ring
-                        Image(systemName: "figure.stand")
-                            .font(.system(size: 120, weight: .ultraLight))
-                            .foregroundColor(glowBlue.opacity(0.25 * progress))
-                            .blur(radius: 30)
-                            .scaleEffect(1.15)
+                        // Figure glow (grows as it rises)
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        liberationGold.opacity(0.3 * risePhase),
+                                        skyLight.opacity(0.15 * risePhase),
+                                        .clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 100
+                                )
+                            )
+                            .frame(width: 200, height: 200)
                         
-                        // Inner glow
-                        Image(systemName: "figure.stand")
-                            .font(.system(size: 120, weight: .ultraLight))
-                            .foregroundColor(accentBlue.opacity(0.4 * progress))
-                            .blur(radius: 15)
-                            .scaleEffect(1.05)
-                        
-                        // Main figure - smooth color transition
-                        Image(systemName: "figure.stand")
-                            .font(.system(size: 120, weight: .ultraLight))
-                            .foregroundColor(figureColor)
-                            .scaleEffect(0.8 + progress * 0.2)
+                        // The figure
+                        Image(systemName: "figure.arms.open")
+                            .font(.system(size: figureSize, weight: .ultraLight))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.4 + gloryPhase * 0.5),
+                                        skyLight.opacity(0.6 + gloryPhase * 0.4)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .shadow(color: liberationGold.opacity(0.4 * gloryPhase), radius: 25)
+                            // Slight float/bob animation when free
+                            .offset(y: risePhase > 0.5 ? sin(time * 1.2) * 5 : 0)
                     }
-                    .opacity(min(1.0, progress * 2.5))
+                    .position(x: centerX, y: figureRiseY)
+                    .opacity(min(1.0, progress * 3))
                     
-                    Spacer().frame(height: 40)
-                    
-                    // Text content with smooth color transitions
-                    let textBlend = min(1.0, max(0, (progress - 0.35) / 0.4))
-                    let labelColor = Color(
-                        red: 0.5 * (1 - textBlend) + 0.0 * textBlend,
-                        green: 0.5 * (1 - textBlend) + 0.6 * textBlend,
-                        blue: 0.5 * (1 - textBlend) + 0.75 * textBlend
-                    )
-                    
-                    VStack(spacing: 16) {
-                        Text("RESTORATION")
-                            .font(.system(size: 13, weight: .semibold))
-                            .tracking(12)
-                            .foregroundColor(labelColor)
-                            .opacity(min(1.0, max(0, (progress - 0.2) * 3)))
-                        
-                        Text("Human potential returned.")
-                            .font(.system(size: 32, weight: .light, design: .serif))
-                            .foregroundColor(Color(white: 1.0 - progress * 0.9)) // White to dark gray
-                            .opacity(min(1.0, max(0, (progress - 0.3) * 2.5)))
-                            .offset(y: progress > 0.3 ? 0 : 15)
-                        
-                        Text("Reviewing insights. Approving paths.")
-                            .font(.system(size: 18, weight: .regular, design: .serif))
-                            .italic()
-                            .foregroundColor(glowBlue)
-                            .opacity(min(1.0, max(0, (progress - 0.55) * 2.5)))
-                            .offset(y: progress > 0.55 ? 0 : 10)
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 4: Rising particles around figure (anti-gravity debris)
+                    // ═══════════════════════════════════════════════════════════════
+                    if risePhase > 0.2 {
+                        Canvas { context, size in
+                            for i in 0..<25 {
+                                let seed = Double(i) * 1.618
+                                let particleT = fmod(time * 0.6 + seed * 0.15, 1.0)
+                                
+                                // Particles rise from around figure
+                                let startX = centerX + CGFloat(sin(seed * 7)) * 100
+                                let startY = figureRiseY + 80
+                                let endY = size.height * 0.1
+                                
+                                let px = startX + CGFloat(sin(time * 0.5 + seed)) * 20
+                                let py = startY + (endY - startY) * CGFloat(particleT)
+                                let pSize: CGFloat = 1.5 + CGFloat(fmod(seed * 2, 1.0)) * 2
+                                
+                                let fadeIn = min(1.0, particleT * 4)
+                                let fadeOut = particleT > 0.7 ? (particleT - 0.7) / 0.3 : 0
+                                
+                                context.fill(
+                                    Circle().path(in: CGRect(x: px - pSize, y: py - pSize, width: pSize * 2, height: pSize * 2)),
+                                    with: .color(skyLight.opacity(0.4 * (risePhase - 0.2) * fadeIn * (1 - fadeOut)))
+                                )
+                            }
+                        }
                     }
-                    .multilineTextAlignment(.center)
+                    
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 5: Text - screen text DIFFERENT from narration
+                    // ═══════════════════════════════════════════════════════════════
+                    if textPhase > 0 {
+                        VStack(spacing: 16) {
+                            Spacer()
+                            
+                            // Screen text: Short, punchy (Narration provides context)
+                            Text("RELEASED")
+                                .font(.system(size: 14, weight: .bold))
+                                .tracking(10)
+                                .foregroundColor(skyLight.opacity(0.7))
+                                .opacity(textPhase)
+                            
+                            Text("Rise.")
+                                .font(.system(size: 42, weight: .light, design: .serif))
+                                .foregroundColor(gloryPhase > 0.5 ? .black.opacity(0.85) : .white.opacity(0.9))
+                                .opacity(textPhase)
+                                .offset(y: (1 - textPhase) * 20)
+                            
+                            if textPhase > 0.5 {
+                                Text("Your genius awaits.")
+                                    .font(.system(size: 20, weight: .regular, design: .serif))
+                                    .foregroundColor(liberationGold)
+                                    .opacity(min(1, (textPhase - 0.5) * 3))
+                            }
+                            
+                            Spacer().frame(height: 100)
+                        }
+                    }
                 }
-                .padding(.bottom, 70)
             }
-            .drawingGroup() // Metal-accelerated rendering for 60fps
+            .drawingGroup()
         }
     }
 }
@@ -1782,253 +2155,236 @@ struct EnhancedMetricView: View {
     }
 }
 
-// MARK: - Final CTA View (04:30-05:00)
+// MARK: - Final CTA View: "THE SIGNAL"
+/// Minimal, elegant, pulse-based - the quiet power after the spectacle
 struct FinalCTAView: View {
     var progress: Double
     var isComplete: Bool
     
-    private let accentTeal = Color(red: 0.0, green: 0.6, blue: 0.7)
-    private let glowTeal = Color(red: 0.1, green: 0.8, blue: 0.9)
+    // Colors - refined, premium
+    private let signalGold = Color(red: 0.95, green: 0.8, blue: 0.4)
+    private let pureWhite = Color.white
+    private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)
     
     var body: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
+            // Animation phases - elegant timing
+            let pulsePhase = min(1.0, progress / 0.20)                    // 0-20%: First pulse
+            let text1Phase = min(1.0, max(0, (progress - 0.15) / 0.20))   // 15-35%: First text
+            let text2Phase = min(1.0, max(0, (progress - 0.30) / 0.20))   // 30-50%: Second text
+            let questionPhase = min(1.0, max(0, (progress - 0.45) / 0.20)) // 45-65%: Question
+            let ctaPhase = min(1.0, max(0, (progress - 0.60) / 0.25))     // 60-85%: CTAs
+            let glowPhase = min(1.0, max(0, (progress - 0.75) / 0.25))    // 75-100%: Final glow
+            
             GeometryReader { geo in
+                let centerX = geo.size.width / 2
+                let centerY = geo.size.height * 0.35
+                
                 ZStack {
-                    // Elegant light background
-                    ZStack {
-                        LinearGradient(
-                            colors: [Color(white: 0.97), Color.white, Color(white: 0.98)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        
-                        // Soft moving orbs
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [accentTeal.opacity(0.12), .clear],
-                                    center: .center,
-                                    startRadius: 0,
-                                    endRadius: 350
-                                )
-                            )
-                            .frame(width: 700, height: 700)
-                            .offset(x: sin(time * 0.15) * 80 - 150, y: cos(time * 0.1) * 60 - 80)
-                        
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [Color.orange.opacity(0.08), .clear],
-                                    center: .center,
-                                    startRadius: 0,
-                                    endRadius: 250
-                                )
-                            )
-                            .frame(width: 500, height: 500)
-                            .offset(x: cos(time * 0.12) * 100 + 180, y: sin(time * 0.15) * 80 + 120)
-                    }
+                    // ═══════════════════════════════════════════════════════════════
+                    // BACKGROUND: Pure black - cinema darkness
+                    // ═══════════════════════════════════════════════════════════════
+                    voidBlack.ignoresSafeArea()
                     
-                    // Animated network of connections (visual aid: interconnectedness)
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 1: The Signal - expanding pulse rings
+                    // ═══════════════════════════════════════════════════════════════
                     Canvas { context, size in
-                        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+                        let center = CGPoint(x: centerX, y: centerY)
                         
-                        // Create a network of people icons (visual aid for "people who matter")
-                        let peopleCount = 12
-                        var peoplePositions: [CGPoint] = []
-                        
-                        for i in 0..<peopleCount {
-                            let angle = Double(i) * (2 * .pi / Double(peopleCount)) + time * 0.05
-                            let radius: CGFloat = 180 + CGFloat(i % 3) * 40
-                            let x = center.x + CGFloat(cos(angle)) * radius
-                            let y = center.y + CGFloat(sin(angle)) * radius * 0.5 - 20
-                            peoplePositions.append(CGPoint(x: x, y: y))
+                        // Multiple pulse rings emanating from center
+                        for ring in 0..<4 {
+                            let ringDelay = Double(ring) * 0.25
+                            let pulseT = fmod(time * 0.4 + ringDelay, 1.0)
+                            let ringRadius = 20 + CGFloat(pulseT) * 200
+                            let ringOpacity = (1 - pulseT) * pulsePhase * 0.3
                             
-                            // Draw connection lines to center (work returning to people)
-                            if progress > 0.3 {
-                                let lineProgress = min(1.0, (progress - 0.3 - Double(i) * 0.02) * 3)
-                                if lineProgress > 0 {
-                                    var line = Path()
-                                    line.move(to: center)
-                                    let endX = center.x + (x - center.x) * CGFloat(lineProgress)
-                                    let endY = center.y + (y - center.y) * CGFloat(lineProgress)
-                                    line.addLine(to: CGPoint(x: endX, y: endY))
-                                    
-                                    context.stroke(line, with: .color(accentTeal.opacity(0.15 * lineProgress)), lineWidth: 1)
-                                    
-                                    // Pulse traveling outward
-                                    let pulseT = fmod(time * 0.8 + Double(i) * 0.15, 1.0)
-                                    let pulseX = center.x + (x - center.x) * CGFloat(pulseT)
-                                    let pulseY = center.y + (y - center.y) * CGFloat(pulseT)
-                                    
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: pulseX - 3, y: pulseY - 3, width: 6, height: 6)),
-                                        with: .color(glowTeal.opacity(0.5 * (1 - pulseT)))
-                                    )
-                                }
-                            }
+                            var ringPath = Path()
+                            ringPath.addEllipse(in: CGRect(x: center.x - ringRadius,
+                                                           y: center.y - ringRadius,
+                                                           width: ringRadius * 2,
+                                                           height: ringRadius * 2))
                             
-                            // Draw people dots (appear sequentially)
-                            if progress > 0.4 {
-                                let dotProgress = min(1.0, (progress - 0.4 - Double(i) * 0.015) * 4)
-                                if dotProgress > 0 {
-                                    // Glow
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: x - 12, y: y - 12, width: 24, height: 24)),
-                                        with: .color(accentTeal.opacity(0.1 * dotProgress))
-                                    )
-                                    // Core dot
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)),
-                                        with: .color(accentTeal.opacity(0.6 * dotProgress))
-                                    )
-                                }
-                            }
+                            context.stroke(ringPath, with: .color(signalGold.opacity(ringOpacity)), lineWidth: 1.5)
                         }
                         
-                        // Connect people to each other (community/organization)
-                        if progress > 0.5 {
-                            for i in 0..<peoplePositions.count {
-                                let next = (i + 1) % peoplePositions.count
-                                let p1 = peoplePositions[i]
-                                let p2 = peoplePositions[next]
-                                
-                                var line = Path()
-                                line.move(to: p1)
-                                line.addLine(to: p2)
-                                
-                                let connectionProgress = min(1.0, (progress - 0.5 - Double(i) * 0.01) * 3)
-                                context.stroke(line, with: .color(accentTeal.opacity(0.08 * connectionProgress)), lineWidth: 0.5)
-                            }
-                        }
+                        // Central beacon - the origin point
+                        let beaconPulse = sin(time * 2) * 0.3 + 0.7
+                        let beaconSize: CGFloat = 8 + CGFloat(beaconPulse) * 4
                         
-                        // Central glow (representing the organization/value)
-                        let centerGlow = min(1.0, progress / 0.3) * (1.0 + sin(time * 2) * 0.1)
+                        // Outer glow
                         context.fill(
-                            Circle().path(in: CGRect(x: center.x - 60, y: center.y - 60, width: 120, height: 120)),
+                            Circle().path(in: CGRect(x: center.x - 30, y: center.y - 30, width: 60, height: 60)),
                             with: .radialGradient(
-                                Gradient(colors: [accentTeal.opacity(0.2 * centerGlow), .clear]),
-                                center: center, startRadius: 0, endRadius: 60
+                                Gradient(colors: [signalGold.opacity(0.3 * pulsePhase), .clear]),
+                                center: center,
+                                startRadius: 0,
+                                endRadius: 30
                             )
+                        )
+                        
+                        // Core beacon
+                        context.fill(
+                            Circle().path(in: CGRect(x: center.x - beaconSize/2,
+                                                     y: center.y - beaconSize/2,
+                                                     width: beaconSize, height: beaconSize)),
+                            with: .color(signalGold.opacity(pulsePhase))
                         )
                     }
                     
-                    VStack(spacing: 40) {
-                        Spacer()
-                        
-                        // Visual aid: Transformation icon
-                        ZStack {
-                            // Outer ring
-                            Circle()
-                                .stroke(accentTeal.opacity(0.2), lineWidth: 2)
-                                .frame(width: 100, height: 100)
-                                .scaleEffect(1.0 + sin(time * 1.5) * 0.05)
-                            
-                            // Inner icon representing transformation
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .font(.system(size: 36, weight: .light))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [accentTeal, glowTeal],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 2: Minimal ambient particles (subtle, not distracting)
+                    // ═══════════════════════════════════════════════════════════════
+                    if glowPhase > 0 {
+                        Canvas { context, size in
+                            for i in 0..<15 {
+                                let seed = Double(i) * 1.618
+                                let x = CGFloat(fmod(seed * 137.5, 1.0)) * size.width
+                                let y = CGFloat(fmod(seed * 89.3, 1.0)) * size.height * 0.6 + size.height * 0.1
+                                let twinkle = sin(time * 1.5 + seed * 3) * 0.5 + 0.5
+                                let pSize: CGFloat = 1 + CGFloat(fmod(seed * 2, 1.0))
+                                
+                                context.fill(
+                                    Circle().path(in: CGRect(x: x - pSize, y: y - pSize, width: pSize * 2, height: pSize * 2)),
+                                    with: .color(pureWhite.opacity(0.15 * glowPhase * twinkle))
                                 )
-                                .rotationEffect(.degrees(time * 10))
+                            }
                         }
-                        .opacity(progress > 0.05 ? 1 : 0)
-                        .scaleEffect(progress > 0.05 ? 1.0 : 0.5)
-                        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: progress > 0.05)
+                    }
+                    
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 3: Text reveals - one line at a time
+                    // ═══════════════════════════════════════════════════════════════
+                    VStack(spacing: 0) {
+                        Spacer().frame(height: geo.size.height * 0.48)
                         
-                        // Main message
-                        VStack(spacing: 16) {
-                            Text("Agentic automation returns invisible work")
-                                .font(.system(size: 28, weight: .light, design: .serif))
-                                .foregroundColor(.black.opacity(0.85))
-                                .opacity(progress > 0.15 ? 1 : 0)
-                                .offset(y: progress > 0.15 ? 0 : 30)
-                                .animation(.spring(response: 0.9, dampingFraction: 0.8), value: progress > 0.15)
+                        VStack(spacing: 24) {
+                            // First line - Screen text (Narration says something different)
+                            if text1Phase > 0 {
+                                Text("One decision.")
+                                    .font(.system(size: 28, weight: .light, design: .serif))
+                                    .foregroundColor(pureWhite.opacity(0.9))
+                                    .opacity(text1Phase)
+                                    .offset(y: (1 - text1Phase) * 15)
+                            }
                             
-                            Text("to the people who matter.")
-                                .font(.system(size: 28, weight: .semibold, design: .serif))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [accentTeal.opacity(0.9), accentTeal],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
+                            // Second line
+                            if text2Phase > 0 {
+                                Text("Infinite possibility.")
+                                    .font(.system(size: 34, weight: .medium, design: .serif))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [signalGold, pureWhite],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
-                                )
-                                .opacity(progress > 0.25 ? 1 : 0)
-                                .offset(y: progress > 0.25 ? 0 : 30)
-                                .scaleEffect(progress > 0.25 ? 1.0 : 0.95)
-                                .animation(.spring(response: 0.9, dampingFraction: 0.8).delay(0.1), value: progress > 0.25)
+                                    .opacity(text2Phase)
+                                    .offset(y: (1 - text2Phase) * 15)
+                            }
+                            
+                            // Subtle separator
+                            if questionPhase > 0 {
+                                Rectangle()
+                                    .fill(signalGold.opacity(0.3))
+                                    .frame(width: 60, height: 1)
+                                    .opacity(questionPhase)
+                                    .padding(.vertical, 8)
+                            }
+                            
+                            // Question - different from narration
+                            if questionPhase > 0 {
+                                Text("Where will you lead?")
+                                    .font(.system(size: 18, weight: .regular))
+                                    .foregroundColor(pureWhite.opacity(0.6))
+                                    .opacity(questionPhase)
+                                    .offset(y: (1 - questionPhase) * 10)
+                            }
                         }
                         .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
                         
-                        // Visual separator line
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.clear, accentTeal.opacity(0.3), .clear],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
+                        Spacer().frame(height: 50)
+                        
+                        // ═══════════════════════════════════════════════════════════════
+                        // LAYER 4: Minimal CTAs - elegant, understated
+                        // ═══════════════════════════════════════════════════════════════
+                        if ctaPhase > 0 {
+                            HStack(spacing: 40) {
+                                // Vision Pro
+                                VStack(spacing: 10) {
+                                    Image(systemName: "visionpro")
+                                        .font(.system(size: 32, weight: .ultraLight))
+                                        .foregroundColor(pureWhite.opacity(0.8))
+                                    
+                                    Text("EXPERIENCE")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .tracking(4)
+                                        .foregroundColor(pureWhite.opacity(0.5))
+                                }
+                                .padding(.vertical, 20)
+                                .padding(.horizontal, 30)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(pureWhite.opacity(0.2), lineWidth: 1)
                                 )
-                            )
-                            .frame(width: 200, height: 1)
-                            .opacity(progress > 0.4 ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6), value: progress > 0.4)
-                        
-                        // Question
-                        Text("What could your organization become?")
-                            .font(.system(size: 18, weight: .regular))
-                            .foregroundColor(.gray)
-                            .opacity(progress > 0.45 ? 1 : 0)
-                            .offset(y: progress > 0.45 ? 0 : 15)
-                            .animation(.easeOut(duration: 0.6).delay(0.1), value: progress > 0.45)
-                        
-                        Spacer()
-                            .frame(height: 30)
-                        
-                        // Vision Pro callout (NOT a button - just elegant display)
-                        VStack(spacing: 16) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "visionpro")
-                                    .font(.system(size: 28, weight: .light))
-                                    .foregroundColor(accentTeal)
                                 
-                                Text("Experience the full immersion")
-                                    .font(.system(size: 17, weight: .medium))
-                                    .foregroundColor(.black.opacity(0.7))
+                                // Live Demo
+                                Button(action: {
+                                    print("🎯 Live Demo requested")
+                                }) {
+                                    VStack(spacing: 10) {
+                                        ZStack {
+                                            Circle()
+                                                .stroke(signalGold.opacity(0.5), lineWidth: 1)
+                                                .frame(width: 44, height: 44)
+                                            
+                                            Image(systemName: "play.fill")
+                                                .font(.system(size: 18, weight: .medium))
+                                                .foregroundColor(signalGold)
+                                        }
+                                        
+                                        Text("DEMO")
+                                            .font(.system(size: 10, weight: .medium))
+                                            .tracking(4)
+                                            .foregroundColor(signalGold.opacity(0.8))
+                                    }
+                                    .padding(.vertical, 20)
+                                    .padding(.horizontal, 30)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(signalGold.opacity(0.3), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
                             }
-                            
-                            Text("VISION PRO")
-                                .font(.system(size: 12, weight: .bold))
-                                .tracking(6)
-                                .foregroundColor(accentTeal.opacity(0.6))
+                            .opacity(ctaPhase)
+                            .offset(y: (1 - ctaPhase) * 20)
                         }
-                        .padding(.vertical, 25)
-                        .padding(.horizontal, 45)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white.opacity(0.8))
-                                .shadow(color: accentTeal.opacity(0.15), radius: 25, y: 10)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(accentTeal.opacity(0.2), lineWidth: 1)
-                        )
-                        .opacity(progress > 0.6 || isComplete ? 1 : 0)
-                        .offset(y: progress > 0.6 || isComplete ? 0 : 20)
-                        .animation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.15), value: progress > 0.6)
                         
                         Spacer()
                     }
                     .padding(.horizontal, 50)
+                    
+                    // ═══════════════════════════════════════════════════════════════
+                    // LAYER 5: Final ambient glow (subtle warmth)
+                    // ═══════════════════════════════════════════════════════════════
+                    if glowPhase > 0.5 {
+                        RadialGradient(
+                            colors: [
+                                signalGold.opacity(0.05 * (glowPhase - 0.5) * 2),
+                                .clear
+                            ],
+                            center: UnitPoint(x: 0.5, y: 0.35),
+                            startRadius: 0,
+                            endRadius: geo.size.width * 0.6
+                        )
+                        .ignoresSafeArea()
+                    }
                 }
-                .drawingGroup() // Metal-accelerated rendering for 60fps
             }
+            .drawingGroup()
         }
     }
 }

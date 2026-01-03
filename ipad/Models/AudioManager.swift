@@ -75,21 +75,28 @@ class AudioManager {
         }
     }
     
-    // MARK: - Ambient Music
+    // MARK: - Music System (Ambient → Upbeat Transition)
     
-    /// Audio player for ambient background music
+    /// Audio player for ambient background music (opening phases)
     private var ambientMusicPlayer: AVAudioPlayer?
+    /// Audio player for upbeat/EDM music (from agentic orchestration onwards)
+    private var upbeatMusicPlayer: AVAudioPlayer?
+    /// Track which music mode is active
+    private var isUpbeatMode = false
     
-    /// Play ambient background music (loops continuously)
+    /// Play ambient background music (loops until transition)
     /// 
-    /// Add an ambient music file to your project:
-    /// - Filename: ambient_music.mp3 (or .m4a, .wav)
-    /// - Recommended: Cinematic ambient, 2-5 minutes, seamless loop
-    /// - Sources: Artlist, Epidemic Sound, or royalty-free from Pixabay/Freesound
-    /// - Style: Ethereal pads, subtle tension, contemplative
+    /// Add music files to your project:
+    /// - ambient_music.mp3: Ethereal pads, subtle tension (0:00 - 1:06)
+    /// - upbeat_music.mp3: EDM/upbeat drop, energizing (1:06 - 3:00)
+    /// 
+    /// Transition happens at agenticOrchestration phase
     ///
     func playAmbientHum() {
         guard !isAmbientPlaying else { return }
+        
+        // Preload upbeat music for seamless transition
+        preloadUpbeatMusic()
         
         // Try to play ambient music file first
         if playAmbientMusicFile() {
@@ -114,7 +121,7 @@ class AudioManager {
             if let url = Bundle.main.url(forResource: "ambient_music", withExtension: format) {
                 do {
                     ambientMusicPlayer = try AVAudioPlayer(contentsOf: url)
-                    ambientMusicPlayer?.numberOfLoops = -1  // Loop forever
+                    ambientMusicPlayer?.numberOfLoops = 0  // No loop - will transition to upbeat
                     ambientMusicPlayer?.volume = ambientVolume
                     ambientMusicPlayer?.prepareToPlay()
                     ambientMusicPlayer?.play()
@@ -130,6 +137,101 @@ class AudioManager {
         
         print("📝 No ambient_music file found - using synthesized fallback")
         return false
+    }
+    
+    /// Preload upbeat music for seamless transition
+    private func preloadUpbeatMusic() {
+        let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
+        
+        for format in formats {
+            if let url = Bundle.main.url(forResource: "upbeat_music", withExtension: format) {
+                do {
+                    upbeatMusicPlayer = try AVAudioPlayer(contentsOf: url)
+                    upbeatMusicPlayer?.numberOfLoops = 0  // Play once through
+                    upbeatMusicPlayer?.volume = 0  // Start silent for crossfade
+                    upbeatMusicPlayer?.prepareToPlay()
+                    print("🎵 Upbeat music preloaded: upbeat_music.\(format)")
+                    return
+                } catch {
+                    print("⚠️ Failed to preload upbeat music: \(error)")
+                }
+            }
+        }
+        print("📝 No upbeat_music file found - ambient will continue")
+    }
+    
+    /// Crossfade transition from ambient to upbeat music (EDM drop moment)
+    /// Call this at the start of agenticOrchestration phase
+    func transitionToUpbeatMusic(crossfadeDuration: TimeInterval = 1.5) {
+        guard !isUpbeatMode else { return }
+        guard let upbeat = upbeatMusicPlayer else {
+            print("📝 No upbeat music available - ambient continues")
+            return
+        }
+        
+        isUpbeatMode = true
+        let upbeatVolume: Float = 0.15  // Slightly louder than ambient for energy
+        
+        // Start upbeat music
+        upbeat.volume = 0
+        upbeat.play()
+        print("🎵 EDM DROP! Transitioning to upbeat music...")
+        
+        // Crossfade: fade out ambient, fade in upbeat
+        let fadeSteps = 15
+        let stepDuration = crossfadeDuration / Double(fadeSteps)
+        let ambientStep = ambientVolume / Float(fadeSteps)
+        let upbeatStep = upbeatVolume / Float(fadeSteps)
+        
+        for i in 0..<fadeSteps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
+                guard let self = self else { return }
+                
+                // Fade out ambient
+                let newAmbientVol = max(0, self.ambientVolume - ambientStep * Float(i + 1))
+                self.ambientMusicPlayer?.volume = newAmbientVol
+                self.ambientPlayerNode.volume = newAmbientVol
+                
+                // Fade in upbeat
+                let newUpbeatVol = min(upbeatVolume, upbeatStep * Float(i + 1))
+                self.upbeatMusicPlayer?.volume = newUpbeatVol
+            }
+        }
+        
+        // Stop ambient after crossfade
+        DispatchQueue.main.asyncAfter(deadline: .now() + crossfadeDuration) { [weak self] in
+            self?.ambientMusicPlayer?.stop()
+            self?.ambientPlayerNode.stop()
+            print("🎵 Crossfade complete - upbeat music active")
+        }
+    }
+    
+    /// Fade out upbeat music at the end
+    func fadeOutUpbeatMusic(duration: TimeInterval = 3.0) {
+        guard isUpbeatMode, let upbeat = upbeatMusicPlayer else {
+            fadeOutAmbient(duration: duration)
+            return
+        }
+        
+        let originalVolume = upbeat.volume
+        let fadeSteps = 20
+        let stepDuration = duration / Double(fadeSteps)
+        let volumeStep = originalVolume / Float(fadeSteps)
+        
+        for i in 0..<fadeSteps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
+                let newVolume = max(0, originalVolume - volumeStep * Float(i + 1))
+                self?.upbeatMusicPlayer?.volume = newVolume
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+            self?.upbeatMusicPlayer?.stop()
+            self?.upbeatMusicPlayer = nil
+            self?.isUpbeatMode = false
+            self?.isAmbientPlaying = false
+            print("🎵 Upbeat music faded out")
+        }
     }
     
     private func generateAmbientBuffer(duration: Double) -> AVAudioPCMBuffer {
@@ -182,7 +284,10 @@ class AudioManager {
         ambientPlayerNode.stop()
         ambientMusicPlayer?.stop()
         ambientMusicPlayer = nil
+        upbeatMusicPlayer?.stop()
+        upbeatMusicPlayer = nil
         isAmbientPlaying = false
+        isUpbeatMode = false
     }
     
     // MARK: - Narration
@@ -195,30 +300,35 @@ class AudioManager {
     /// Narrator lines for each phase (used for TTS fallback)
     /// Audio file naming: narration_{key}.m4a (e.g., narration_opening_1.m4a)
     /// NOTE: Each line should FLOW into the next - use trailing tone, connecting words
+    /// DAVOS 2026 THEMES (in outro): Cooperation, Innovation, AI Governance, Climate, Economic Growth, People, Planetary Boundaries
     private let narratorLines: [String: String] = [
-        // Opening - mysterious, drawing them in (trailing tone invites next line)
-        "opening_1": "There's something your organization doesn't talk about...",
-        "opening_2": "...a silent drain on every leader, every team, every single day.",
-        "opening_3": "Hundreds of decisions that shouldn't have been yours to make.",
+        // Opening - definitive full stops
+        "opening_1": "There's something your organization doesn't talk about.",
+        "opening_2": "A silent drain on every leader, every team, every single day.",
+        "opening_3": "Hundreds of decisions that should never have been yours.",
         
-        // Vignettes - empathy, connected narrative
-        "vignette_finance": "Hours vanishing into tasks that machines were built for.",
-        "vignette_supply": "Brilliant minds, buried in busywork.",
-        "vignette_health": "Healers drowning in paperwork instead of patients.",
+        // Vignettes - definitive endings
+        "vignette_finance": "Hours lost to tasks that machines were made for.",
+        "vignette_supply": "Brilliant minds trapped in busywork.",
+        "vignette_health": "Healers buried under paperwork.",
         
-        // Pattern break - the pivot
+        // Pattern break
         "pattern_break": "But what if tomorrow looked different?",
         
-        // Agentic - MUST include the term, wonder and power
-        "agentic": "This is Agentic Orchestration. Intelligence that anticipates, acts, and frees you to think.",
+        // Agentic - periods create weight
+        "agentic": "This is Agentic Orchestration. Intelligence that anticipates. Acts. And frees you to think.",
         
-        // Human return - emotional relief, connected
-        "restoration": "And just like that, the weight begins to lift.",
-        "human_return": "The noise fades. Clarity returns. And you remember why you started.",
+        // Human return - COMPLEMENTS screen text, doesn't read it
+        "restoration": "The chains dissolve. One by one.",
+        "human_return": "And suddenly you remember what it feels like to breathe.",
+        "potential": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
         
-        // Closing - powerful, thought-provoking, memorable
-        "closing": "Imagine your brightest minds, unchained from the mundane. Strategists strategizing. Innovators innovating. Leaders... actually leading.",
-        "question": "The invisible cost has been paid for far too long. With Automation Anywhere, the future of work isn't a question... it's already here. The only question is: are you ready to lead it?"
+        // Closing - COMPLEMENTS screen text
+        "vision": "Picture a world where strategists think bigger. Innovators move faster. Leaders focus on what truly matters.",
+        "closing": "When your people are free, everything changes. Innovation accelerates. Sustainability becomes possible. People thrive.",
+        "proof": "This isn't tomorrow. Organizations are living this today.",
+        "question": "AutomationAnywhere gives you the power to lead in a world that demands more.",
+        "final_cta": "The invisible cost ends now."
     ]
     
     /// Play narration - tries pre-recorded audio first, falls back to TTS
