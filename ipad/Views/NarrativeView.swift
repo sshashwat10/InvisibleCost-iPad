@@ -274,9 +274,9 @@ struct NarrativeView: View {
             triggerAtProgress("final_cta", threshold: 0.80, progress: progress) {
                 audioManager.playNarration(for: "final_cta")
             }
-            // Music fadeout at 92% (50.6s) with 5s fade = ends at 55s ✅
-            triggerAtProgress("music_fadeout", threshold: 0.92, progress: progress) {
-                audioManager.fadeOutUpbeatMusic(duration: 5.0)
+            // Music fadeout at 75% (41s) with 12s gradual fade = gentle ending
+            triggerAtProgress("music_fadeout", threshold: 0.75, progress: progress) {
+                audioManager.fadeOutUpbeatMusic(duration: 12.0)
             }
             
         case .complete:
