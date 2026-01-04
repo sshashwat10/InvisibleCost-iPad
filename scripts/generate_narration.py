@@ -163,8 +163,8 @@ NARRATION_LINES = [
     },
     {
         "key": "final_cta",
-        "text": "The invisible cost ends now.",
-        "note": "Simple, powerful, definitive"
+        "text": "The invisible cost... ends now. The future of work... starts here.",
+        "note": "Two-beat powerful ending with dramatic pauses"
     },
 ]
 

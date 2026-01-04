@@ -99,17 +99,17 @@ class UnrealBridge {
         switch phase {
         case .waiting:
             sceneState = .idle
-        case .spatialOverwhelm:
+        case .microColdOpen, .narratorFrame:
+            sceneState = .idle
+        case .spatialOverwhelm, .realityCrack, .humanFragment:
             sceneState = .overwhelm
-        case .realityCrack:
+        case .patternBreak:
             sceneState = .patternBreak
-        case .humanFragment:
-            sceneState = .humanFragment
-        case .dataChoreography:
+        case .agenticOrchestration:
             sceneState = .dataChoreography
-        case .humanRestoration:
+        case .humanReturn:
             sceneState = .restoration
-        case .exitMoment, .complete:
+        case .personalization, .stillnessCTA, .complete:
             sceneState = .exit
         }
         

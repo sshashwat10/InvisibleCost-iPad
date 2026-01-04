@@ -310,12 +310,12 @@ struct NarratorFrameAnimation: View {
                         // First line with typewriter shimmer effect
                         ZStack {
                             Text("Every organization carries a hidden cost.")
-                                .font(.system(size: 38, weight: .light, design: .serif))
+                                .font(.custom("Outfit", size: 38).weight(.light))
                                 .foregroundColor(.white.opacity(0.15))
                                 .blur(radius: 20)
                             
                             Text("Every organization carries a hidden cost.")
-                                .font(.system(size: 38, weight: .light, design: .serif))
+                                .font(.custom("Outfit", size: 38).weight(.light))
                                 .foregroundStyle(
                                     LinearGradient(
                                         colors: [.white, .white.opacity(0.8), .white],
@@ -334,12 +334,12 @@ struct NarratorFrameAnimation: View {
                         // Second line with dramatic red undertone
                         ZStack {
                             Text("Most leaders never see it.")
-                                .font(.system(size: 38, weight: .bold, design: .serif))
+                                .font(.custom("Outfit", size: 38).weight(.medium))
                                 .foregroundColor(Color.red.opacity(0.3))
                                 .blur(radius: 25)
                             
                             Text("Most leaders never see it.")
-                                .font(.system(size: 38, weight: .bold, design: .serif))
+                                .font(.custom("Outfit", size: 38).weight(.medium))
                                 .foregroundStyle(
                                     LinearGradient(
                                         colors: [.white, Color(red: 1, green: 0.9, blue: 0.9)],
@@ -361,22 +361,22 @@ struct NarratorFrameAnimation: View {
                                 // Single line stat display
                                 HStack(spacing: 8) {
                                     Text("You made")
-                                        .font(.system(size: 22, weight: .light))
+                                        .font(.custom("Outfit", size: 22).weight(.ultraLight))
                                         .foregroundColor(.white.opacity(0.7))
                                     
                                     Text("247")
-                                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                                        .font(.custom("Outfit", size: 28).weight(.light))
                                         .foregroundColor(.white)
                                     
                                     Text("decisions today.")
-                                        .font(.system(size: 22, weight: .light))
+                                        .font(.custom("Outfit", size: 22).weight(.ultraLight))
                                         .foregroundColor(.white.opacity(0.7))
                                 }
                                 
                                 // Dramatic red stat
                                 HStack(spacing: 8) {
                                     Text("142")
-                                        .font(.system(size: 48, weight: .black, design: .rounded))
+                                        .font(.custom("Outfit", size: 48).weight(.medium))
                                         .foregroundStyle(
                                             LinearGradient(
                                                 colors: [Color(red: 1.0, green: 0.4, blue: 0.4), Color(red: 1.0, green: 0.2, blue: 0.2)],
@@ -387,7 +387,7 @@ struct NarratorFrameAnimation: View {
                                         .shadow(color: Color.red.opacity(0.5), radius: 15)
                                     
                                     Text("were unnecessary")
-                                        .font(.system(size: 24, weight: .medium))
+                                        .font(.custom("Outfit", size: 24).weight(.light))
                                         .foregroundColor(Color(red: 1.0, green: 0.5, blue: 0.5))
                                 }
                                 
@@ -411,7 +411,7 @@ struct NarratorFrameAnimation: View {
                                     }
                                     
                                     Text("57% of your decisions could be automated")
-                                        .font(.system(size: 13, weight: .medium))
+                                        .font(.custom("Outfit", size: 13).weight(.light))
                                         .foregroundColor(.white.opacity(0.6))
                                         .tracking(1)
                                 }
@@ -427,7 +427,7 @@ struct NarratorFrameAnimation: View {
                         HStack {
                             Spacer()
                             Text(TimestampGenerator.getTime(for: progress))
-                                .font(.system(size: 100, weight: .ultraLight, design: .monospaced))
+                                .font(.custom("Outfit", size: 100).weight(.thin))
                                 .foregroundColor(.white.opacity(0.08))
                                 .shadow(color: .white.opacity(0.05), radius: 30)
                                 .padding(35)
@@ -705,13 +705,13 @@ struct VignetteContent: View {
             // GLOWING Title with department color
             ZStack {
                 Text(title)
-                    .font(.system(size: 18, weight: .black))
+                    .font(.custom("Outfit", size: 18).weight(.medium))
                     .tracking(16)
                     .foregroundColor(theme.accent.opacity(0.3))
                     .blur(radius: 10)
                 
                 Text(title)
-                    .font(.system(size: 18, weight: .black))
+                    .font(.custom("Outfit", size: 18).weight(.medium))
                     .tracking(16)
                     .foregroundColor(theme.accent)
                     .shadow(color: theme.primary.opacity(0.5), radius: 12)
@@ -724,13 +724,13 @@ struct VignetteContent: View {
             // DRAMATIC Subtitle with glow
             ZStack {
                 Text(subtitle)
-                    .font(.system(size: 32, weight: .light, design: .serif))
+                    .font(.custom("Outfit", size: 32).weight(.ultraLight))
                     .italic()
                     .foregroundColor(.white.opacity(0.2))
                     .blur(radius: 15)
                 
                 Text(subtitle)
-                    .font(.system(size: 32, weight: .light, design: .serif))
+                    .font(.custom("Outfit", size: 32).weight(.ultraLight))
                     .italic()
                     .foregroundColor(.white)
                     .shadow(color: .white.opacity(0.3), radius: 10)
@@ -766,11 +766,11 @@ struct PainMetricView: View {
     var body: some View {
         VStack(spacing: 6) {
             Text(value)
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .font(.custom("Outfit", size: 24).weight(.light))
                 .foregroundColor(theme.accent)
                 .shadow(color: theme.primary.opacity(0.3), radius: 4)
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(.custom("Outfit", size: 11).weight(.light))
                 .foregroundColor(.white.opacity(0.55))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -876,14 +876,14 @@ struct PatternBreakView: View {
                         // Main question text with dramatic reveal
                         VStack(spacing: 15) {
                             Text("What if this work...")
-                                .font(.system(size: 44, weight: .light, design: .serif))
+                                .font(.custom("Outfit", size: 44).weight(.ultraLight))
                                 .foregroundColor(.black)
                                 .opacity(progress > 0.15 ? 1 : 0)
                                 .offset(y: progress > 0.15 ? 0 : 25)
                                 .blur(radius: progress > 0.15 ? 0 : 8)
                             
                             Text("wasn't your work?")
-                                .font(.system(size: 44, weight: .semibold, design: .serif))
+                                .font(.custom("Outfit", size: 44).weight(.light))
                                 .foregroundColor(.black)
                                 .shadow(color: .black.opacity(0.1), radius: 10)
                                 .opacity(progress > 0.35 ? 1 : 0)
@@ -948,722 +948,277 @@ struct MiniWorkWindow: View {
 }
 
 // MARK: - Agentic Orchestration (01:45-02:45)
-/// THE AWAKENING: AI agents come to life, organize chaos, sync as one
-/// This is the centerpiece of the Davos experience
+/// INTERCONNECTED NODES: A 3D rotating sphere of connected nodes
+/// Points appear, connect to nearby neighbors, form a mesh network
 struct AgenticOrchestrationAnimation: View {
     var progress: Double
     @Environment(MotionManager.self) private var motion
     
-    // Color palette - electric and alive
+    // Teal color palette - clean and techy
+    private let primaryTeal = Color(red: 0.0, green: 0.6, blue: 0.7)
+    private let glowTeal = Color(red: 0.1, green: 0.8, blue: 0.9)
+    private let darkTeal = Color(red: 0.0, green: 0.35, blue: 0.45)
+    
+    // Gold/Electric colors for dramatic text
     private let coreGold = Color(red: 1.0, green: 0.85, blue: 0.4)
     private let electricBlue = Color(red: 0.2, green: 0.6, blue: 1.0)
-    private let plasmaGreen = Color(red: 0.3, green: 0.95, blue: 0.7)
-    private let deepPurple = Color(red: 0.4, green: 0.2, blue: 0.8)
     private let hotWhite = Color.white
     
-    // Agent definitions - each has unique character, shape, and personality
-    enum AgentShape { case hexagon, diamond, triangle, star, octagon, shield, circle }
-    enum AgentRole { case orchestrator, analyst, executor, connector, innovator, optimizer, harmonizer }
-    
-    private struct Agent {
-        let id: Int
-        let role: AgentRole
-        let shape: AgentShape
-        let baseAngle: Double
-        let orbitRadius: Double
-        let speed: Double
-        let primaryColor: Color
-        let accentColor: Color
-        let size: CGFloat
-        let pulseOffset: Double
-        let hasRings: Bool         // Orbital rings around agent
-        let hasAntenna: Bool       // Top antenna/beacon
-        let eyeCount: Int          // 1, 2, or 3 "eyes"
-    }
-    
-    // Create 7 distinct agents with unique visual personalities
-    private let agents: [Agent] = [
-        // ORCHESTRATOR - Central brain, golden, hexagonal with 3 eyes, has antenna
-        Agent(id: 0, role: .orchestrator, shape: .hexagon, baseAngle: 0, orbitRadius: 0.18, speed: 0.5,
-              primaryColor: Color(red: 1.0, green: 0.85, blue: 0.3), accentColor: Color(red: 1.0, green: 0.95, blue: 0.6),
-              size: 28, pulseOffset: 0, hasRings: true, hasAntenna: true, eyeCount: 3),
+    // 3D sphere points (distributed on a sphere using golden spiral)
+    private let spherePoints: [(theta: Double, phi: Double)] = {
+        var points: [(Double, Double)] = []
+        let n = 32 // Number of points
+        let goldenRatio = (1 + sqrt(5)) / 2
         
-        // ANALYST - Blue diamond, analytical, 2 scanning eyes
-        Agent(id: 1, role: .analyst, shape: .diamond, baseAngle: 0.9, orbitRadius: 0.30, speed: 0.4,
-              primaryColor: Color(red: 0.2, green: 0.5, blue: 1.0), accentColor: Color(red: 0.5, green: 0.8, blue: 1.0),
-              size: 22, pulseOffset: 0.3, hasRings: false, hasAntenna: true, eyeCount: 2),
-        
-        // EXECUTOR - Green triangle pointing forward, action-oriented, 1 focused eye
-        Agent(id: 2, role: .executor, shape: .triangle, baseAngle: 1.8, orbitRadius: 0.34, speed: 0.7,
-              primaryColor: Color(red: 0.2, green: 0.9, blue: 0.5), accentColor: Color(red: 0.5, green: 1.0, blue: 0.7),
-              size: 24, pulseOffset: 0.5, hasRings: false, hasAntenna: false, eyeCount: 1),
-        
-        // CONNECTOR - Coral star shape, reaches out, multiple connection points
-        Agent(id: 3, role: .connector, shape: .star, baseAngle: 2.6, orbitRadius: 0.36, speed: 0.45,
-              primaryColor: Color(red: 1.0, green: 0.5, blue: 0.3), accentColor: Color(red: 1.0, green: 0.7, blue: 0.5),
-              size: 26, pulseOffset: 0.2, hasRings: true, hasAntenna: false, eyeCount: 2),
-        
-        // INNOVATOR - Purple octagon, complex, has orbital rings
-        Agent(id: 4, role: .innovator, shape: .octagon, baseAngle: 3.5, orbitRadius: 0.28, speed: 0.55,
-              primaryColor: Color(red: 0.7, green: 0.3, blue: 0.95), accentColor: Color(red: 0.9, green: 0.6, blue: 1.0),
-              size: 20, pulseOffset: 0.7, hasRings: true, hasAntenna: true, eyeCount: 3),
-        
-        // OPTIMIZER - Cyan shield, protective, efficient, 2 eyes
-        Agent(id: 5, role: .optimizer, shape: .shield, baseAngle: 4.4, orbitRadius: 0.32, speed: 0.6,
-              primaryColor: Color(red: 0.2, green: 0.85, blue: 0.95), accentColor: Color(red: 0.6, green: 0.95, blue: 1.0),
-              size: 22, pulseOffset: 0.4, hasRings: false, hasAntenna: false, eyeCount: 2),
-        
-        // HARMONIZER - Rose circle, smooth, balancing, single calm eye
-        Agent(id: 6, role: .harmonizer, shape: .circle, baseAngle: 5.3, orbitRadius: 0.26, speed: 0.35,
-              primaryColor: Color(red: 1.0, green: 0.6, blue: 0.75), accentColor: Color(red: 1.0, green: 0.85, blue: 0.9),
-              size: 20, pulseOffset: 0.6, hasRings: true, hasAntenna: false, eyeCount: 1)
-    ]
+        for i in 0..<n {
+            let theta = 2 * .pi * Double(i) / goldenRatio
+            let phi = acos(1 - 2 * (Double(i) + 0.5) / Double(n))
+            points.append((theta, phi))
+        }
+        return points
+    }()
     
     var body: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
-            // ═══════════════════════════════════════════════════════════════
-            // THE AWAKENING - Animation Phases
-            // ═══════════════════════════════════════════════════════════════
-            let darknessPhase = max(0, 1.0 - progress * 10)                    // 0-10%: darkness fades
-            let heartbeatPhase = min(1.0, max(0, progress * 5))                // 0-20%: initial pulse
-            let awakenPhase = min(1.0, max(0, (progress - 0.08) / 0.25))       // 8-33%: agents wake up
-            let chaosPhase = min(1.0, max(0, (progress - 0.05) / 0.30))        // 5-35%: chaos visible
-            let organizePhase = min(1.0, max(0, (progress - 0.25) / 0.30))     // 25-55%: agents organize
-            let connectPhase = min(1.0, max(0, (progress - 0.35) / 0.25))      // 35-60%: connections form
-            let syncPhase = min(1.0, max(0, (progress - 0.55) / 0.15))         // 55-70%: all sync together
-            let textPhase = min(1.0, max(0, (progress - 0.62) / 0.20))         // 62-82%: text appears
-            let gloryPhase = min(1.0, max(0, (progress - 0.75) / 0.25))        // 75-100%: final glory
+            // Animation phases
+            let pointsAppear = min(1.0, progress / 0.25)        // 0-25%: points appear
+            let connectPhase = min(1.0, max(0, (progress - 0.20) / 0.25)) // 20-45%: connections
+            let pulsePhase = min(1.0, max(0, (progress - 0.40) / 0.20))   // 40-60%: pulse
+            let shrinkPhase = min(1.0, max(0, (progress - 0.55) / 0.15))  // 55-70%: shrink
+            let textPhase = min(1.0, max(0, (progress - 0.60) / 0.15))    // 60-75%: text
             
-            // Heartbeat pulse effect
-            let heartbeat = sin(time * 3.5) * 0.5 + 0.5
-            let syncPulse = syncPhase > 0.5 ? sin(time * 6) * 0.5 + 0.5 : 0
+            // Sphere scale
+            let sphereScale = 1.0 - shrinkPhase * 0.45
+            let sphereOffsetY = shrinkPhase * -80
             
-            GeometryReader { geo in
-                let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2 - 40)
-                let baseRadius = min(geo.size.width, geo.size.height) * 0.35
+            ZStack {
+                Color.black.ignoresSafeArea()
                 
-                ZStack {
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 1: Deep space background
-                    // ═══════════════════════════════════════════════════════════════
-                    Color.black.ignoresSafeArea()
-                    
-                    // Subtle nebula effect
-                    Canvas { context, size in
-                        // Deep space gradient
+                // Ambient background particles
+                Canvas { context, size in
+                    for i in 0..<25 {
+                        let seed = Double(i) * 1.618
+                        let x = (sin(time * 0.12 + seed * 2) * 0.5 + 0.5) * size.width
+                        let y = (cos(time * 0.08 + seed * 1.5) * 0.5 + 0.5) * size.height
+                        let pulse = sin(time * 1.2 + seed) * 0.5 + 0.5
+                        let particleSize: CGFloat = 1.5 + CGFloat(pulse) * 2
+                        
                         context.fill(
-                            Path(CGRect(origin: .zero, size: size)),
-                            with: .radialGradient(
-                                Gradient(colors: [
-                                    Color(red: 0.05, green: 0.02, blue: 0.1).opacity(0.8),
-                                    Color.black
-                                ]),
-                                center: center,
-                                startRadius: 0,
-                                endRadius: max(size.width, size.height) * 0.8
-                            )
+                            Circle().path(in: CGRect(x: x, y: y, width: particleSize, height: particleSize)),
+                            with: .color(primaryTeal.opacity(0.06 + pulse * 0.06))
                         )
                     }
-                    .opacity(1 - darknessPhase)
+                }
+                
+                // 3D SPHERE with interconnected nodes
+                Canvas { context, size in
+                    let center = CGPoint(x: size.width / 2, y: size.height / 2 + CGFloat(sphereOffsetY))
+                    let baseRadius: CGFloat = min(size.width, size.height) * 0.30
+                    let sphereRadius = baseRadius * CGFloat(sphereScale)
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 2: Chaos particles (the invisible cost - disorganized work)
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        let chaosCount = 60
-                        for i in 0..<chaosCount {
-                            let seed = Double(i) * 2.718
+                    // Rotation for 3D effect
+                    let rotationY = time * 0.2
+                    let rotationX = sin(time * 0.1) * 0.2
+                    
+                    // Calculate 3D positions
+                    var screenPoints: [(pos: CGPoint, z: Double, visible: Bool)] = []
+                    
+                    for (i, point) in spherePoints.enumerated() {
+                        let pointProgress = min(1.0, max(0, (pointsAppear * Double(spherePoints.count) - Double(i)) * 1.5))
+                        
+                        if pointProgress > 0 {
+                            var x3d = sin(point.phi) * cos(point.theta + rotationY)
+                            var y3d = cos(point.phi)
+                            var z3d = sin(point.phi) * sin(point.theta + rotationY)
                             
-                            // Initial chaotic positions
-                            var x = sin(seed * 3.7 + time * 0.3) * size.width * 0.45 + size.width / 2
-                            var y = cos(seed * 2.3 + time * 0.25) * size.height * 0.4 + size.height / 2
+                            // Apply X rotation
+                            let y3dRotated = y3d * cos(rotationX) - z3d * sin(rotationX)
+                            let z3dRotated = y3d * sin(rotationX) + z3d * cos(rotationX)
+                            y3d = y3dRotated
+                            z3d = z3dRotated
                             
-                            // As organize phase progresses, particles get pulled to agents
-                            if organizePhase > 0 {
-                                let targetAgent = i % agents.count
-                                let agentAngle = agents[targetAgent].baseAngle + time * agents[targetAgent].speed * 0.3
-                                let agentRadius = baseRadius * CGFloat(agents[targetAgent].orbitRadius) * 2.5
-                                let targetX = center.x + cos(agentAngle) * agentRadius
-                                let targetY = center.y + sin(agentAngle) * agentRadius * 0.6
-                                
-                                // Smooth pull toward agent
-                                let pullStrength = organizePhase * organizePhase // Ease-in
-                                x = x + (targetX - CGFloat(x)) * pullStrength
-                                y = y + (targetY - CGFloat(y)) * pullStrength
-                            }
+                            // Project to 2D
+                            let perspective = 1.0 + z3d * 0.3
+                            let screenX = center.x + CGFloat(x3d * Double(sphereRadius) * perspective)
+                            let screenY = center.y + CGFloat(y3d * Double(sphereRadius) * perspective * 0.9)
                             
-                            // Particles fade as they're organized
-                            let particleOpacity = chaosPhase * (1 - organizePhase * 0.8)
-                            let particleSize: CGFloat = 2 + CGFloat(sin(time + seed) * 0.5 + 0.5) * 2
-                            
-                            // Chaos particles are dim red/orange (stress colors)
-                            let chaosColor = Color(
-                                red: 0.8 + sin(seed) * 0.2,
-                                green: 0.3 + cos(seed) * 0.1,
-                                blue: 0.2
-                            )
-                            
-                            context.fill(
-                                Circle().path(in: CGRect(x: x - particleSize, y: y - particleSize, 
-                                                         width: particleSize * 2, height: particleSize * 2)),
-                                with: .color(chaosColor.opacity(particleOpacity * 0.4))
-                            )
+                            screenPoints.append((CGPoint(x: screenX, y: screenY), z3d, pointProgress > 0.5))
+                        } else {
+                            screenPoints.append((.zero, 0, false))
                         }
                     }
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 3: Central core pulse (the heartbeat of intelligence)
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        let pulseIntensity = heartbeatPhase * (0.3 + heartbeat * 0.7)
-                        let syncBoost = 1 + syncPhase * 0.5
-                        
-                        // Outer glow rings
-                        for ring in 0..<4 {
-                            let ringDelay = Double(ring) * 0.15
-                            let ringPulse = sin(time * 2.5 - ringDelay * 3) * 0.3 + 0.7
-                            let ringRadius = baseRadius * CGFloat(0.15 + Double(ring) * 0.08) * CGFloat(syncBoost) * CGFloat(ringPulse)
-                            
-                            context.fill(
-                                Circle().path(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius,
-                                                         width: ringRadius * 2, height: ringRadius * 2)),
-                                with: .radialGradient(
-                                    Gradient(colors: [
-                                        coreGold.opacity(pulseIntensity * 0.4 / Double(ring + 1)),
-                                        electricBlue.opacity(pulseIntensity * 0.2 / Double(ring + 1)),
-                                        .clear
-                                    ]),
-                                    center: center,
-                                    startRadius: 0,
-                                    endRadius: ringRadius
-                                )
-                            )
-                        }
-                        
-                        // Core bright center
-                        let coreSize = baseRadius * 0.08 * CGFloat(1 + heartbeat * 0.3) * CGFloat(syncBoost)
-                        context.fill(
-                            Circle().path(in: CGRect(x: center.x - coreSize, y: center.y - coreSize,
-                                                     width: coreSize * 2, height: coreSize * 2)),
-                            with: .radialGradient(
-                                Gradient(colors: [hotWhite, coreGold, .clear]),
-                                center: center,
-                                startRadius: 0,
-                                endRadius: coreSize
-                            )
+                    // Outer glow
+                    let glowRadius = sphereRadius * 1.6
+                    context.fill(
+                        Circle().path(in: CGRect(x: center.x - glowRadius, y: center.y - glowRadius,
+                                                  width: glowRadius * 2, height: glowRadius * 2)),
+                        with: .radialGradient(
+                            Gradient(colors: [primaryTeal.opacity(0.2 + pulsePhase * 0.15), .clear]),
+                            center: center, startRadius: 0, endRadius: glowRadius
                         )
-                    }
-                    .opacity(heartbeatPhase)
+                    )
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 4: The Agents - awakening one by one with PURPOSE
-                    // Each agent has unique shape, eyes, rings, and antenna
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        for (index, agent) in agents.enumerated() {
-                            // Each agent awakens sequentially
-                            let awakeDelay = Double(index) * 0.10
-                            let agentAwake = min(1.0, max(0, (awakenPhase - awakeDelay) * 2.0))
+                    // Draw connections between nearby points (mesh network)
+                    if connectPhase > 0 {
+                        for i in 0..<screenPoints.count {
+                            guard screenPoints[i].visible else { continue }
                             
-                            if agentAwake > 0 {
-                                // Agent position - purposeful orbital movement
-                                let orbitSpeed = agent.speed * (1 + syncPhase * 0.5)
-                                let angle = agent.baseAngle + time * orbitSpeed * 0.4
-                                let orbitRadius = baseRadius * CGFloat(agent.orbitRadius) * 2.5 * CGFloat(1 - syncPhase * 0.3)
+                            for j in (i+1)..<screenPoints.count {
+                                guard screenPoints[j].visible else { continue }
                                 
-                                // Slight vertical compression for 3D feel
-                                let agentX = center.x + cos(angle) * orbitRadius
-                                let agentY = center.y + sin(angle) * orbitRadius * 0.55
-                                let agentCenter = CGPoint(x: agentX, y: agentY)
+                                let p1 = screenPoints[i]
+                                let p2 = screenPoints[j]
+                                let dist = hypot(p2.pos.x - p1.pos.x, p2.pos.y - p1.pos.y)
                                 
-                                // Agent size with pulse
-                                let agentPulse = sin(time * 2.5 + agent.pulseOffset * 6) * 0.12 + 0.88
-                                let syncPulseBoost = syncPhase > 0 ? (1 + syncPulse * 0.25) : 1.0
-                                let finalSize = agent.size * CGFloat(agentAwake) * CGFloat(agentPulse) * CGFloat(syncPulseBoost)
-                                
-                                // ══════════════════════════════════════════════════
-                                // ORBITAL RINGS (if agent has them)
-                                // ══════════════════════════════════════════════════
-                                if agent.hasRings && agentAwake > 0.5 {
-                                    for ringIndex in 0..<2 {
-                                        let ringRadius = finalSize * CGFloat(1.4 + Double(ringIndex) * 0.3)
-                                        let ringRotation = time * (1.5 - Double(ringIndex) * 0.5) + Double(agent.id)
+                                // Connect nearby points
+                                let maxDist = sphereRadius * 0.6
+                                if dist < maxDist {
+                                    let connectionIndex = Double(i + j) / Double(spherePoints.count * 2)
+                                    let connProgress = min(1.0, max(0, (connectPhase - connectionIndex * 0.5) * 2.5))
+                                    
+                                    if connProgress > 0 {
+                                        var line = Path()
+                                        line.move(to: p1.pos)
                                         
-                                        // Tilted ellipse ring
-                                        var ringPath = Path()
-                                        ringPath.addEllipse(in: CGRect(x: agentX - ringRadius, y: agentY - ringRadius * 0.3,
-                                                                       width: ringRadius * 2, height: ringRadius * 0.6))
+                                        let endX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(connProgress)
+                                        let endY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(connProgress)
+                                        line.addLine(to: CGPoint(x: endX, y: endY))
                                         
-                                        context.stroke(
-                                            ringPath.applying(CGAffineTransform(rotationAngle: CGFloat(ringRotation * 0.3))),
-                                            with: .color(agent.accentColor.opacity(0.5 * agentAwake)),
-                                            lineWidth: 1.5
-                                        )
-                                    }
-                                }
-                                
-                                // ══════════════════════════════════════════════════
-                                // OUTER GLOW
-                                // ══════════════════════════════════════════════════
-                                let glowSize = finalSize * 2.5
-                                context.fill(
-                                    Circle().path(in: CGRect(x: agentX - glowSize, y: agentY - glowSize,
-                                                             width: glowSize * 2, height: glowSize * 2)),
-                                    with: .radialGradient(
-                                        Gradient(colors: [
-                                            agent.primaryColor.opacity(0.5 * agentAwake),
-                                            agent.primaryColor.opacity(0.15 * agentAwake),
-                                            .clear
-                                        ]),
-                                        center: agentCenter,
-                                        startRadius: 0,
-                                        endRadius: glowSize
-                                    )
-                                )
-                                
-                                // ══════════════════════════════════════════════════
-                                // AGENT BODY SHAPE
-                                // ══════════════════════════════════════════════════
-                                let bodyPath = createAgentShape(agent.shape, center: agentCenter, size: finalSize)
-                                
-                                // Body fill with gradient
-                                context.fill(
-                                    bodyPath,
-                                    with: .radialGradient(
-                                        Gradient(colors: [agent.accentColor, agent.primaryColor, agent.primaryColor.opacity(0.7)]),
-                                        center: CGPoint(x: agentX, y: agentY - finalSize * 0.2),
-                                        startRadius: 0,
-                                        endRadius: finalSize
-                                    )
-                                )
-                                
-                                // Body outline
-                                context.stroke(
-                                    bodyPath,
-                                    with: .color(agent.accentColor.opacity(0.8)),
-                                    lineWidth: 2
-                                )
-                                
-                                // ══════════════════════════════════════════════════
-                                // EYES (scanning/processing indicators)
-                                // ══════════════════════════════════════════════════
-                                let eyeSize = finalSize * 0.18
-                                let eyeY = agentY - finalSize * 0.05
-                                let eyePulse = sin(time * 4 + agent.pulseOffset * 5) * 0.3 + 0.7
-                                
-                                if agent.eyeCount == 1 {
-                                    // Single centered eye
-                                    drawAgentEye(context: context, x: agentX, y: eyeY, size: eyeSize * 1.3, 
-                                                 color: agent.accentColor, pulse: eyePulse, time: time)
-                                } else if agent.eyeCount == 2 {
-                                    // Two eyes
-                                    let eyeSpacing = finalSize * 0.25
-                                    drawAgentEye(context: context, x: agentX - eyeSpacing, y: eyeY, size: eyeSize, 
-                                                 color: agent.accentColor, pulse: eyePulse, time: time)
-                                    drawAgentEye(context: context, x: agentX + eyeSpacing, y: eyeY, size: eyeSize, 
-                                                 color: agent.accentColor, pulse: eyePulse, time: time)
-                                } else if agent.eyeCount == 3 {
-                                    // Three eyes (triangle formation)
-                                    let eyeSpacing = finalSize * 0.22
-                                    drawAgentEye(context: context, x: agentX, y: eyeY - eyeSize * 0.8, size: eyeSize, 
-                                                 color: agent.accentColor, pulse: eyePulse, time: time)
-                                    drawAgentEye(context: context, x: agentX - eyeSpacing, y: eyeY + eyeSize * 0.4, size: eyeSize * 0.85, 
-                                                 color: agent.accentColor, pulse: eyePulse, time: time + 0.3)
-                                    drawAgentEye(context: context, x: agentX + eyeSpacing, y: eyeY + eyeSize * 0.4, size: eyeSize * 0.85, 
-                                                 color: agent.accentColor, pulse: eyePulse, time: time + 0.6)
-                                }
-                                
-                                // ══════════════════════════════════════════════════
-                                // ANTENNA (beacon/receiver)
-                                // ══════════════════════════════════════════════════
-                                if agent.hasAntenna && agentAwake > 0.6 {
-                                    let antennaHeight = finalSize * 0.6
-                                    let antennaBaseY = agentY - finalSize * 0.5
-                                    let antennaTipY = antennaBaseY - antennaHeight
-                                    
-                                    // Antenna line
-                                    var antennaPath = Path()
-                                    antennaPath.move(to: CGPoint(x: agentX, y: antennaBaseY))
-                                    antennaPath.addLine(to: CGPoint(x: agentX, y: antennaTipY))
-                                    context.stroke(antennaPath, with: .color(agent.accentColor.opacity(0.8)), lineWidth: 2)
-                                    
-                                    // Antenna tip beacon (pulsing)
-                                    let beaconSize = eyeSize * 0.8 * CGFloat(0.8 + sin(time * 5) * 0.2)
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: agentX - beaconSize, y: antennaTipY - beaconSize,
-                                                                 width: beaconSize * 2, height: beaconSize * 2)),
-                                        with: .radialGradient(
-                                            Gradient(colors: [hotWhite, agent.primaryColor, .clear]),
-                                            center: CGPoint(x: agentX, y: antennaTipY),
-                                            startRadius: 0,
-                                            endRadius: beaconSize * 1.5
-                                        )
-                                    )
-                                    
-                                    // Signal waves from antenna
-                                    if syncPhase > 0.3 {
-                                        for wave in 0..<3 {
-                                            let waveProgress = fmod(time * 1.5 + Double(wave) * 0.33, 1.0)
-                                            let waveRadius = CGFloat(waveProgress) * finalSize * 0.6
-                                            let waveOpacity = (1 - waveProgress) * 0.4 * syncPhase
+                                        let avgZ = (p1.z + p2.z) / 2
+                                        let depthOpacity = 0.15 + max(0, avgZ) * 0.2
+                                        
+                                        context.stroke(line, with: .color(primaryTeal.opacity(depthOpacity * connProgress)), lineWidth: 0.8)
+                                        
+                                        // Pulse traveling along connection
+                                        if pulsePhase > 0.3 {
+                                            let pulseT = fmod(time * 1.5 + connectionIndex * 3, 1.0)
+                                            let pulseX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(pulseT)
+                                            let pulseY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(pulseT)
                                             
-                                            var wavePath = Path()
-                                            wavePath.addArc(center: CGPoint(x: agentX, y: antennaTipY),
-                                                           radius: waveRadius,
-                                                           startAngle: .degrees(-60),
-                                                           endAngle: .degrees(-120),
-                                                           clockwise: true)
-                                            context.stroke(wavePath, with: .color(agent.accentColor.opacity(waveOpacity)), lineWidth: 1.5)
+                                            context.fill(
+                                                Circle().path(in: CGRect(x: pulseX - 2, y: pulseY - 2, width: 4, height: 4)),
+                                                with: .color(glowTeal.opacity(0.7 * pulsePhase))
+                                            )
                                         }
                                     }
                                 }
-                                
-                                // ══════════════════════════════════════════════════
-                                // MOTION TRAIL
-                                // ══════════════════════════════════════════════════
-                                if agentAwake > 0.5 {
-                                    for trail in 1..<5 {
-                                        let trailAngle = angle - Double(trail) * 0.06 * orbitSpeed
-                                        let trailX = center.x + cos(trailAngle) * orbitRadius
-                                        let trailY = center.y + sin(trailAngle) * orbitRadius * 0.55
-                                        let trailSize = finalSize * CGFloat(0.6 - Double(trail) * 0.12)
-                                        let trailOpacity = (1 - Double(trail) / 5) * 0.35
-                                        
-                                        context.fill(
-                                            Circle().path(in: CGRect(x: trailX - trailSize / 2, y: trailY - trailSize / 2,
-                                                                     width: trailSize, height: trailSize)),
-                                            with: .color(agent.primaryColor.opacity(trailOpacity * agentAwake))
-                                        )
-                                    }
-                                }
                             }
                         }
                     }
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 5: Connection arcs between agents (energy transfer)
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        if connectPhase > 0 {
-                            // Calculate current agent positions
-                            var agentPositions: [(pos: CGPoint, color: Color)] = []
-                            for agent in agents {
-                                let angle = agent.baseAngle + time * agent.speed * 0.4
-                                let orbitRadius = baseRadius * CGFloat(agent.orbitRadius) * 2.5 * CGFloat(1 - syncPhase * 0.3)
-                                let x = center.x + cos(angle) * orbitRadius
-                                let y = center.y + sin(angle) * orbitRadius * 0.55
-                                agentPositions.append((CGPoint(x: x, y: y), agent.primaryColor))
-                            }
-                            
-                            // Draw connections
-                            for i in 0..<agentPositions.count {
-                                for j in (i+1)..<agentPositions.count {
-                                    let p1 = agentPositions[i]
-                                    let p2 = agentPositions[j]
-                                    
-                                    // Connection appears based on progress
-                                    let connDelay = Double(i + j) * 0.08
-                                    let connProgress = min(1.0, max(0, (connectPhase - connDelay) * 2.0))
-                                    
-                                    if connProgress > 0.1 {
-                                        // Arc connection (curved, not straight)
-                                        let midX = (p1.pos.x + p2.pos.x) / 2
-                                        let midY = (p1.pos.y + p2.pos.y) / 2 - 30 // Curve upward
-                                        
-                                        var arcPath = Path()
-                                        arcPath.move(to: p1.pos)
-                                        arcPath.addQuadCurve(to: p2.pos, control: CGPoint(x: midX, y: midY))
-                                        
-                                        // Blend colors
-                                        let blendColor = Color(
-                                            red: 0.5,
-                                            green: 0.7,
-                                            blue: 0.9
-                                        )
-                                        
-                                        context.stroke(arcPath, with: .color(blendColor.opacity(0.4 * connProgress)), lineWidth: 1.5)
-                                        
-                                        // Energy pulse traveling along connection
-                                        let pulseT = fmod(time * 1.2 + Double(i + j) * 0.5, 1.0)
-                                        let pulsePos = quadraticBezier(p1.pos, CGPoint(x: midX, y: midY), p2.pos, CGFloat(pulseT))
-                                        
-                                        context.fill(
-                                            Circle().path(in: CGRect(x: pulsePos.x - 4, y: pulsePos.y - 4, width: 8, height: 8)),
-                                            with: .radialGradient(
-                                                Gradient(colors: [hotWhite.opacity(0.9 * connProgress), blendColor.opacity(0.5 * connProgress), .clear]),
-                                                center: pulsePos,
-                                                startRadius: 0,
-                                                endRadius: 6
-                                            )
-                                        )
-                                    }
-                                }
-                                
-                                // Connection from agent to center (during sync)
-                                if syncPhase > 0 {
-                                    let p = agentPositions[i]
-                                    
-                                    var centerLine = Path()
-                                    centerLine.move(to: p.pos)
-                                    centerLine.addLine(to: center)
-                                    
-                                    context.stroke(centerLine, with: .color(coreGold.opacity(0.3 * syncPhase)), lineWidth: 1)
-                                    
-                                    // Energy flowing to center
-                                    let flowT = fmod(time * 2 + Double(i) * 0.3, 1.0)
-                                    let flowX = p.pos.x + (center.x - p.pos.x) * CGFloat(flowT)
-                                    let flowY = p.pos.y + (center.y - p.pos.y) * CGFloat(flowT)
-                                    
-                                    context.fill(
-                                        Circle().path(in: CGRect(x: flowX - 3, y: flowY - 3, width: 6, height: 6)),
-                                        with: .color(p.color.opacity(0.7 * syncPhase * (1 - flowT)))
-                                    )
-                                }
-                            }
+                    // Draw nodes
+                    for (i, point) in screenPoints.enumerated() {
+                        guard point.visible else { continue }
+                        
+                        let pointProgress = min(1.0, max(0, (pointsAppear * Double(spherePoints.count) - Double(i)) * 1.5))
+                        let depth = (point.z + 1) / 2
+                        let baseSize: CGFloat = 4 + CGFloat(depth) * 4
+                        let nodeSize = baseSize * CGFloat(pointProgress)
+                        
+                        // Glow
+                        let nodeGlowSize = nodeSize * (1.5 + CGFloat(pulsePhase) * 0.5)
+                        context.fill(
+                            Circle().path(in: CGRect(x: point.pos.x - nodeGlowSize, y: point.pos.y - nodeGlowSize,
+                                                      width: nodeGlowSize * 2, height: nodeGlowSize * 2)),
+                            with: .color(glowTeal.opacity((0.15 + pulsePhase * 0.1) * (0.5 + depth * 0.5)))
+                        )
+                        
+                        // Core
+                        context.fill(
+                            Circle().path(in: CGRect(x: point.pos.x - nodeSize / 2, y: point.pos.y - nodeSize / 2,
+                                                      width: nodeSize, height: nodeSize)),
+                            with: .color(glowTeal.opacity(0.7 + depth * 0.3))
+                        )
+                        
+                        // Pulse center
+                        if pulsePhase > 0.2 {
+                            let pulseIntensity = sin(time * 3 + Double(i) * 0.3) * 0.5 + 0.5
+                            let brightSize = nodeSize * 0.5 * CGFloat(pulseIntensity * pulsePhase)
+                            context.fill(
+                                Circle().path(in: CGRect(x: point.pos.x - brightSize / 2, y: point.pos.y - brightSize / 2,
+                                                          width: brightSize, height: brightSize)),
+                                with: .color(Color.white.opacity(0.8 * pulsePhase * pulseIntensity))
+                            )
                         }
                     }
                     
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 6: Sync shockwave (the moment everything clicks)
-                    // ═══════════════════════════════════════════════════════════════
-                    Canvas { context, size in
-                        if syncPhase > 0.3 {
-                            // Expanding rings when agents sync
-                            for ring in 0..<3 {
-                                let ringProgress = fmod(time * 0.8 + Double(ring) * 0.33, 1.0)
-                                let ringRadius = baseRadius * CGFloat(0.3 + ringProgress * 1.2)
-                                let ringOpacity = (1 - ringProgress) * syncPhase * 0.4
-                                
-                                var ringPath = Path()
-                                ringPath.addEllipse(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius * 0.55,
-                                                               width: ringRadius * 2, height: ringRadius * 2 * 0.55))
-                                
-                                context.stroke(ringPath, with: .color(coreGold.opacity(ringOpacity)), lineWidth: 2 - CGFloat(ringProgress))
-                            }
-                        }
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 7: THE TEXT - "AGENTIC ORCHESTRATION" with power
-                    // ═══════════════════════════════════════════════════════════════
-                    if textPhase > 0 {
-                        VStack(spacing: 12) {
-                            Spacer()
-                            
-                            // Subtitle
-                            Text("THIS IS")
-                                .font(.system(size: 14, weight: .medium))
-                                .tracking(8)
-                                .foregroundColor(.white.opacity(0.5))
-                                .opacity(textPhase)
-                            
-                            // Main title with epic reveal
-                            ZStack {
-                                // Outer glow layer
-                                Text("AGENTIC ORCHESTRATION")
-                                    .font(.system(size: 32, weight: .black))
-                                    .tracking(6)
-                                    .foregroundColor(coreGold.opacity(0.3))
-                                    .blur(radius: 20)
-                                
-                                // Mid glow
-                                Text("AGENTIC ORCHESTRATION")
-                                    .font(.system(size: 32, weight: .black))
-                                    .tracking(6)
-                                    .foregroundColor(electricBlue.opacity(0.5))
-                                    .blur(radius: 10)
-                                
-                                // Main text with gradient
-                                Text("AGENTIC ORCHESTRATION")
-                                    .font(.system(size: 32, weight: .black))
-                                    .tracking(6)
-                                    .foregroundStyle(
-                                        LinearGradient(
-                                            colors: [coreGold, hotWhite, electricBlue],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .shadow(color: coreGold.opacity(0.8), radius: 15)
-                                    .shadow(color: electricBlue.opacity(0.5), radius: 30)
-                            }
-                            .opacity(textPhase)
-                            .scaleEffect(0.9 + textPhase * 0.1)
-                            .offset(y: (1 - textPhase) * 30)
-                            
-                            // Tagline
-                            Text("Intelligence that orchestrates. Agents that deliver.")
-                                .font(.system(size: 16, weight: .light))
-                                .foregroundColor(.white.opacity(0.7))
-                                .opacity(min(1, (textPhase - 0.3) * 2))
-                                .offset(y: (1 - textPhase) * 20)
-                            
-                            Spacer()
-                                .frame(height: 80)
-                        }
-                        .animation(.easeOut(duration: 0.8), value: textPhase > 0.5)
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════
-                    // LAYER 8: Glory phase - final flourish
-                    // ═══════════════════════════════════════════════════════════════
-                    if gloryPhase > 0 {
-                        Canvas { context, size in
-                            // Starburst rays from center
-                            for ray in 0..<24 {
-                                let rayAngle = Double(ray) * .pi * 2 / 24 + time * 0.1
-                                let rayLength = baseRadius * CGFloat(1.5 + gloryPhase * 0.5)
-                                let rayWidth: CGFloat = 1.5
-                                
-                                var rayPath = Path()
-                                rayPath.move(to: center)
-                                let endX = center.x + cos(rayAngle) * rayLength
-                                let endY = center.y + sin(rayAngle) * rayLength * 0.55
-                                rayPath.addLine(to: CGPoint(x: endX, y: endY))
-                                
-                                context.stroke(
-                                    rayPath,
-                                    with: .linearGradient(
-                                        Gradient(colors: [coreGold.opacity(0.4 * gloryPhase), .clear]),
-                                        startPoint: center,
-                                        endPoint: CGPoint(x: endX, y: endY)
-                                    ),
-                                    lineWidth: rayWidth
-                                )
-                            }
-                        }
+                    // Central core
+                    if pulsePhase > 0 {
+                        let coreSize = sphereRadius * 0.12 * CGFloat(pulsePhase)
+                        let corePulse = 1.0 + sin(time * 4) * 0.15
+                        
+                        context.fill(
+                            Circle().path(in: CGRect(x: center.x - coreSize * CGFloat(corePulse),
+                                                      y: center.y - coreSize * CGFloat(corePulse),
+                                                      width: coreSize * 2 * CGFloat(corePulse),
+                                                      height: coreSize * 2 * CGFloat(corePulse))),
+                            with: .radialGradient(
+                                Gradient(colors: [glowTeal, primaryTeal.opacity(0.6), .clear]),
+                                center: center, startRadius: 0, endRadius: coreSize * CGFloat(corePulse)
+                            )
+                        )
                     }
                 }
+                
+                // ═══════════════════════════════════════════════════════════════
+                // DRAMATIC TEXT - "AGENTIC ORCHESTRATION" with gold power
+                // ═══════════════════════════════════════════════════════════════
+                if textPhase > 0 {
+                    VStack(spacing: 12) {
+                        Spacer()
+                        
+                        // Main title with epic reveal - loads in dramatically
+                        ZStack {
+                            // Outer glow layer
+                            Text("AGENTIC ORCHESTRATION")
+                                .font(.custom("Outfit", size: 32).weight(.medium))
+                                .tracking(8)
+                                .foregroundColor(coreGold.opacity(0.3))
+                                .blur(radius: 20)
+                            
+                            // Mid glow
+                            Text("AGENTIC ORCHESTRATION")
+                                .font(.custom("Outfit", size: 32).weight(.medium))
+                                .tracking(8)
+                                .foregroundColor(electricBlue.opacity(0.5))
+                                .blur(radius: 10)
+                            
+                            // Main text with gradient
+                            Text("AGENTIC ORCHESTRATION")
+                                .font(.custom("Outfit", size: 32).weight(.medium))
+                                .tracking(8)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [coreGold, hotWhite, electricBlue],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .shadow(color: coreGold.opacity(0.8), radius: 15)
+                                .shadow(color: electricBlue.opacity(0.5), radius: 30)
+                        }
+                        .opacity(textPhase)
+                        .scaleEffect(0.9 + textPhase * 0.1)
+                        .offset(y: (1 - textPhase) * 30)
+                        
+                        // Tagline
+                        Text("Intelligence that orchestrates. Agents that deliver.")
+                            .font(.custom("Outfit", size: 16).weight(.ultraLight))
+                            .foregroundColor(.white.opacity(0.7))
+                            .opacity(min(1, (textPhase - 0.3) * 2))
+                            .offset(y: (1 - textPhase) * 20)
+                        
+                        Spacer()
+                            .frame(height: 80)
+                    }
+                    .animation(.easeOut(duration: 0.8), value: textPhase > 0.5)
+                }
             }
-            .drawingGroup() // Metal-accelerated rendering for 60fps
+            .drawingGroup()
         }
-    }
-    
-    // Helper function for bezier curve position
-    private func quadraticBezier(_ p0: CGPoint, _ p1: CGPoint, _ p2: CGPoint, _ t: CGFloat) -> CGPoint {
-        let oneMinusT = 1 - t
-        let x = oneMinusT * oneMinusT * p0.x + 2 * oneMinusT * t * p1.x + t * t * p2.x
-        let y = oneMinusT * oneMinusT * p0.y + 2 * oneMinusT * t * p1.y + t * t * p2.y
-        return CGPoint(x: x, y: y)
-    }
-    
-    // Create unique agent body shapes
-    private func createAgentShape(_ shape: AgentShape, center: CGPoint, size: CGFloat) -> Path {
-        var path = Path()
-        let cx = center.x
-        let cy = center.y
-        let r = size * 0.5
-        
-        switch shape {
-        case .hexagon:
-            // 6-sided polygon - leadership, authority
-            for i in 0..<6 {
-                let angle = Double(i) * .pi / 3 - .pi / 2
-                let x = cx + cos(angle) * r
-                let y = cy + sin(angle) * r
-                if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
-                else { path.addLine(to: CGPoint(x: x, y: y)) }
-            }
-            path.closeSubpath()
-            
-        case .diamond:
-            // Diamond/rhombus - analytical, precise
-            path.move(to: CGPoint(x: cx, y: cy - r * 1.2))
-            path.addLine(to: CGPoint(x: cx + r * 0.8, y: cy))
-            path.addLine(to: CGPoint(x: cx, y: cy + r * 1.2))
-            path.addLine(to: CGPoint(x: cx - r * 0.8, y: cy))
-            path.closeSubpath()
-            
-        case .triangle:
-            // Triangle pointing right - action, forward motion
-            path.move(to: CGPoint(x: cx + r * 1.1, y: cy))
-            path.addLine(to: CGPoint(x: cx - r * 0.7, y: cy - r * 0.9))
-            path.addLine(to: CGPoint(x: cx - r * 0.7, y: cy + r * 0.9))
-            path.closeSubpath()
-            
-        case .star:
-            // 5-pointed star - connection, reaching out
-            for i in 0..<10 {
-                let angle = Double(i) * .pi / 5 - .pi / 2
-                let radius = i % 2 == 0 ? r * 1.1 : r * 0.5
-                let x = cx + cos(angle) * radius
-                let y = cy + sin(angle) * radius
-                if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
-                else { path.addLine(to: CGPoint(x: x, y: y)) }
-            }
-            path.closeSubpath()
-            
-        case .octagon:
-            // 8-sided - complex, innovative
-            for i in 0..<8 {
-                let angle = Double(i) * .pi / 4 - .pi / 8
-                let x = cx + cos(angle) * r
-                let y = cy + sin(angle) * r
-                if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
-                else { path.addLine(to: CGPoint(x: x, y: y)) }
-            }
-            path.closeSubpath()
-            
-        case .shield:
-            // Shield shape - protective, optimizing
-            path.move(to: CGPoint(x: cx, y: cy - r * 1.1))
-            path.addQuadCurve(to: CGPoint(x: cx + r, y: cy - r * 0.3), control: CGPoint(x: cx + r * 0.8, y: cy - r * 1.0))
-            path.addLine(to: CGPoint(x: cx + r * 0.8, y: cy + r * 0.5))
-            path.addQuadCurve(to: CGPoint(x: cx, y: cy + r * 1.1), control: CGPoint(x: cx + r * 0.4, y: cy + r * 1.0))
-            path.addQuadCurve(to: CGPoint(x: cx - r * 0.8, y: cy + r * 0.5), control: CGPoint(x: cx - r * 0.4, y: cy + r * 1.0))
-            path.addLine(to: CGPoint(x: cx - r, y: cy - r * 0.3))
-            path.addQuadCurve(to: CGPoint(x: cx, y: cy - r * 1.1), control: CGPoint(x: cx - r * 0.8, y: cy - r * 1.0))
-            path.closeSubpath()
-            
-        case .circle:
-            // Perfect circle - harmony, balance
-            path.addEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
-        }
-        
-        return path
-    }
-    
-    // Draw agent "eye" - glowing processing indicator
-    private func drawAgentEye(context: GraphicsContext, x: CGFloat, y: CGFloat, size: CGFloat, color: Color, pulse: Double, time: Double) {
-        let eyeCenter = CGPoint(x: x, y: y)
-        
-        // Outer glow
-        context.fill(
-            Circle().path(in: CGRect(x: x - size * 1.5, y: y - size * 1.5, width: size * 3, height: size * 3)),
-            with: .radialGradient(
-                Gradient(colors: [color.opacity(0.4 * pulse), .clear]),
-                center: eyeCenter,
-                startRadius: 0,
-                endRadius: size * 1.5
-            )
-        )
-        
-        // Eye socket
-        context.fill(
-            Circle().path(in: CGRect(x: x - size, y: y - size, width: size * 2, height: size * 2)),
-            with: .color(Color.black.opacity(0.6))
-        )
-        
-        // Inner iris
-        let irisSize = size * 0.7
-        context.fill(
-            Circle().path(in: CGRect(x: x - irisSize, y: y - irisSize, width: irisSize * 2, height: irisSize * 2)),
-            with: .radialGradient(
-                Gradient(colors: [hotWhite, color]),
-                center: eyeCenter,
-                startRadius: 0,
-                endRadius: irisSize
-            )
-        )
-        
-        // Scanning line effect
-        let scanY = y + sin(time * 3) * size * 0.5
-        var scanLine = Path()
-        scanLine.move(to: CGPoint(x: x - size * 0.8, y: scanY))
-        scanLine.addLine(to: CGPoint(x: x + size * 0.8, y: scanY))
-        context.stroke(scanLine, with: .color(hotWhite.opacity(0.6 * pulse)), lineWidth: 1)
     }
 }
 
@@ -1791,47 +1346,35 @@ private struct HumanReturnContent: View {
         let textBlend = min(1.0, max(0, (progress - 0.35) / 0.4))
         
         return VStack(spacing: 0) {
-            // Figure with glow
-            ZStack {
-                Image(systemName: "figure.stand")
-                    .font(.system(size: 120, weight: .ultraLight))
-                    .foregroundColor(glowBlue.opacity(0.25 * progress))
-                    .blur(radius: 30)
-                    .scaleEffect(1.15)
-                
-                Image(systemName: "figure.stand")
-                    .font(.system(size: 120, weight: .ultraLight))
-                    .foregroundColor(accentBlue.opacity(0.4 * progress))
-                    .blur(radius: 15)
-                    .scaleEffect(1.05)
-                
-                Image(systemName: "figure.stand")
-                    .font(.system(size: 120, weight: .ultraLight))
-                    .foregroundColor(accentBlue.opacity(0.6 + figureBlend * 0.4))
-                    .scaleEffect(0.8 + progress * 0.2)
+            // Human figure - clean image only
+            if let uiImage = UIImage(named: "leader") ?? loadBundleImage("leader") {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 250)
+                    .scaleEffect(0.9 + progress * 0.1)
+                    .opacity(min(1.0, progress * 2.5))
             }
-            .opacity(min(1.0, progress * 2.5))
             
-            Spacer().frame(height: 40)
+            Spacer().frame(height: 50)
             
-            // Text
+            // Text - consistent typography
             VStack(spacing: 16) {
                 Text("RESTORATION")
-                    .font(.system(size: 13, weight: .semibold))
-                    .tracking(12)
+                    .font(.custom("Outfit", size: 13).weight(.medium))
+                    .tracking(10)
                     .foregroundColor(accentBlue.opacity(0.6 + textBlend * 0.4))
                     .opacity(min(1.0, max(0, (progress - 0.2) * 3)))
                 
                 Text("Human potential returned.")
-                    .font(.system(size: 32, weight: .light, design: .serif))
+                    .font(.custom("Outfit", size: 32).weight(.ultraLight))
                     .foregroundColor(Color(white: 1.0 - progress * 0.9))
                     .opacity(min(1.0, max(0, (progress - 0.3) * 2.5)))
                     .offset(y: progress > 0.3 ? 0 : 15)
                 
                 if progress > 0.55 {
                     Text("Reviewing insights. Approving paths.")
-                        .font(.system(size: 18, weight: .regular, design: .serif))
-                        .italic()
+                        .font(.custom("Outfit", size: 18).weight(.light))
                         .foregroundColor(glowBlue)
                         .opacity(min(1.0, max(0, (progress - 0.55) * 2.5)))
                 }
@@ -1894,12 +1437,12 @@ struct PersonalizationView: View {
                     // GLOWING question text
                     ZStack {
                         Text("How many hours of invisible work does your team lose each week?")
-                            .font(.system(size: 32, weight: .light, design: .serif))
+                            .font(.custom("Outfit", size: 32).weight(.ultraLight))
                             .foregroundColor(accentBlue.opacity(0.3))
                             .blur(radius: 15)
                         
                         Text("How many hours of invisible work does your team lose each week?")
-                            .font(.system(size: 32, weight: .light, design: .serif))
+                            .font(.custom("Outfit", size: 32).weight(.ultraLight))
                             .foregroundColor(.white)
                             .shadow(color: .white.opacity(0.2), radius: 10)
                     }
@@ -1919,12 +1462,12 @@ struct PersonalizationView: View {
                                 // MASSIVE glowing number
                                 ZStack {
                                     Text("\(Int(viewModel.lostHoursPerWeek))")
-                                        .font(.system(size: 100, weight: .bold, design: .rounded))
+                                        .font(.custom("Outfit", size: 100).weight(.ultraLight))
                                         .foregroundColor(accentBlue.opacity(0.3))
                                         .blur(radius: 20)
                                     
                                     Text("\(Int(viewModel.lostHoursPerWeek))")
-                                        .font(.system(size: 100, weight: .bold, design: .rounded))
+                                        .font(.custom("Outfit", size: 100).weight(.ultraLight))
                                         .foregroundStyle(
                                             LinearGradient(
                                                 colors: [glowBlue, accentBlue],
@@ -1937,7 +1480,7 @@ struct PersonalizationView: View {
                                 }
                                 
                                 Text("HOURS PER WEEK")
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(.custom("Outfit", size: 14).weight(.medium))
                                     .tracking(6)
                                     .foregroundColor(.white.opacity(0.5))
                                 
@@ -2014,18 +1557,18 @@ struct EnhancedMetricView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 10) {
             Text(label)
-                .font(.system(size: 12, weight: .bold))
+                .font(.custom("Outfit", size: 12).weight(.medium))
                 .tracking(5)
                 .foregroundColor(.white.opacity(0.4))
             
             ZStack {
                 Text(value)
-                    .font(.system(size: 32, weight: .semibold, design: .rounded))
+                    .font(.custom("Outfit", size: 32).weight(.light))
                     .foregroundColor(color.opacity(0.3))
                     .blur(radius: 8)
                 
                 Text(value)
-                    .font(.system(size: 32, weight: .semibold, design: .rounded))
+                    .font(.custom("Outfit", size: 32).weight(.light))
                     .foregroundColor(color)
                     .shadow(color: color.opacity(0.5), radius: 10)
             }
@@ -2137,14 +1680,14 @@ private struct FinalCTAContent: View {
         VStack(spacing: 24) {
             if text1Phase > 0 {
                 Text("One decision.")
-                    .font(.system(size: 28, weight: .light, design: .serif))
+                    .font(.custom("Outfit", size: 28).weight(.ultraLight))
                     .foregroundColor(pureWhite.opacity(0.9))
                     .opacity(text1Phase)
             }
             
             if text2Phase > 0 {
                 Text("Infinite possibility.")
-                    .font(.system(size: 34, weight: .medium, design: .serif))
+                    .font(.custom("Outfit", size: 34).weight(.light))
                     .foregroundStyle(LinearGradient(colors: [signalGold, pureWhite], startPoint: .leading, endPoint: .trailing))
                     .opacity(text2Phase)
             }
@@ -2157,7 +1700,7 @@ private struct FinalCTAContent: View {
                     .padding(.vertical, 8)
                 
                 Text("Where will you lead?")
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.custom("Outfit", size: 18).weight(.light))
                     .foregroundColor(pureWhite.opacity(0.6))
                     .opacity(questionPhase)
             }
@@ -2187,7 +1730,7 @@ private struct FinalCTAContent: View {
                 .foregroundColor(pureWhite.opacity(0.8))
             
             Text("EXPERIENCE")
-                .font(.system(size: 10, weight: .medium))
+                .font(.custom("Outfit", size: 10).weight(.medium))
                 .tracking(4)
                 .foregroundColor(pureWhite.opacity(0.5))
         }
@@ -2210,7 +1753,7 @@ private struct FinalCTAContent: View {
                 }
                 
                 Text("DEMO")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.custom("Outfit", size: 10).weight(.medium))
                     .tracking(4)
                     .foregroundColor(signalGold.opacity(0.8))
             }
@@ -2306,5 +1849,110 @@ struct NotificationShape: Shape {
         path.addRoundedRect(in: rect, cornerSize: CGSize(width: 12, height: 12))
         return path
     }
+}
+
+/// Elegant human silhouette - professional business figure
+struct HumanSilhouette: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let w = rect.width
+        let h = rect.height
+        let cx = rect.midX
+        
+        // Head - slightly oval, professional proportion
+        let headRadius = w * 0.22
+        let headCenterY = rect.minY + headRadius * 1.1
+        path.addEllipse(in: CGRect(
+            x: cx - headRadius,
+            y: headCenterY - headRadius,
+            width: headRadius * 2,
+            height: headRadius * 2.1
+        ))
+        
+        // Neck
+        let neckTop = headCenterY + headRadius * 1.05
+        let neckWidth = w * 0.12
+        
+        // Shoulders and body - smooth professional silhouette
+        let shoulderY = neckTop + h * 0.06
+        let shoulderWidth = w * 0.48
+        let waistY = shoulderY + h * 0.28
+        let waistWidth = w * 0.28
+        let hipY = waistY + h * 0.08
+        let hipWidth = w * 0.32
+        let bottomY = rect.maxY
+        
+        // Right side of body
+        path.move(to: CGPoint(x: cx + neckWidth, y: neckTop))
+        
+        // Right shoulder curve
+        path.addQuadCurve(
+            to: CGPoint(x: cx + shoulderWidth, y: shoulderY + h * 0.05),
+            control: CGPoint(x: cx + shoulderWidth * 0.7, y: shoulderY - h * 0.02)
+        )
+        
+        // Right arm hint (slight inward curve at waist level)
+        path.addQuadCurve(
+            to: CGPoint(x: cx + waistWidth, y: waistY),
+            control: CGPoint(x: cx + shoulderWidth * 0.95, y: waistY - h * 0.1)
+        )
+        
+        // Right hip
+        path.addQuadCurve(
+            to: CGPoint(x: cx + hipWidth, y: hipY),
+            control: CGPoint(x: cx + waistWidth * 0.9, y: hipY - h * 0.02)
+        )
+        
+        // Right leg - elegant taper
+        path.addQuadCurve(
+            to: CGPoint(x: cx + w * 0.12, y: bottomY),
+            control: CGPoint(x: cx + hipWidth * 0.8, y: bottomY - h * 0.1)
+        )
+        
+        // Bottom edge
+        path.addLine(to: CGPoint(x: cx - w * 0.12, y: bottomY))
+        
+        // Left leg
+        path.addQuadCurve(
+            to: CGPoint(x: cx - hipWidth, y: hipY),
+            control: CGPoint(x: cx - hipWidth * 0.8, y: bottomY - h * 0.1)
+        )
+        
+        // Left hip
+        path.addQuadCurve(
+            to: CGPoint(x: cx - waistWidth, y: waistY),
+            control: CGPoint(x: cx - waistWidth * 0.9, y: hipY - h * 0.02)
+        )
+        
+        // Left arm hint
+        path.addQuadCurve(
+            to: CGPoint(x: cx - shoulderWidth, y: shoulderY + h * 0.05),
+            control: CGPoint(x: cx - shoulderWidth * 0.95, y: waistY - h * 0.1)
+        )
+        
+        // Left shoulder curve
+        path.addQuadCurve(
+            to: CGPoint(x: cx - neckWidth, y: neckTop),
+            control: CGPoint(x: cx - shoulderWidth * 0.7, y: shoulderY - h * 0.02)
+        )
+        
+        path.closeSubpath()
+        
+        return path
+    }
+}
+
+// MARK: - Bundle Image Helper
+/// Loads an image from the app bundle (for images not in Asset Catalog)
+private func loadBundleImage(_ name: String) -> UIImage? {
+    // Try common image extensions
+    let extensions = ["jpg", "jpeg", "png"]
+    for ext in extensions {
+        if let path = Bundle.main.path(forResource: name, ofType: ext),
+           let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+    }
+    return nil
 }
 

@@ -1,32 +1,38 @@
 import SwiftUI
 import Observation
 
-/// Narrative phases per Tier 2 spec
-/// TOTAL RUNTIME: ~4 minutes
+/// The Invisible Cost - Vision Pro Experience Phases
+/// Mirrors iPad Tier1Phase exactly for 1:1 narrative parity
+/// TOTAL RUNTIME: ~189 seconds (3:09)
 enum NarrativePhase: Int, CaseIterable {
     case waiting = 0
-    case spatialOverwhelm      // 00:00-00:25 - Floating windows, one shatters
-    case realityCrack          // 00:25-00:37 - White beam, everything freezes
-    case humanFragment         // 00:37-01:02 - Light shards fragment
-    case dataChoreography      // 01:02-01:37 - Central object assembles from data points
-    case humanRestoration      // 01:37-02:12 - Shards converge, color returns
-    case exitMoment            // 02:12-02:42 - CTA
+    case microColdOpen           // 00:00-00:07 - Black void, ambient audio
+    case narratorFrame           // 00:07-00:26 - Opening narrations with text
+    case spatialOverwhelm        // Finance vignette
+    case realityCrack            // Supply chain vignette
+    case humanFragment           // Healthcare vignette
+    case patternBreak            // 00:43-00:51 - Pattern break transition
+    case agenticOrchestration    // 00:51-01:19 - THE AWAKENING - 3D agents
+    case humanReturn             // 01:19-01:41 - Restoration phase
+    case personalization         // 01:41-01:57 - Interactive impact calculator
+    case stillnessCTA            // 01:57-02:52 - Call to action
     case complete
     
-    func duration(simSpeed: Double = 1.0) -> TimeInterval {
-        // Sped up timings for Davos 2026
-        let base: TimeInterval
+    var duration: TimeInterval {
         switch self {
-        case .waiting: base = 0
-        case .spatialOverwhelm: base = 18    // Fast build-up
-        case .realityCrack: base = 8         // Tighter breakout
-        case .humanFragment: base = 8        // Snappier shatter
-        case .dataChoreography: base = 18    // Faster assembly
-        case .humanRestoration: base = 15    // Calm but shorter
-        case .exitMoment: base = 15          // Snappy exit
-        case .complete: base = 0
+        case .waiting: return 0
+        case .microColdOpen: return 7          // Ambient intro
+        case .narratorFrame: return 16         // Opening narrations
+        case .spatialOverwhelm: return 9       // Finance vignette
+        case .realityCrack: return 9           // Supply chain vignette
+        case .humanFragment: return 9          // Healthcare vignette
+        case .patternBreak: return 8           // Pattern break
+        case .agenticOrchestration: return 28  // THE AWAKENING
+        case .humanReturn: return 22           // Restoration
+        case .personalization: return 16       // Interactive slider
+        case .stillnessCTA: return 55          // CTA - full impact
+        case .complete: return 0
         }
-        return base * simSpeed
     }
     
     var next: NarrativePhase? {
@@ -39,82 +45,75 @@ enum NarrativePhase: Int, CaseIterable {
 
 @Observable
 class ExperienceViewModel {
-    // Simulator-aware speed factor
-    private var simSpeed: Double {
-        #if targetEnvironment(simulator)
-        return 1.0 // Normal speed on simulator now
-        #else
-        return 1.0
-        #endif
-    }
-    
+    // Narrative State
     var currentPhase: NarrativePhase = .waiting
-    var phaseProgress: Double = 0
     var isExperienceActive: Bool = false
+    var phaseProgress: Double = 0
     var phaseElapsedTime: TimeInterval = 0
     var totalElapsedTime: TimeInterval = 0
     
-    var overwhelmIntensity: Double = 0
-    var notificationShattered: Bool = false
+    // Personalization Data
+    var lostHoursPerWeek: Double = 20
+    var hourlyRate: Double = 150
+    var teamSize: Double = 100
+    
+    var annualImpact: Double {
+        return lostHoursPerWeek * 50 * teamSize * hourlyRate
+    }
+    
+    // MARK: - Lifecycle
     
     func startExperience() {
         isExperienceActive = true
-        currentPhase = .spatialOverwhelm
+        currentPhase = .microColdOpen
         phaseElapsedTime = 0
         totalElapsedTime = 0
         phaseProgress = 0
-        overwhelmIntensity = 0
-        notificationShattered = false
     }
     
     func advanceToNextPhase() {
-        guard let next = currentPhase.next else {
+        if let next = currentPhase.next {
+            currentPhase = next
+            phaseElapsedTime = 0
+            phaseProgress = 0
+        } else {
             endExperience()
-            return
         }
-        currentPhase = next
-        phaseElapsedTime = 0
-        phaseProgress = 0
     }
     
     func endExperience() {
-        currentPhase = .complete
         isExperienceActive = false
+        currentPhase = .complete
     }
     
-    func resetExperience() {
+    func reset() {
         currentPhase = .waiting
-        phaseProgress = 0
+        isExperienceActive = false
         phaseElapsedTime = 0
         totalElapsedTime = 0
-        isExperienceActive = false
-        overwhelmIntensity = 0
-        notificationShattered = false
+        phaseProgress = 0
     }
     
-    func updateProgress(deltaTime: TimeInterval) {
+    // MARK: - Update Logic
+    
+    func update(deltaTime: TimeInterval) {
         guard isExperienceActive, currentPhase != .waiting, currentPhase != .complete else { return }
         
-        // Clamp delta to avoid large jumps when the simulator lags
-        let clampedDelta = min(deltaTime, 0.05)
-        phaseElapsedTime += clampedDelta
-        totalElapsedTime += clampedDelta
+        phaseElapsedTime += deltaTime
+        totalElapsedTime += deltaTime
         
-        let phaseDuration = currentPhase.duration(simSpeed: simSpeed)
-        if phaseDuration > 0 {
-            phaseProgress = min(1.0, phaseElapsedTime / phaseDuration)
-            
-            if currentPhase == .spatialOverwhelm {
-                overwhelmIntensity = phaseProgress
-                // Trigger shatter at 80% through overwhelm
-                if phaseProgress > 0.8 && !notificationShattered {
-                    notificationShattered = true
-                }
-            }
+        let duration = currentPhase.duration
+        if duration > 0 {
+            phaseProgress = min(1.0, phaseElapsedTime / duration)
             
             if phaseProgress >= 1.0 {
                 advanceToNextPhase()
             }
         }
+    }
+    
+    // Alias for RealityKit update loop compatibility
+    func updateProgress(deltaTime: TimeInterval) {
+        update(deltaTime: deltaTime)
     }
 }

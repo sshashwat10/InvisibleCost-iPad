@@ -2,31 +2,31 @@ import SwiftUI
 import Observation
 
 /// The Invisible Cost - Tier 1 (iPad) Narrative Phases
-/// TOTAL RUNTIME: ~189 seconds (3:09) - ENHANCED impact sequence
-/// All narrations complete within their phases at 60fps
+/// TOTAL RUNTIME: ~150 seconds (2:30) - Balanced pacing
+/// Comfortable rhythm without feeling rushed
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
-    case microColdOpen         // 00:00-00:07 - Black screen, ambient audio
-    case narratorFrame         // 00:07-00:26 - Opening narrations (11s audio)
-    case humanVignettes        // 00:26-00:43 - 3 vignettes (9s audio)
-    case patternBreak          // 00:43-00:51 - Pattern break (2s audio)
-    case agenticOrchestration  // 00:51-01:19 - THE AWAKENING animation (7.3s audio)
-    case humanReturn           // 01:19-01:41 - ENHANCED: 3 narrations (14s audio)
-    case personalization       // 01:41-01:57 - Interactive slider
-    case stillnessCTA          // 01:57-02:52 - ENHANCED: 5 narrations (43s audio) - full impact
+    case microColdOpen         // Brief ambient intro
+    case narratorFrame         // Opening narrations
+    case humanVignettes        // 3 vignettes
+    case patternBreak          // Pattern break
+    case agenticOrchestration  // THE AWAKENING animation
+    case humanReturn           // 3 narrations
+    case personalization       // Interactive slider
+    case stillnessCTA          // Final impact sequence
     case complete
     
     var duration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .microColdOpen: return 7          // Ambient intro
-        case .narratorFrame: return 19         // 3 narrations (~11s total)
-        case .humanVignettes: return 17        // 3 vignettes (~9s total)
-        case .patternBreak: return 8           // Single narration (2s)
-        case .agenticOrchestration: return 28  // THE AWAKENING (7.3s narration)
-        case .humanReturn: return 22           // ENHANCED: 3 narrations (~14s total)
-        case .personalization: return 16       // Interactive slider
-        case .stillnessCTA: return 55          // ENHANCED: 5 narrations (~43s) - full impact sequence
+        case .microColdOpen: return 6          // Brief ambient intro
+        case .narratorFrame: return 17         // Opening narrations
+        case .humanVignettes: return 15        // 3 vignettes
+        case .patternBreak: return 6           // Pattern break beat
+        case .agenticOrchestration: return 24  // THE AWAKENING
+        case .humanReturn: return 18           // Restoration
+        case .personalization: return 14       // Interactive slider
+        case .stillnessCTA: return 50          // Final impact sequence
         case .complete: return 0
         }
     }

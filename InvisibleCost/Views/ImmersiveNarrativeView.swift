@@ -1,712 +1,1452 @@
 import SwiftUI
 import RealityKit
-import RealityKitContent
 
-/// The Invisible Cost - Pure RealityKit Cinematic Experience
+/// The Invisible Cost - Vision Pro Immersive Experience
+/// 1:1 replica of iPad experience in 3D spatial computing
 struct ImmersiveNarrativeView: View {
     @Environment(ExperienceViewModel.self) private var viewModel
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     
+    // Audio
+    private let audioManager = AudioManager.shared
+    
+    // Scene root
     @State private var experienceRoot = Entity()
     @State private var sceneLoaded = false
-    @State private var lastUpdateTime: Date? = nil
     @State private var animationTime: Float = 0
     
-    // Scene elements
-    @State private var windows: [Entity] = []
-    @State private var windowsParent = Entity()
-    @State private var bloomLight: ModelEntity? // Replaces shards
-    @State private var bloomShockwave: Entity?
-    @State private var skyDome: Entity?
+    // === WOW FACTOR STATES ===
+    @State private var glitchOffset: SIMD3<Float> = .zero
+    @State private var starWarpFactor: Float = 0
+    @State private var breathingFactor: Float = 1.0
+    @State private var dataStreamParticles: [Entity] = [] // Rising data in vignettes
     
-    @State private var dataDust: [Entity] = []
+    // === SCENE ELEMENTS ===
     
-    // Pulse animation state for "wow"
-    @State private var pulseAlpha: Float = 0
+    // Ambient Atmosphere
+    @State private var ambientParticles: [Entity] = []
+    @State private var nebulaClouds: [Entity] = []
+    @State private var godRays: [Entity] = []
     
-    // Exit Arc Attachments
-    @State private var exitCenter: Entity?
-    @State private var exitLeft: Entity?
-    @State private var exitRight: Entity?
+    // Narrator frame elements
+    @State private var narratorTextEntity: Entity?
+    
+    // Vignette windows (3 sectors with cards)
+    @State private var vignetteWindowsParent = Entity()
+    @State private var financeCards: [Entity] = []
+    @State private var supplyCards: [Entity] = []
+    @State private var healthcareCards: [Entity] = []
+    @State private var sectorGlows: [Entity] = []
+    @State private var sectorParticles: [Entity] = []
+    @State private var dataStreams: [Entity] = [] // NEW: Data bits streaming in
+    
+    // Agentic Orchestration
+    @State private var orchestratorEntity: Entity?
+    @State private var agentEntities: [Entity] = []
+    @State private var connectionArcs: [Entity] = []
+    @State private var energyArcs: [Entity] = [] // NEW: Lightning crackle
+    @State private var taskOrb: Entity?
+    @State private var solutionCrystal: Entity?
+    @State private var shockwaveRing: Entity?    // NEW: Synthesis impact
+    
+    // Human Return (Restoration)
+    @State private var restorationGlow: Entity?
+    @State private var humanFigure: Entity?
+    @State private var debrisParticles: [Entity] = []
+    @State private var lightRays: [Entity] = []
+    @State private var energyArcsRestoration: [Entity] = []
+    
+    // CTA Portal
+    @State private var portalRings: [Entity] = []
+    @State private var portalGlow: Entity?
+    @State private var beaconPulses: [Entity] = []
+    @State private var portalVortex: [Entity] = [] // NEW: Swirling maelstrom
+    
+    // === WOW FACTOR STATE ===
+    @State private var sectorShockwaves: [Entity] = []
+    @State private var cardGlintTimer: Float = 0
+    @State private var hyperdriveLines: [Entity] = []
     
     var body: some View {
         RealityView { content, attachments in
             content.add(experienceRoot)
             await buildScene()
             
-            // Positioning for main narrative text
+            // Attach text overlays - positioned CLOSER to user, in front of all 3D elements
             if let textOverlay = attachments.entity(for: "NarrativeText") {
-                textOverlay.position = [0, 1.6, -0.8] // Bring text closer to user
+                textOverlay.position = [0, 1.6, -1.2] // Closer to user (was -1.8)
                 textOverlay.components.set(BillboardComponent())
                 experienceRoot.addChild(textOverlay)
             }
             
-            // Positioning for Exit CTA Arc (Wraps around user)
-            if let center = attachments.entity(for: "ExitCenter") {
-                center.position = [0, 1.6, -1.8]
-                center.components.set(BillboardComponent())
-                experienceRoot.addChild(center)
-                exitCenter = center
-            }
-            
-            if let left = attachments.entity(for: "ExitLeft") {
-                left.position = [-1.8, 1.6, -1.4]
-                left.components.set(BillboardComponent())
-                // Slight yaw to wrap the arc, but keep upright
-                left.orientation = simd_quatf(angle: .pi / 8, axis: [0, 1, 0])
-                experienceRoot.addChild(left)
-                exitLeft = left
-            }
-            
-            if let right = attachments.entity(for: "ExitRight") {
-                right.position = [1.8, 1.6, -1.4]
-                right.components.set(BillboardComponent())
-                right.orientation = simd_quatf(angle: -.pi / 8, axis: [0, 1, 0])
-                experienceRoot.addChild(right)
-                exitRight = right
-            }
-            
-        } update: { content, attachments in
-            let now = Date()
-            let dt = Float(now.timeIntervalSince(lastUpdateTime ?? now))
-            lastUpdateTime = now
-            
-            // Clamp dt to 60fps to prevent spikes
-            let clampedDt = min(dt, 0.033)
-            animationTime += clampedDt
-            
-            viewModel.updateProgress(deltaTime: Double(clampedDt))
-            animateScene(dt: clampedDt)
-            
+        } update: { _, _ in
+            // Updates handled by timer
         } attachments: {
             Attachment(id: "NarrativeText") {
                 NarrativeTextOverlay()
                     .environment(viewModel)
             }
-            
-            Attachment(id: "ExitCenter") {
-                ExitCenterCTA()
-                    .environment(viewModel)
-            }
-            
-            Attachment(id: "ExitLeft") {
-                ExitSideText(text: "Agentic automation returns")
-                    .environment(viewModel)
-            }
-            
-            Attachment(id: "ExitRight") {
-                ExitSideText(text: "to the people who matter.")
-                    .environment(viewModel)
-            }
         }
         .onAppear {
-            if viewModel.currentPhase == .waiting {
-                viewModel.startExperience()
+            DispatchQueue.main.async {
+                audioManager.resetTriggers()
+                if viewModel.currentPhase == .waiting {
+                    viewModel.startExperience()
+                    print("▶️ Experience started!")
+                }
+                startUpdateLoop()
             }
         }
         .onDisappear {
-            cleanupScene()
+            audioManager.stopAllAudio()
         }
     }
     
-    // MARK: - Build Scene
+    // MARK: - Update Loop (60fps)
+    
+    private func startUpdateLoop() {
+        Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { _ in
+            Task { @MainActor in
+                guard sceneLoaded else { return }
+                
+                let dt: Float = 1.0/60.0
+                animationTime += dt
+                viewModel.update(deltaTime: Double(dt))
+                audioManager.playAudioForPhase(viewModel.currentPhase, progress: viewModel.phaseProgress)
+                animateScene(dt: dt)
+            }
+        }
+    }
+    
+    // MARK: - Scene Construction
     
     @MainActor
     private func buildScene() async {
-        print("🎬 Building RealityKit scene...")
+        print("🎬 Building Vision Pro immersive scene...")
         
-        // 1. Pre-generate shared meshes for massive optimization
-        let bodyMesh = MeshResource.generateBox(width: 0.4, height: 0.28, depth: 0.015, cornerRadius: 0.012)
-        let titleMesh = MeshResource.generateBox(width: 0.36, height: 0.04, depth: 0.02, cornerRadius: 0.008)
-        let rowMesh = MeshResource.generateBox(width: 0.30, height: 0.028, depth: 0.004, cornerRadius: 0.004)
-        let iconMesh = MeshResource.generateBox(width: 0.02, height: 0.02, depth: 0.004, cornerRadius: 0.003)
-        let pillMesh = MeshResource.generateBox(width: 0.06, height: 0.018, depth: 0.003, cornerRadius: 0.006)
-        
-        // Glowing materials
-        let windowMat = makeGlowMaterial(base: [0.15, 0.18, 0.25], glow: [0.1, 0.15, 0.25], intensity: 1.5, isGlass: true)
-        let titleBlueMat = makeGlowMaterial(base: [0.3, 0.6, 1.0], glow: [0.5, 0.8, 1.0], intensity: 3.0)
-        let titleRedMat = makeGlowMaterial(base: [1.0, 0.4, 0.3], glow: [1.0, 0.6, 0.4], intensity: 3.0)
-        
-        // Windows container - centered on user
-        windowsParent.name = "WindowsParent"
-        windowsParent.position = [0, 0, 0] // User center
-        experienceRoot.addChild(windowsParent)
-        
-        // Create dense clutter of windows, front-biased but still 360°
-        let totalWindows = 180
-        let frontCount = 160 // Almost all in front
-        let surroundCount = totalWindows - frontCount
-        var configs: [(SIMD3<Float>, Bool)] = []
-        
-        func generatePosition(front: Bool) -> SIMD3<Float> {
-            var pos: SIMD3<Float>
-            repeat {
-                // Azimuth: tighter front bias for "clutter"
-                let theta = front
-                ? Float.random(in: -(.pi * 0.8)...(-.pi * 0.2)) // tighter front arc
-                : Float.random(in: 0...(2 * .pi))
-                
-                let phi = Float.random(in: (0.35 * .pi)...(0.65 * .pi))
-                let radius = front
-                ? Float.random(in: 1.4...4.0) // push min radius slightly out
-                : Float.random(in: 1.5...4.5)
-                
-                let x = radius * sin(phi) * cos(theta)
-                let y = radius * cos(phi) + 1.6
-                let z = radius * sin(phi) * sin(theta)
-                pos = SIMD3<Float>(x, y, z)
-                
-                // AGGRESSIVE safe zone: Keep a large window open for the text
-            } while (pos.z < -0.2 && pos.z > -2.5) && (abs(pos.x) < 2.0) && (pos.y > 0.8 && pos.y < 2.4)
-            
-            return pos
-        }
-        
-        for _ in 0..<frontCount {
-            configs.append((generatePosition(front: true), Bool.random()))
-        }
-        for _ in 0..<surroundCount {
-            configs.append((generatePosition(front: false), Bool.random()))
-        }
-        
-        let windowConfigs: [(SIMD3<Float>, Bool)] = configs.shuffled()
-        
-        for (i, (pos, isAlert)) in windowConfigs.enumerated() {
-            let window = createNotificationWindow(
-                bodyMat: windowMat,
-                titleMat: isAlert ? titleRedMat : titleBlueMat,
-                bodyMesh: bodyMesh,
-                titleMesh: titleMesh,
-                rowMesh: rowMesh,
-                iconMesh: iconMesh,
-                pillMesh: pillMesh,
-                index: i
-            )
-            window.position = pos
-            // Initial orientation: billboarded to user
-            let dx = 0 - pos.x
-            let dz = 0 - pos.z 
-            let angle = atan2(dx, dz)
-            window.orientation = simd_quatf(angle: angle, axis: [0, 1, 0])
-            
-            window.scale = [0, 0, 0]
-            windowsParent.addChild(window)
-            windows.append(window)
-        }
-        
-        // Bloom Light Effect - Softer, more localized glow
-        let bloomMesh = MeshResource.generateSphere(radius: 1.0)
-        var bloomMat = UnlitMaterial(color: .white)
-        bloomMat.color = .init(tint: .init(white: 1.0, alpha: 0.4)) 
-        
-        let bloom = ModelEntity(mesh: bloomMesh, materials: [bloomMat])
-        bloom.name = "BloomLight"
-        bloom.position = [0, 1.6, -1.5] // Push back slightly more
-        bloom.scale = [0, 0, 0]
-        bloom.components.set(OpacityComponent(opacity: 0.0))
-        experienceRoot.addChild(bloom)
-        bloomLight = bloom
-        
-        // 1. Atmosphere - The Sky Dome
-        let domeMesh = MeshResource.generateSphere(radius: 40.0)
-        var domeMat = UnlitMaterial()
-        domeMat.color = .init(tint: .init(red: 0.02, green: 0.02, blue: 0.05, alpha: 1.0))
-        let dome = ModelEntity(mesh: domeMesh, materials: [domeMat])
-        dome.scale = [-1, 1, 1] 
-        experienceRoot.addChild(dome)
-        skyDome = dome
-        
-        // 2. The Impact Shockwave
-        let waveMesh = MeshResource.generatePlane(width: 1.0, height: 1.0)
-        var waveMat = UnlitMaterial(color: .white)
-        waveMat.color = .init(tint: .init(white: 1.0, alpha: 0.3))
-        let wave = ModelEntity(mesh: waveMesh, materials: [waveMat])
-        wave.position = [0, 1.6, -1.5]
-        wave.scale = .zero
-        wave.components.set(BillboardComponent())
-        wave.components.set(OpacityComponent(opacity: 0.0))
-        experienceRoot.addChild(wave)
-        bloomShockwave = wave
-        
-        // 3. Ambient Data Dust
-        let dustMesh = MeshResource.generateSphere(radius: 0.003)
-        let dustMat = UnlitMaterial(color: .init(white: 0.8, alpha: 0.4))
-        for _ in 0..<150 {
-            let mote = ModelEntity(mesh: dustMesh, materials: [dustMat])
-            let r = Float.random(in: 1.0...6.0)
-            let theta = Float.random(in: 0...(2 * .pi))
-            let phi = Float.random(in: 0...(.pi))
-            mote.position = [
-                r * sin(phi) * cos(theta),
-                r * cos(phi) + 1.6,
-                r * sin(phi) * sin(theta)
-            ]
-            mote.components.set(OpacityComponent(opacity: Float.random(in: 0.1...0.4)))
-            experienceRoot.addChild(mote)
-            dataDust.append(mote)
-        }
-         
+        // Build all phases
+        await buildAmbientParticles()
+        await buildVignetteCards()
+        await buildAgenticOrchestration()
+        await buildHumanReturn()
+        await buildCTAPortal()
+        await buildWowEffects()
         addSceneLighting()
         
         sceneLoaded = true
-        
+        print("✅ Scene built successfully")
     }
     
-    private func makeGlowMaterial(base: SIMD3<Float>, glow: SIMD3<Float>, intensity: Float, isGlass: Bool = false) -> PhysicallyBasedMaterial {
-        var mat = PhysicallyBasedMaterial()
-        mat.baseColor = .init(tint: .init(red: CGFloat(base.x), green: CGFloat(base.y), blue: CGFloat(base.z), alpha: isGlass ? 0.4 : 1.0))
-        mat.roughness = .init(floatLiteral: isGlass ? 0.8 : 0.2) // High roughness for frosted glass
-        mat.metallic = .init(floatLiteral: isGlass ? 0.1 : 0.05)
-        if isGlass {
-            mat.blending = .transparent(opacity: 0.4)
+    // MARK: - Ambient Star Field (Immersive Depth)
+    
+    @MainActor
+    private func buildAmbientParticles() async {
+        // Layer 1: Distant background dust
+        for _ in 0..<400 {
+            let starMesh = MeshResource.generateSphere(radius: 0.003)
+            var starMat = UnlitMaterial()
+            let brightness = Float.random(in: 0.2...0.6)
+            starMat.color = .init(tint: UIColor(white: CGFloat(brightness), alpha: 1.0))
+            let star = ModelEntity(mesh: starMesh, materials: [starMat])
+            star.position = [Float.random(in: -15...15), Float.random(in: -8...10), Float.random(in: -12...(-5))]
+            experienceRoot.addChild(star)
         }
-        mat.emissiveColor = .init(color: .init(red: CGFloat(glow.x), green: CGFloat(glow.y), blue: CGFloat(glow.z), alpha: 1))
-        mat.emissiveIntensity = intensity
-        return mat
+        
+        // Layer 2: Mid-field stars (Twinkle)
+        for i in 0..<150 {
+            let starMesh = MeshResource.generateSphere(radius: 0.006)
+            var starMat = UnlitMaterial()
+            starMat.color = .init(tint: UIColor(white: 1.0, alpha: 0.8))
+            let star = ModelEntity(mesh: starMesh, materials: [starMat])
+            star.name = "StarMid_\(i)"
+            star.position = [Float.random(in: -8...8), Float.random(in: -4...6), Float.random(in: -10...(-3))]
+            experienceRoot.addChild(star)
+            ambientParticles.append(star)
+        }
+        
+        // Layer 3: NEBULA CLOUDS (Massive, colorful gas)
+        let nebulaColors: [UIColor] = [
+            UIColor(red: 0.1, green: 0.2, blue: 0.5, alpha: 1.0), // Deep blue
+            UIColor(red: 0.3, green: 0.1, blue: 0.4, alpha: 1.0), // Purple
+            UIColor(red: 0.0, green: 0.3, blue: 0.3, alpha: 1.0)  // Teal
+        ]
+        
+        for i in 0..<6 {
+            let size = Float.random(in: 0.5...1.2) // Reduced for VR - was 4-8m!
+            let nebulaMesh = MeshResource.generateSphere(radius: size)
+            var nebulaMat = UnlitMaterial()
+            nebulaMat.color = .init(tint: nebulaColors[i % 3].withAlphaComponent(0.03))
+            nebulaMat.blending = .transparent(opacity: 0.03)
+            
+            let nebula = ModelEntity(mesh: nebulaMesh, materials: [nebulaMat])
+            nebula.name = "Nebula_\(i)"
+            nebula.position = [Float.random(in: -3...3), Float.random(in: -2...3), Float.random(in: -6...(-4))] // Closer and smaller spread
+            experienceRoot.addChild(nebula)
+            nebulaClouds.append(nebula)
+        }
+        
+        // Layer 4: GOD RAYS (Piercing light from above) - Reduced for VR
+        for i in 0..<8 {
+            let rayMesh = MeshResource.generateBox(width: 0.01, height: 3.0, depth: 0.05, cornerRadius: 0.005) // Was 20m tall!
+            var rayMat = UnlitMaterial()
+            rayMat.color = .init(tint: .init(white: 1.0, alpha: 0.04))
+            rayMat.blending = .transparent(opacity: 0.04)
+            
+            let ray = ModelEntity(mesh: rayMesh, materials: [rayMat])
+            ray.name = "GodRay_\(i)"
+            ray.position = [Float.random(in: -5...5), 5.0, Float.random(in: -8...(-2))]
+            ray.orientation = simd_quatf(angle: Float.random(in: -0.3...0.3), axis: [0, 0, 1])
+            experienceRoot.addChild(ray)
+            godRays.append(ray)
+        }
     }
     
-    private func createNotificationWindow(
-        bodyMat: PhysicallyBasedMaterial,
-        titleMat: PhysicallyBasedMaterial,
-        bodyMesh: MeshResource,
-        titleMesh: MeshResource,
-        rowMesh: MeshResource,
-        iconMesh: MeshResource,
-        pillMesh: MeshResource,
-        index: Int
-    ) -> Entity {
-        let parent = Entity()
-        parent.name = "Window_\(index)"
-        
-        // Upgrade: Gaze Interaction (Hardware Magic)
-        parent.components.set(HoverEffectComponent())
-        parent.components.set(InputTargetComponent())
-        // Collision is required for hover effects to work
-        let collisionShape = ShapeResource.generateBox(width: 0.4, height: 0.28, depth: 0.02)
-        parent.components.set(CollisionComponent(shapes: [collisionShape]))
-        
-        let body = ModelEntity(mesh: bodyMesh, materials: [bodyMat])
-        parent.addChild(body)
-        
-        // Micro-Texture: Procedural Circuitry
-        // Very thin, dim glowing lines to simulate a motherboard/digital grid
-        let circuitMat = UnlitMaterial(color: .init(red: 0.4, green: 0.6, blue: 1.0, alpha: 0.15))
-        let horizMesh = MeshResource.generateBox(width: 0.38, height: 0.001, depth: 0.001)
-        let vertMesh = MeshResource.generateBox(width: 0.001, height: 0.26, depth: 0.001)
-        
-        for k in 0..<4 {
-            let hLine = ModelEntity(mesh: horizMesh, materials: [circuitMat])
-            hLine.position = [0, -0.1 + Float(k) * 0.06, 0.008]
-            parent.addChild(hLine)
-            
-            let vLine = ModelEntity(mesh: vertMesh, materials: [circuitMat])
-            vLine.position = [-0.15 + Float(k) * 0.1, 0, 0.008]
-            parent.addChild(vLine)
-        }
-        
-        let title = ModelEntity(mesh: titleMesh, materials: [titleMat])
-        title.position = [0, 0.11, 0.005]
-        parent.addChild(title)
-        
-        let lineMat = makeGlowMaterial(base: [0.3, 0.35, 0.45], glow: [0.2, 0.25, 0.35], intensity: 1.0)
-        // Shared line mesh for tiny decorative lines
-        let lineMesh = MeshResource.generateBox(width: 0.2, height: 0.015, depth: 0.018, cornerRadius: 0.003)
-        for j in 0..<3 {
-            let line = ModelEntity(mesh: lineMesh, materials: [lineMat])
-            line.position = [-0.025, -0.015 - Float(j) * 0.05, 0.005]
-            parent.addChild(line)
-        }
-        
-        addWindowContent(
-            to: parent,
-            rowMesh: rowMesh,
-            iconMesh: iconMesh,
-            pillMesh: pillMesh,
-            index: index
-        )
-        return parent
-    }
+    // MARK: - Vignette Sectors (Premium Glass & Light)
     
-    /// Procedural UI primitives to suggest various “unnecessary work” screens
-    private func addWindowContent(
-        to parent: Entity,
-        rowMesh: MeshResource,
-        iconMesh: MeshResource,
-        pillMesh: MeshResource,
-        index: Int
-    ) {
-        let content = Entity()
-        content.position = [0, -0.04, 0.009]
-        parent.addChild(content)
+    @MainActor
+    private func buildVignetteCards() async {
+        vignetteWindowsParent.name = "VignetteSectors"
+        vignetteWindowsParent.position = [0, 1.6, -2.0]
+        experienceRoot.addChild(vignetteWindowsParent)
         
-        // Palette (cool neutrals + a warm accent)
-        let rowBase = UnlitMaterial(color: .init(red: 0.18, green: 0.22, blue: 0.30, alpha: 1))
-        let rowAlt  = UnlitMaterial(color: .init(red: 0.20, green: 0.26, blue: 0.34, alpha: 1))
-        let accent  = UnlitMaterial(color: .init(red: 0.98, green: 0.78, blue: 0.52, alpha: 1))
-        let badge   = UnlitMaterial(color: .init(red: 0.55, green: 0.78, blue: 1.00, alpha: 1))
+        // Sector configurations
+        let sectors: [(name: String, subtitle: String, icon: String, color: UIColor, accent: UIColor, glow: UIColor, metrics: [(String, String)])] = [
+            ("FINANCE", "Reconciliation Fatigue", "chart.bar.xaxis",
+             UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 1.0),
+             UIColor(red: 0.3, green: 0.6, blue: 1.0, alpha: 1.0),
+             UIColor(red: 0.1, green: 0.3, blue: 0.7, alpha: 1.0),
+             [("4.7h", "daily reconciliation"), ("340", "manual entries"), ("23", "systems touched")]),
+            
+            ("SUPPLY CHAIN", "Inventory Friction", "shippingbox",
+             UIColor(red: 0.95, green: 0.6, blue: 0.2, alpha: 1.0),
+             UIColor(red: 1.0, green: 0.7, blue: 0.3, alpha: 1.0),
+             UIColor(red: 0.7, green: 0.4, blue: 0.1, alpha: 1.0),
+             [("3.2h", "tracking overhead"), ("89%", "manual updates"), ("$2.4M", "annual waste")]),
+            
+            ("HEALTHCARE", "Administrative Burden", "cross.case",
+             UIColor(red: 0.2, green: 0.75, blue: 0.5, alpha: 1.0),
+             UIColor(red: 0.3, green: 0.85, blue: 0.6, alpha: 1.0),
+             UIColor(red: 0.1, green: 0.5, blue: 0.3, alpha: 1.0),
+             [("5.1h", "paperwork daily"), ("67%", "non-clinical"), ("142", "forms/week")])
+        ]
         
-        // Helper to add a row with variable depth
-        func addRow(y: Float, alt: Bool, hasBadge: Bool, z: Float = 0) {
-            let mat = alt ? rowAlt : rowBase
-            let row = ModelEntity(mesh: rowMesh, materials: [mat])
-            row.position = [0.0, y, z] // Apply Z-depth
-            content.addChild(row)
+        for (sectorIndex, sector) in sectors.enumerated() {
+            let sectorParent = Entity()
+            sectorParent.name = "Sector_\(sector.name)"
+            sectorParent.position = .zero
+            sectorParent.scale = .zero
+            vignetteWindowsParent.addChild(sectorParent)
+            sectorGlows.append(sectorParent)
             
-            // Leading icon stub - sit slightly in front of the row
-            let icon = ModelEntity(mesh: iconMesh, materials: [badge])
-            icon.position = [-0.13, 0, 0.005]
-            row.addChild(icon)
-            
-            // Optional badge/pill on the right - sit even further out
-            if hasBadge {
-                let pill = ModelEntity(mesh: pillMesh, materials: [accent])
-                pill.position = [0.12, 0, 0.008]
-                row.addChild(pill)
-            }
-        }
-        
-        // Template builders with Z-layering
-        func buildDashboard() {
-            addRow(y: 0.05, alt: false, hasBadge: true, z: 0.0)
-            addRow(y: 0.015, alt: true, hasBadge: false, z: 0.005)
-            addRow(y: -0.02, alt: false, hasBadge: true, z: 0.01)
-            
-            // Mini chart - shared bar mesh
-            let barMesh = MeshResource.generateBox(width: 0.012, height: 0.03, depth: 0.003, cornerRadius: 0.002)
-            let chart = Entity()
-            chart.position = [-0.095, -0.065, 0.012]
-            content.addChild(chart)
-            for i in 0..<4 {
-                let bar = ModelEntity(mesh: barMesh, materials: [badge])
-                let h = 0.5 + Float(i) * 0.1
-                bar.scale.y = h
-                bar.position = [Float(i) * 0.018, (0.03 * h) * 0.5, Float(i) * 0.002]
-                chart.addChild(bar)
+            // === VOLUMETRIC ATMOSPHERE ===
+            // Multiple layers of transparency to simulate volume
+            for i in 0..<3 {
+                let size = 0.5 + Float(i) * 0.15
+                let fogMesh = MeshResource.generateSphere(radius: size)
+                var fogMat = UnlitMaterial()
+                fogMat.color = .init(tint: sector.glow.withAlphaComponent(0.05))
+                let fog = ModelEntity(mesh: fogMesh, materials: [fogMat])
+                fog.name = "FogLayer_\(i)"
+                sectorParent.addChild(fog)
             }
             
-            let chipMesh = MeshResource.generateBox(width: 0.09, height: 0.022, depth: 0.003, cornerRadius: 0.007)
-            let chipLeft = ModelEntity(mesh: chipMesh, materials: [rowAlt])
-            chipLeft.position = [-0.06, -0.105, 0.015]
-            content.addChild(chipLeft)
+            // === RINGS (Sci-Fi UI Style) ===
+            // Main ring
+            let ringMesh = MeshResource.generateBox(width: 0.5, height: 0.002, depth: 0.5, cornerRadius: 0.25)
+            var ringMat = UnlitMaterial() // Unlit for sharp UI look
+            ringMat.color = .init(tint: sector.accent.withAlphaComponent(0.6))
+            let outerRing = ModelEntity(mesh: ringMesh, materials: [ringMat])
+            outerRing.name = "OuterRing"
+            sectorParent.addChild(outerRing)
             
-            let chipRight = ModelEntity(mesh: chipMesh, materials: [rowBase])
-            chipRight.position = [0.06, -0.105, 0.015]
-            content.addChild(chipRight)
-        }
-        
-        func buildEmailList() {
-            // Sender + subject rows
-            addRow(y: 0.06, alt: false, hasBadge: true, z: 0.0)
-            addRow(y: 0.025, alt: true, hasBadge: false, z: 0.004)
-            addRow(y: -0.01, alt: false, hasBadge: false, z: 0.008)
-            addRow(y: -0.045, alt: true, hasBadge: true, z: 0.012)
+            // Pulse ring
+            let midMesh = MeshResource.generateBox(width: 0.42, height: 0.004, depth: 0.42, cornerRadius: 0.21)
+            var midMat = UnlitMaterial()
+            midMat.color = .init(tint: sector.color.withAlphaComponent(0.3))
+            let midRing = ModelEntity(mesh: midMesh, materials: [midMat])
+            midRing.name = "MiddleRing"
+            sectorParent.addChild(midRing)
             
-            let btnMesh = MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006)
-            let reply = ModelEntity(mesh: btnMesh, materials: [rowAlt])
-            reply.position = [-0.05, -0.1, 0.015]
-            content.addChild(reply)
-            let archive = ModelEntity(mesh: btnMesh, materials: [rowBase])
-            archive.position = [0.05, -0.1, 0.015]
-            content.addChild(archive)
-        }
-        
-        func buildEmailDetail() {
-            let subMesh = MeshResource.generateBox(width: 0.30, height: 0.03, depth: 0.004, cornerRadius: 0.004)
-            let subject = ModelEntity(mesh: subMesh, materials: [rowBase])
-            subject.position = [0, 0.07, 0.01]
-            content.addChild(subject)
+            // === ICON CORE ===
+            // Use a physical sphere for the core to catch light
+            let iconMesh = MeshResource.generateSphere(radius: 0.1)
+            var iconMat = PhysicallyBasedMaterial()
+            iconMat.baseColor = .init(tint: sector.color)
+            iconMat.emissiveColor = .init(color: sector.accent)
+            iconMat.emissiveIntensity = 4.0
+            iconMat.roughness = 0.2
+            iconMat.metallic = 0.8
+            let iconCore = ModelEntity(mesh: iconMesh, materials: [iconMat])
+            iconCore.name = "IconGlow"
+            sectorParent.addChild(iconCore)
             
-            let pillWideMesh = MeshResource.generateBox(width: 0.12, height: 0.02, depth: 0.003, cornerRadius: 0.006)
-            let from = ModelEntity(mesh: pillWideMesh, materials: [badge])
-            from.position = [-0.08, 0.035, 0.014]
-            content.addChild(from)
-            let to = ModelEntity(mesh: pillWideMesh, materials: [rowAlt])
-            to.position = [0.08, 0.035, 0.014]
-            content.addChild(to)
+            // === SECTOR LIGHT ===
+            let light = Entity()
+            var lightComp = PointLightComponent()
+            lightComp.intensity = Float(40000)
+            lightComp.color = sector.color
+            lightComp.attenuationRadius = Float(2.5)
+            light.components.set(lightComp)
+            sectorParent.addChild(light)
             
-            addRow(y: 0.0, alt: false, hasBadge: false, z: 0.0)
-            addRow(y: -0.03, alt: true, hasBadge: false, z: 0.004)
-            addRow(y: -0.06, alt: false, hasBadge: false, z: 0.008)
+            // === PREMIUM GLASS CARDS ===
+            for (cardIndex, metric) in sector.metrics.enumerated() {
+                let cardParent = Entity()
+                
+                // Frosted Glass Body
+                let cardMesh = MeshResource.generateBox(width: 0.24, height: 0.14, depth: 0.01, cornerRadius: 0.012)
+                var glassMat = PhysicallyBasedMaterial()
+                glassMat.baseColor = .init(tint: sector.color.withAlphaComponent(0.1))
+                glassMat.roughness = 0.4     // Frosted look
+                glassMat.metallic = 0.1
+                glassMat.blending = .transparent(opacity: .init(floatLiteral: 0.3))
+                
+                let card = ModelEntity(mesh: cardMesh, materials: [glassMat])
+                cardParent.addChild(card)
+                
+                // Emissive Edge Glow
+                let edgeMesh = MeshResource.generateBox(width: 0.244, height: 0.144, depth: 0.004, cornerRadius: 0.014)
+                var edgeMat = UnlitMaterial()
+                edgeMat.color = .init(tint: sector.accent.withAlphaComponent(0.6))
+                let edge = ModelEntity(mesh: edgeMesh, materials: [edgeMat])
+                edge.position.z = -0.002
+                cardParent.addChild(edge)
+                
+                // Positioning
+                let spacing: Float = 0.28
+                let xPos = Float(cardIndex - 1) * spacing
+                cardParent.position = [xPos, -0.35, 0.1] // Closer to viewer
+                cardParent.scale = .zero
+                sectorParent.addChild(cardParent)
+                
+                // Store
+                switch sectorIndex {
+                case 0: financeCards.append(cardParent)
+                case 1: supplyCards.append(cardParent)
+                default: healthcareCards.append(cardParent)
+                }
+            }
             
-            let replyAllMesh = MeshResource.generateBox(width: 0.14, height: 0.024, depth: 0.003, cornerRadius: 0.007)
-            let replyAll = ModelEntity(mesh: replyAllMesh, materials: [accent])
-            replyAll.position = [0, -0.1, 0.016]
-            content.addChild(replyAll)
-        }
-        
-        func buildCalendarInvite() {
-            let subMesh = MeshResource.generateBox(width: 0.30, height: 0.03, depth: 0.004, cornerRadius: 0.004)
-            let title = ModelEntity(mesh: subMesh, materials: [rowBase])
-            title.position = [0, 0.07, 0.008]
-            content.addChild(title)
+            // === DATA STREAMS (Bits flying in) ===
+            for i in 0..<30 {
+                let bitMesh = MeshResource.generateBox(size: 0.005)
+                var bitMat = UnlitMaterial()
+                bitMat.color = .init(tint: sector.accent.withAlphaComponent(0.8))
+                let bit = ModelEntity(mesh: bitMesh, materials: [bitMat])
+                bit.name = "DataBit_\(sectorIndex)_\(i)"
+                
+                // Start far away
+                bit.position = [
+                    Float.random(in: -5...5),
+                    Float.random(in: -2...5),
+                    -8.0
+                ]
+                bit.scale = .zero
+                sectorParent.addChild(bit)
+                dataStreams.append(bit)
+            }
             
-            addRow(y: 0.035, alt: true, hasBadge: false, z: 0.0)
-            addRow(y: 0.0, alt: false, hasBadge: false, z: 0.004)
+            // === PARTICLE SWARM (Dynamic flow) ===
+            // Create 60 particles per sector for rich density
+            for p in 0..<60 {
+                let size = Float.random(in: 0.003...0.008)
+                let pMesh = MeshResource.generateSphere(radius: size)
+                var pMat = UnlitMaterial()
+                pMat.color = .init(tint: sector.accent.withAlphaComponent(CGFloat(Float.random(in: 0.4...0.9))))
+                
+                let particle = ModelEntity(mesh: pMesh, materials: [pMat])
+                particle.name = "Particle"
+                
+                // Random spherical distribution
+                let theta = Float.random(in: 0...(2 * Float.pi))
+                let phi = Float.random(in: 0...(Float.pi))
+                let r = Float.random(in: 0.4...0.7)
+                
+                particle.position = [
+                    r * sin(phi) * cos(theta),
+                    r * sin(phi) * sin(theta) * 0.4, // Flattened disk-like
+                    r * cos(phi) * 0.4
+                ]
+                
+                particle.scale = .zero
+                sectorParent.addChild(particle)
+                sectorParticles.append(particle)
+            }
             
-            let attMesh = MeshResource.generateBox(width: 0.08, height: 0.02, depth: 0.003, cornerRadius: 0.006)
-            let attA = ModelEntity(mesh: attMesh, materials: [badge])
-            attA.position = [-0.08, -0.035, 0.012]
-            content.addChild(attA)
-            let attB = ModelEntity(mesh: attMesh, materials: [rowAlt])
-            attB.position = [0.0, -0.035, 0.012]
-            content.addChild(attB)
-            let attC = ModelEntity(mesh: attMesh, materials: [rowBase])
-            attC.position = [0.08, -0.035, 0.012]
-            content.addChild(attC)
-            
-            let optMesh = MeshResource.generateBox(width: 0.08, height: 0.022, depth: 0.003, cornerRadius: 0.006)
-            let accept = ModelEntity(mesh: optMesh, materials: [accent])
-            accept.position = [-0.07, -0.085, 0.016]
-            content.addChild(accept)
-            let maybe = ModelEntity(mesh: optMesh, materials: [rowAlt])
-            maybe.position = [0.0, -0.085, 0.016]
-            content.addChild(maybe)
-            let decline = ModelEntity(mesh: optMesh, materials: [rowBase])
-            decline.position = [0.07, -0.085, 0.016]
-            content.addChild(decline)
-        }
-        
-        func buildForm() {
-            addRow(y: 0.055, alt: false, hasBadge: true, z: 0.0)
-            addRow(y: 0.02, alt: true, hasBadge: true, z: 0.004)
-            addRow(y: -0.015, alt: false, hasBadge: true, z: 0.008)
-            addRow(y: -0.05, alt: true, hasBadge: false, z: 0.012)
-            
-            let btnMesh = MeshResource.generateBox(width: 0.1, height: 0.024, depth: 0.003, cornerRadius: 0.007)
-            let resend = ModelEntity(mesh: btnMesh, materials: [rowAlt])
-            resend.position = [-0.06, -0.095, 0.016]
-            content.addChild(resend)
-            let submit = ModelEntity(mesh: btnMesh, materials: [accent])
-            submit.position = [0.06, -0.095, 0.016]
-            content.addChild(submit)
-        }
-        
-        // Pick a template for this window
-        switch index % 5 {
-        case 0: buildDashboard()
-        case 1: buildEmailList()
-        case 2: buildEmailDetail()
-        case 3: buildCalendarInvite()
-        default: buildForm()
+            // === DATA STREAM (Rising Digital Rain) ===
+            // 30 tiny specks that rise continuously
+            for _ in 0..<30 {
+                let streamMesh = MeshResource.generateBox(width: 0.002, height: 0.015, depth: 0.002)
+                var streamMat = UnlitMaterial()
+                streamMat.color = .init(tint: sector.accent.withAlphaComponent(0.6))
+                
+                let stream = ModelEntity(mesh: streamMesh, materials: [streamMat])
+                stream.name = "DataStream"
+                
+                // Random position within the sector column
+                stream.position = [
+                    Float.random(in: -0.3...0.3),
+                    Float.random(in: -0.5...0.5),
+                    Float.random(in: -0.1...0.1)
+                ]
+                stream.scale = .zero // Hidden initially
+                sectorParent.addChild(stream)
+                // We'll animate these in the update loop
+            }
         }
     }
+    
+    // MARK: - Agentic Orchestration (Premium Gemstone Aesthetic)
+    
+    // Agent shape types matching iPad
+    enum AgentShapeType { case diamond, triangle, star, octagon, shield, circle }
+    
+    @MainActor
+    private func buildAgenticOrchestration() async {
+        // === CENTRAL ORCHESTRATOR (Complex Gem Structure) ===
+        let orchestrator = Entity()
+        orchestrator.name = "Orchestrator"
+        orchestrator.position = [0, 1.6, -2.0] // Closer to user
+        experienceRoot.addChild(orchestrator)
+        orchestratorEntity = orchestrator
+        
+        // 1. Inner Energy Core (Intense Emissive)
+        let energyMesh = MeshResource.generateSphere(radius: 0.08)
+        var energyMat = PhysicallyBasedMaterial()
+        energyMat.baseColor = .init(tint: .init(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0))
+        energyMat.emissiveColor = .init(color: .init(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0))
+        energyMat.emissiveIntensity = 8.0
+        let energyCore = ModelEntity(mesh: energyMesh, materials: [energyMat])
+        energyCore.name = "EnergyCore"
+        orchestrator.addChild(energyCore)
+        
+        // 2. Outer Glass Shell (Hexagonal Prism)
+        let shellMesh = MeshResource.generateBox(width: 0.18, height: 0.18, depth: 0.1, cornerRadius: 0.03)
+        var shellMat = PhysicallyBasedMaterial()
+        shellMat.baseColor = .init(tint: .init(red: 1.0, green: 0.9, blue: 0.6, alpha: 0.1))
+        shellMat.roughness = .init(floatLiteral: 0.05) // Polished glass
+        shellMat.metallic = .init(floatLiteral: 0.8)   // Reflective
+        shellMat.blending = .transparent(opacity: .init(floatLiteral: 0.4))
+        shellMat.clearcoat = .init(floatLiteral: 1.0)
+        let glassShell = ModelEntity(mesh: shellMesh, materials: [shellMat])
+        glassShell.name = "Core" // Keeping name for animation logic
+        glassShell.orientation = simd_quatf(angle: Float.pi / 4, axis: [0, 0, 1])
+        orchestrator.addChild(glassShell)
+        
+        // 3. Floating Data Rings (Holographic)
+        for ring in 0..<4 {
+            let radius = 0.28 + Float(ring) * 0.09
+            let ringMesh = MeshResource.generateBox(width: radius * 2, height: 0.003, depth: radius * 2, cornerRadius: radius)
+            var ringMat = UnlitMaterial()
+            ringMat.color = .init(tint: .init(red: 1.0, green: 0.85, blue: 0.4, alpha: 0.4))
+            let ringEntity = ModelEntity(mesh: ringMesh, materials: [ringMat])
+            ringEntity.name = "OrbitalRing_\(ring)"
+            orchestrator.addChild(ringEntity)
+        }
+        
+        // 4. Volumetric Glow (Atmosphere) - Small for VR
+        let glowMesh = MeshResource.generateSphere(radius: 0.15)
+        var glowMat = UnlitMaterial()
+        glowMat.color = .init(tint: .init(red: 1.0, green: 0.8, blue: 0.3, alpha: 0.08))
+        let glowEntity = ModelEntity(mesh: glowMesh, materials: [glowMat])
+        glowEntity.name = "OrchestratorGlow_0"
+        orchestrator.addChild(glowEntity)
+        
+        // 5. Antenna Array (High-Tech)
+        let antennaMesh = MeshResource.generateBox(width: 0.008, height: 0.15, depth: 0.008, cornerRadius: 0.004)
+        var antennaMat = PhysicallyBasedMaterial()
+        antennaMat.emissiveColor = .init(color: .init(red: 1.0, green: 0.9, blue: 0.5, alpha: 1.0))
+        antennaMat.emissiveIntensity = 4.0
+        let antenna = ModelEntity(mesh: antennaMesh, materials: [antennaMat])
+        antenna.name = "Antenna"
+        antenna.position = [0, 0.15, 0]
+        orchestrator.addChild(antenna)
+        
+        let tipMesh = MeshResource.generateSphere(radius: 0.02)
+        let tip = ModelEntity(mesh: tipMesh, materials: [antennaMat])
+        tip.name = "AntennaTip"
+        tip.position = [0, 0.22, 0]
+        orchestrator.addChild(tip)
+        
+        // 6. Eyes (Sentience)
+        for eye in 0..<3 {
+            let eyeAngle = Float(eye) * (Float.pi * 2 / 3)
+            let eyeMesh = MeshResource.generateSphere(radius: 0.025)
+            var eyeMat = PhysicallyBasedMaterial()
+            eyeMat.emissiveColor = .init(color: .white)
+            eyeMat.emissiveIntensity = 10.0
+            let eyeEntity = ModelEntity(mesh: eyeMesh, materials: [eyeMat])
+            eyeEntity.name = "Eye_\(eye)"
+            eyeEntity.position = [cos(eyeAngle) * 0.06, sin(eyeAngle) * 0.06, 0.06]
+            orchestrator.addChild(eyeEntity)
+        }
+        
+        // Light Source
+        let light = Entity()
+        var lightComp = PointLightComponent()
+        lightComp.intensity = Float(80000)
+        lightComp.color = .init(red: 1.0, green: 0.8, blue: 0.4, alpha: 1.0)
+        lightComp.attenuationRadius = Float(4.0)
+        light.components.set(lightComp)
+        orchestrator.addChild(light)
+        
+        // === 6 SPECIALIST AGENTS (Premium Materials) ===
+        let agentConfigs: [(name: String, shape: AgentShapeType, color: UIColor, hasRings: Bool, hasAntenna: Bool, eyeCount: Int)] = [
+            ("Analyst", .diamond, UIColor(red: 0.2, green: 0.5, blue: 1.0, alpha: 1.0), false, true, 2),
+            ("Executor", .triangle, UIColor(red: 0.2, green: 0.9, blue: 0.5, alpha: 1.0), false, false, 1),
+            ("Connector", .star, UIColor(red: 1.0, green: 0.5, blue: 0.3, alpha: 1.0), true, false, 2),
+            ("Innovator", .octagon, UIColor(red: 0.75, green: 0.35, blue: 1.0, alpha: 1.0), true, true, 2),
+            ("Optimizer", .shield, UIColor(red: 0.2, green: 0.9, blue: 1.0, alpha: 1.0), false, true, 1),
+            ("Harmonizer", .circle, UIColor(red: 1.0, green: 0.55, blue: 0.75, alpha: 1.0), true, false, 3)
+        ]
+        
+        for (i, config) in agentConfigs.enumerated() {
+            let angle = (Float(i) * Float.pi / 3.0) - (Float.pi / 2.0)
+            let radius: Float = 0.55
+            
+            let agentParent = Entity()
+            agentParent.name = "Agent_\(config.name)"
+            agentParent.position = [cos(angle) * radius, 0, sin(angle) * radius * 0.6]
+            
+            // 1. Inner Core (Emissive)
+            let coreMesh = MeshResource.generateSphere(radius: 0.035)
+            var coreMat = PhysicallyBasedMaterial()
+            coreMat.emissiveColor = .init(color: config.color)
+            coreMat.emissiveIntensity = Float(5.0)
+            let agentCore = ModelEntity(mesh: coreMesh, materials: [coreMat])
+            agentParent.addChild(agentCore)
+            
+            // 2. Glass Shell (Shape)
+            let agentMesh = createAgentMesh(shape: config.shape)
+            var glassMat = PhysicallyBasedMaterial()
+            glassMat.baseColor = .init(tint: config.color.withAlphaComponent(0.2))
+            glassMat.roughness = .init(floatLiteral: 0.1)
+            glassMat.metallic = .init(floatLiteral: 0.9)
+            glassMat.blending = .transparent(opacity: .init(floatLiteral: 0.5))
+            glassMat.clearcoat = .init(floatLiteral: 1.0)
+            
+            let agentShell = ModelEntity(mesh: agentMesh, materials: [glassMat])
+            agentShell.name = "Shape"
+            agentParent.addChild(agentShell)
+            
+            // 3. Data Aura (Glow)
+            let auraMesh = MeshResource.generateSphere(radius: 0.12)
+            var auraMat = UnlitMaterial()
+            auraMat.color = .init(tint: config.color.withAlphaComponent(0.15))
+            let aura = ModelEntity(mesh: auraMesh, materials: [auraMat])
+            aura.name = "Glow"
+            agentParent.addChild(aura)
+            
+            // 4. Eyes
+            for eye in 0..<config.eyeCount {
+                let eyeAngle = Float(eye) * (Float.pi * 2 / Float(max(1, config.eyeCount)))
+                let eyeMesh = MeshResource.generateSphere(radius: 0.01)
+                var eyeMat = PhysicallyBasedMaterial()
+                eyeMat.emissiveColor = .init(color: .white)
+                eyeMat.emissiveIntensity = 8.0
+                let eyeEntity = ModelEntity(mesh: eyeMesh, materials: [eyeMat])
+                eyeEntity.name = "Eye_\(eye)"
+                eyeEntity.position = [cos(eyeAngle) * 0.025, sin(eyeAngle) * 0.025, 0.04]
+                agentParent.addChild(eyeEntity)
+            }
+            
+            // 5. Antenna
+            if config.hasAntenna {
+                let antMesh = MeshResource.generateBox(width: 0.004, height: 0.08, depth: 0.004, cornerRadius: 0.002)
+                var antMat = UnlitMaterial()
+                antMat.color = .init(tint: config.color)
+                let ant = ModelEntity(mesh: antMesh, materials: [antMat])
+                ant.name = "Antenna"
+                ant.position = [0, 0.08, 0]
+                agentParent.addChild(ant)
+            }
+            
+            // 6. Orbital Ring
+            if config.hasRings {
+                let ringMesh = MeshResource.generateBox(width: 0.16, height: 0.002, depth: 0.16, cornerRadius: 0.08)
+                var ringMat = UnlitMaterial()
+                ringMat.color = .init(tint: config.color.withAlphaComponent(0.4))
+                let ring = ModelEntity(mesh: ringMesh, materials: [ringMat])
+                ring.name = "Orbit"
+                agentParent.addChild(ring)
+            }
+            
+        // 7. Light
+        let agentLight = Entity()
+        var lightComp = PointLightComponent()
+        lightComp.intensity = 15000
+        lightComp.color = config.color
+        lightComp.attenuationRadius = 1.0
+        agentLight.components.set(lightComp)
+        agentParent.addChild(agentLight)
+        
+        // 8. ENERGY ARCS (Lightning crackle - hidden initially)
+        for i in 0..<3 {
+            let arcMesh = MeshResource.generateBox(width: radius * 0.8, height: 0.002, depth: 0.002, cornerRadius: 0.001)
+            var arcMat = UnlitMaterial()
+            arcMat.color = .init(tint: config.color.withAlphaComponent(0.9))
+            let arc = ModelEntity(mesh: arcMesh, materials: [arcMat])
+            arc.name = "EnergyArc_\(i)"
+            arc.position = [cos(angle) * radius * 0.45, Float.random(in: -0.05...0.05), sin(angle) * radius * 0.45 * 0.6]
+            arc.orientation = simd_quatf(angle: angle, axis: [0, 1, 0])
+            arc.scale = .zero
+            orchestrator.addChild(arc)
+            energyArcs.append(arc)
+        }
+        
+        agentParent.scale = .zero
+        orchestrator.addChild(agentParent)
+        agentEntities.append(agentParent)
+        
+        // Connection Arc (Holographic Beam)
+        let beamMesh = MeshResource.generateCylinder(height: radius * 0.9, radius: 0.003)
+        var beamMat = UnlitMaterial()
+        beamMat.color = .init(tint: config.color.withAlphaComponent(0.6))
+        let beam = ModelEntity(mesh: beamMesh, materials: [beamMat])
+        beam.name = "Arc_\(i)"
+        // Cylinder is Y-up, we need it horizontal pointing to center
+        beam.position = [cos(angle) * radius * 0.5, 0, sin(angle) * radius * 0.5 * 0.6]
+        
+        // Calculate rotation to point from center to agent
+        // Cylinder default is Y axis. We rotate 90 deg Z to make it X axis.
+        let alignRot = simd_quatf(angle: -Float.pi/2, axis: [0,0,1])
+        let dirRot = simd_quatf(angle: angle, axis: [0,1,0])
+        beam.orientation = dirRot * alignRot
+        
+        beam.scale = .zero
+        orchestrator.addChild(beam)
+        connectionArcs.append(beam)
+    }
+    
+    // === SHOCKWAVE RING (Impact visual) ===
+    let shockMesh = MeshResource.generateBox(width: 0.1, height: 0.005, depth: 0.1, cornerRadius: 0.05)
+    var shockMat = UnlitMaterial()
+    shockMat.color = .init(tint: .init(white: 1.0, alpha: 0.8))
+    shockMat.blending = .transparent(opacity: .init(floatLiteral: 0.8))
+    let shock = ModelEntity(mesh: shockMesh, materials: [shockMat])
+    shock.name = "Shockwave"
+    shock.position = [0, 0, 0]
+    shock.scale = .zero
+    orchestrator.addChild(shock)
+    shockwaveRing = shock
+    
+    orchestrator.scale = .zero
+        
+        // === TASK ORB ===
+        let taskParent = Entity()
+        taskParent.name = "TaskOrb"
+        taskParent.position = [-1.0, 1.6, -2.0]
+        
+        let taskMesh = MeshResource.generateSphere(radius: 0.08)
+        var taskMat = PhysicallyBasedMaterial()
+        taskMat.baseColor = .init(tint: UIColor(red: 1.0, green: 0.5, blue: 0.3, alpha: 1.0))
+        taskMat.emissiveColor = .init(color: UIColor(red: 1.0, green: 0.4, blue: 0.2, alpha: 1.0))
+        taskMat.emissiveIntensity = 4.0
+        
+        let taskCore = ModelEntity(mesh: taskMesh, materials: [taskMat])
+        taskParent.addChild(taskCore)
+        
+        taskParent.scale = .zero
+        experienceRoot.addChild(taskParent)
+        taskOrb = taskParent
+        
+        // === SOLUTION CRYSTAL ===
+        let crystalParent = Entity()
+        crystalParent.name = "SolutionCrystal"
+        crystalParent.position = [0, 1.6, -2.0]
+        
+        let crystalMesh = MeshResource.generateSphere(radius: 0.12)
+        var crystalMat = PhysicallyBasedMaterial()
+        crystalMat.baseColor = .init(tint: UIColor(red: 0.3, green: 0.95, blue: 1.0, alpha: 1.0))
+        crystalMat.emissiveColor = .init(color: UIColor(red: 0.4, green: 1.0, blue: 1.0, alpha: 1.0))
+        crystalMat.emissiveIntensity = Float(6.0)
+        crystalMat.roughness = .init(floatLiteral: 0.05)
+        crystalMat.metallic = .init(floatLiteral: 0.9)
+        
+        let crystalCore = ModelEntity(mesh: crystalMesh, materials: [crystalMat])
+        crystalParent.addChild(crystalCore)
+        
+        // Crystal rays
+        for ray in 0..<8 {
+            let rayAngle = Float(ray) * Float.pi / 4.0
+            let rayMesh = MeshResource.generateBox(width: 0.35, height: 0.004, depth: 0.015, cornerRadius: 0.002)
+            var rayMat = UnlitMaterial()
+            rayMat.color = .init(tint: UIColor(red: 1.0, green: 0.95, blue: 0.7, alpha: 0.35))
+            rayMat.blending = .transparent(opacity: .init(floatLiteral: 0.3))
+            
+            let rayEntity = ModelEntity(mesh: rayMesh, materials: [rayMat])
+            rayEntity.orientation = simd_quatf(angle: rayAngle, axis: [0, 0, 1])
+            crystalParent.addChild(rayEntity)
+        }
+        
+        // Crystal light
+        let crystalLight = Entity()
+        var crystalLightComp = PointLightComponent()
+        crystalLightComp.intensity = Float(80000)
+        crystalLightComp.color = .init(red: 0.4, green: 1.0, blue: 1.0, alpha: 1.0)
+        crystalLightComp.attenuationRadius = Float(4.0)
+        crystalLight.components.set(crystalLightComp)
+        crystalParent.addChild(crystalLight)
+        
+        crystalParent.scale = .zero
+        experienceRoot.addChild(crystalParent)
+        solutionCrystal = crystalParent
+    }
+    
+    // MARK: - Human Return (The Ascension - Volumetric & Cinematic)
+    
+    @MainActor
+    private func buildHumanReturn() async {
+        // === RESTORATION CORE (The Igniting Star) ===
+        let glowParent = Entity()
+        glowParent.name = "RestorationGlow"
+        glowParent.position = [0, 1.6, -2.0]
+        
+        // 1. Blinding Core
+        let coreMesh = MeshResource.generateSphere(radius: 0.08)
+        var coreMat = PhysicallyBasedMaterial()
+        coreMat.emissiveColor = .init(color: UIColor(red: 0.2, green: 0.9, blue: 1.0, alpha: 1.0))
+        coreMat.emissiveIntensity = 15.0 // Blindingly bright
+        let coreGlow = ModelEntity(mesh: coreMesh, materials: [coreMat])
+        coreGlow.name = "Core"
+        glowParent.addChild(coreGlow)
+        
+        // 2. Volumetric God Rays (Rotating Shafts) - Smaller for VR
+        for i in 0..<16 {
+            // Smaller, tapering light shafts for VR
+            let rayMesh = MeshResource.generateCone(height: 0.6, radius: 0.03)
+            var rayMat = UnlitMaterial()
+            let rayAlpha: Float = 0.05
+            rayMat.color = .init(tint: UIColor(red: 0.4, green: 0.9, blue: 1.0, alpha: CGFloat(rayAlpha)))
+            rayMat.blending = .transparent(opacity: PhysicallyBasedMaterial.Opacity(scale: rayAlpha, texture: nil))
+            
+            let ray = ModelEntity(mesh: rayMesh, materials: [rayMat])
+            ray.name = "GodRay_\(i)"
+            // Point outward from center
+            ray.position = .zero
+            
+            // Random rotations to create a "starburst"
+            let angleZ = Float(i) * (Float.pi * 2 / 16)
+            let angleX = Float.random(in: -0.5...0.5)
+            ray.orientation = simd_quatf(angle: angleZ, axis: [0, 0, 1]) * simd_quatf(angle: angleX, axis: [1, 0, 0])
+            
+            // Offset to start from center (cone pivot is at bottom)
+            ray.position = [0, 0, 0]
+            
+            glowParent.addChild(ray)
+            lightRays.append(ray)
+        }
+        
+        // 3. Shockwave Ripples (Refractive Energy) - Smaller for VR
+        for ring in 0..<6 {
+            let radius = 0.1 + Float(ring) * 0.06
+            let ringMesh = MeshResource.generateBox(width: radius * 2, height: 0.01, depth: radius * 2, cornerRadius: radius)
+            var ringMat = PhysicallyBasedMaterial()
+            ringMat.baseColor = .init(tint: UIColor(red: 0.5, green: 1.0, blue: 1.0, alpha: 0.1))
+            ringMat.roughness = .init(floatLiteral: 0.0)
+            ringMat.metallic = .init(floatLiteral: 0.9)
+            ringMat.emissiveColor = .init(color: UIColor(red: 0.0, green: 0.8, blue: 1.0, alpha: 1.0))
+            ringMat.emissiveIntensity = 2.0
+            ringMat.blending = .transparent(opacity: .init(floatLiteral: 0.3))
+            
+            let ripple = ModelEntity(mesh: ringMesh, materials: [ringMat])
+            ripple.name = "Ripple_\(ring)"
+            glowParent.addChild(ripple)
+            energyArcs.append(ripple)
+        }
+        
+        // Restoration Point Light
+        let restLight = Entity()
+        var restLightComp = PointLightComponent()
+        restLightComp.intensity = Float(60000)
+        restLightComp.color = .init(red: 0.2, green: 0.9, blue: 1.0, alpha: 1.0)
+        restLightComp.attenuationRadius = Float(5.0)
+        restLight.components.set(restLightComp)
+        glowParent.addChild(restLight)
+        
+        glowParent.scale = .zero
+        experienceRoot.addChild(glowParent)
+        restorationGlow = glowParent
+        
+        // === BURNING DEBRIS (Shards of Burden) ===
+        for i in 0..<40 {
+            // Jagged shards
+            let debrisMesh = MeshResource.generateBox(width: 0.04, height: 0.04, depth: 0.04) // Placeholder for jagged rock
+            var debrisMat = PhysicallyBasedMaterial()
+            debrisMat.baseColor = .init(tint: .black)
+            debrisMat.roughness = 0.8
+            // Inner molten glow
+            debrisMat.emissiveColor = .init(color: .init(red: 1.0, green: 0.3, blue: 0.1, alpha: 1.0))
+            debrisMat.emissiveIntensity = 0.0 // Starts cold, heats up
+            
+            let debris = ModelEntity(mesh: debrisMesh, materials: [debrisMat])
+            debris.name = "Debris_\(i)"
+            
+            // Random chaotic positions around the user/scene
+            let angle = Float(i) * 0.5
+            let radius = Float.random(in: 0.5...1.5)
+            debris.position = [
+                cos(angle) * radius,
+                1.6 + Float.random(in: -0.8...0.8),
+                sin(angle) * radius - 2.0
+            ]
+            
+            // Random rotation
+            let randomRot = simd_quatf(angle: Float.random(in: 0...10), axis: normalize([1, 1, 1]))
+            debris.orientation = randomRot
+            
+            debris.scale = .zero
+            experienceRoot.addChild(debris)
+            debrisParticles.append(debris)
+        }
+    }
+    
+    // MARK: - CTA Portal (The Warp Gate - Deep & Hypnotic)
+    
+    @MainActor
+    private func buildCTAPortal() async {
+        let portalCenter: SIMD3<Float> = [0, 1.6, -2.0]
+        
+        // 1. Infinity Tunnel Rings (Depth Perception)
+        // Creating 12 rings receding into distance - SUBTLE SIZE for VR
+        for i in 0..<12 {
+            // Rings get smaller and further back
+            let depthFactor = Float(i) * 0.3
+            let radius = 0.25 * (1.0 - Float(i) * 0.05) // Much smaller for VR
+            
+            // Complex ring geometry (Torus)
+            let ringMesh = MeshResource.generateBox(width: radius * 2, height: 0.02, depth: radius * 2, cornerRadius: radius)
+            var ringMat = PhysicallyBasedMaterial()
+            ringMat.baseColor = .init(tint: UIColor(red: 1.0, green: 0.8, blue: 0.4, alpha: 1.0))
+            ringMat.emissiveColor = .init(color: UIColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 1.0))
+            ringMat.emissiveIntensity = 2.0 + Float(i) * 0.5 // Brightness increases with depth
+            ringMat.metallic = .init(floatLiteral: 1.0)
+            ringMat.roughness = .init(floatLiteral: 0.2)
+            
+            let ring = ModelEntity(mesh: ringMesh, materials: [ringMat])
+            ring.name = "PortalRing_\(i)"
+            // Positioned deeper into scene
+            ring.position = [portalCenter.x, portalCenter.y, portalCenter.z - depthFactor]
+            // Slight tilt for dynamic look
+            ring.orientation = simd_quatf(angle: Float.pi / 2, axis: [1, 0, 0]) 
+            
+            ring.scale = .zero
+            experienceRoot.addChild(ring)
+            portalRings.append(ring)
+        }
+        
+        // 2. Event Horizon (Liquid Surface) - Small for VR
+        let horizonMesh = MeshResource.generateSphere(radius: 0.15)
+        var horizonMat = PhysicallyBasedMaterial()
+        horizonMat.baseColor = .init(tint: .black)
+        horizonMat.roughness = 0.0
+        horizonMat.metallic = 1.0
+        horizonMat.emissiveColor = .init(color: .init(red: 0.0, green: 0.5, blue: 1.0, alpha: 1.0))
+        horizonMat.emissiveIntensity = 1.0
+        horizonMat.blending = .transparent(opacity: .init(floatLiteral: 0.8))
+        
+        let horizon = ModelEntity(mesh: horizonMesh, materials: [horizonMat])
+        horizon.name = "PortalGlow"
+        horizon.position = [portalCenter.x, portalCenter.y, portalCenter.z - 6.0] // Deep inside
+        horizon.scale = .zero
+        experienceRoot.addChild(horizon)
+        portalGlow = horizon
+        
+        // 3. Beacon Pulses (Signal Waves)
+        for i in 0..<5 {
+            let pulseMesh = MeshResource.generateSphere(radius: 0.1)
+            var pulseMat = UnlitMaterial()
+            pulseMat.color = .init(tint: .init(red: 1.0, green: 0.9, blue: 0.8, alpha: 0.3))
+            
+            let pulse = ModelEntity(mesh: pulseMesh, materials: [pulseMat])
+            pulse.name = "BeaconPulse_\(i)"
+            pulse.position = portalCenter
+            pulse.scale = .zero
+            experienceRoot.addChild(pulse)
+            beaconPulses.append(pulse)
+        }
+        
+        // === PORTAL VORTEX (Swirling Maelstrom) ===
+        for i in 0..<40 {
+            let pMesh = MeshResource.generateSphere(radius: Float.random(in: 0.005...0.015))
+            var pMat = UnlitMaterial()
+            let pAlpha = Float.random(in: 0.2...0.7)
+            pMat.color = .init(tint: UIColor(red: 1.0, green: 0.9, blue: 0.5, alpha: CGFloat(pAlpha)))
+            pMat.blending = .transparent(opacity: PhysicallyBasedMaterial.Opacity(scale: pAlpha, texture: nil))
+            
+            let p = ModelEntity(mesh: pMesh, materials: [pMat])
+            p.name = "Vortex_\(i)"
+            let angle = Float.random(in: 0...(2 * Float.pi))
+            let r = Float.random(in: 0.1...0.5)
+            p.position = portalCenter + [cos(angle) * r, sin(angle) * r, Float.random(in: -0.2...0.2)]
+            p.scale = .zero
+            experienceRoot.addChild(p)
+            portalVortex.append(p)
+        }
+        
+        // Portal Light
+        let portalLight = Entity()
+        var lightComp = PointLightComponent()
+        lightComp.intensity = Float(100000)
+        lightComp.color = .init(red: 1.0, green: 0.7, blue: 0.3, alpha: 1.0)
+        lightComp.attenuationRadius = Float(10.0)
+        portalLight.components.set(lightComp)
+        portalLight.position = portalCenter
+        experienceRoot.addChild(portalLight)
+    }
+    
+    // MARK: - Scene Lighting (Studio Setup)
     
     private func addSceneLighting() {
-        // Key Light - Main source from above
+        // 1. Key Light (Warm, from top-right)
         let keyLight = Entity()
-        keyLight.name = "KeyLight"
         var keyComp = PointLightComponent()
-        keyComp.intensity = 100000
-        keyComp.color = .white
-        keyComp.attenuationRadius = 30
+        keyComp.intensity = Float(80000)
+        keyComp.color = .init(red: 1.0, green: 0.9, blue: 0.8, alpha: 1.0)
+        keyComp.attenuationRadius = Float(25)
         keyLight.components.set(keyComp)
-        keyLight.position = [0, 5, -1]
+        keyLight.position = [2, 4, 2]
         experienceRoot.addChild(keyLight)
         
-        // Fill Light - Soft cool blue from behind
+        // 2. Fill Light (Cool, from left)
         let fillLight = Entity()
-        fillLight.name = "FillLight"
         var fillComp = PointLightComponent()
-        fillComp.intensity = 50000
-        fillComp.color = .init(red: 0.85, green: 0.9, blue: 1.0, alpha: 1)
-        fillComp.attenuationRadius = 25
+        fillComp.intensity = Float(40000)
+        fillComp.color = .init(red: 0.8, green: 0.9, blue: 1.0, alpha: 1.0)
+        fillComp.attenuationRadius = Float(20)
         fillLight.components.set(fillComp)
-        fillLight.position = [0, 1.5, -4]
+        fillLight.position = [-3, 1, 1]
         experienceRoot.addChild(fillLight)
         
-        // Rim Light - Backlight for silhouettes
+        // 3. Rim Light (Bright, from behind)
         let rimLight = Entity()
-        rimLight.name = "RimLight"
         var rimComp = PointLightComponent()
-        rimComp.intensity = 80000
-        rimComp.color = .init(red: 1.0, green: 0.8, blue: 0.6, alpha: 1)
-        rimComp.attenuationRadius = 20
+        rimComp.intensity = Float(100000)
+        rimComp.color = .init(white: 1.0, alpha: 1.0)
+        rimComp.attenuationRadius = Float(15)
         rimLight.components.set(rimComp)
-        rimLight.position = [0, 1.6, 5] // Behind the user
+        rimLight.position = [0, 3, -6] // Behind the scene objects
         experienceRoot.addChild(rimLight)
+        
+        // 4. Ambient Environment (IBL Simulation)
+        // Since we can't easily load an HDR here without asset, we use a weak fill light
+        let ambientFill = Entity()
+        var ambientComp = PointLightComponent()
+        ambientComp.intensity = Float(10000)
+        ambientComp.color = .init(red: 0.05, green: 0.05, blue: 0.1, alpha: 1.0)
+        ambientComp.attenuationRadius = Float(15.0)
+        ambientFill.components.set(ambientComp)
+        ambientFill.position = [0, 5, 0]
+        experienceRoot.addChild(ambientFill)
     }
+    
+    // MARK: - Animation Loop
     
     @MainActor
     private func animateScene(dt: Float) {
         guard sceneLoaded else { return }
+        
         let phase = viewModel.currentPhase
         let progress = Float(viewModel.phaseProgress)
         
-        // Scene-wide breathing pulse
-        pulseAlpha = (sin(animationTime * 1.5) + 1.0) * 0.5 // 0 to 1
+        // === DYNAMIC LIGHTING ===
+        if let keyLight = experienceRoot.children.first(where: { $0.components.has(PointLightComponent.self) }) {
+            keyLight.position.x = 2 + sin(animationTime * 0.5) * 0.5
+        }
         
+        // === ATMOSPHERIC DRIFT (Nebula & Rays) ===
+        for (i, nebula) in nebulaClouds.enumerated() {
+            nebula.orientation *= simd_quatf(angle: dt * 0.02 * (i % 2 == 0 ? 1 : -1), axis: [0, 1, 0])
+            nebula.scale = SIMD3<Float>(repeating: 1.0 + sin(animationTime * 0.2 + Float(i)) * 0.05)
+        }
+        for (i, ray) in godRays.enumerated() {
+            let shimmer = 0.8 + sin(animationTime * 1.5 + Float(i)) * 0.2
+            ray.scale.x = shimmer
+            ray.position.x += sin(animationTime * 0.3 + Float(i)) * 0.001
+        }
+        
+        // === AMBIENT STARS ===
+        for (i, star) in ambientParticles.enumerated() {
+            let driftX = sin(animationTime * 0.2 + Float(i) * 0.1) * 0.0005
+            let driftY = cos(animationTime * 0.15 + Float(i) * 0.15) * 0.0005
+            star.position += [driftX, driftY, 0]
+            
+            if star.name.hasPrefix("StarMid") {
+                let twinkle = 0.8 + sin(animationTime * 3 + Float(i)) * 0.4
+                star.scale = SIMD3<Float>(repeating: twinkle)
+            }
+            
+            // Warp effect during CTA
+            if phase == .stillnessCTA {
+                let pull = normalize([0, 1.6, -2.5] - star.position)
+                star.position += pull * dt * progress * 0.5
+            }
+        }
+        
+        // Phase-specific animations
         switch phase {
-        case .spatialOverwhelm:
-            for (i, window) in windows.enumerated() {
-                // Distributed entry across the entire 18s duration
-                let delay = Float(i) * 0.08 
-                let localProgress = max(0, min(1, (progress * 3.0) - delay)) 
-                let eased = easeOutBack(localProgress)
-                window.scale = SIMD3<Float>(repeating: max(0.4, eased))
-                let bob = sin(animationTime * 2.5 + Float(i) * 0.8) * 0.03
-                window.position.y += bob * dt * 2.5
-                
-                // Keep-out from center text
-                let textCenter = SIMD3<Float>(0, 1.6, -0.8)
-                let toWindow = window.position - textCenter
-                let dist = length(toWindow)
-                let minRadius: Float = 1.8 
-                if dist < minRadius {
-                    let push = normalize(toWindow + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * (minRadius - dist)
-                    window.position += push * 0.95
-                }
-                // Drift outward - continuous action
-                let outward = normalize(window.position + SIMD3<Float>(0.0001, 0.0001, 0.0001)) * dt * 0.2
-                window.position += outward
-            }
+        case .spatialOverwhelm, .realityCrack, .humanFragment:
+            animateVignettes(progress: progress, dt: dt, subPhase: phase)
             
-        case .realityCrack:
-            // Progressive trembling build-up
-            let intensity = progress * 0.004
-            let tremble = sin(animationTime * (30.0 + progress * 20.0)) * intensity
-            windowsParent.position.x += tremble
-            // Keep windows fully visible until shatter
-            for window in windows {
-                window.scale = SIMD3<Float>(repeating: 1.0)
-            }
+        case .patternBreak:
+            animatePatternBreak(progress: progress, dt: dt)
             
-        case .humanFragment:
-            // Sync exactly with "142 were unnecessary" text appearing at 0.25
-            let triggerPoint: Float = 0.25
-            let bloomProgress = max(0, min(1, (progress - triggerPoint) * 4.0)) // Slightly slower bloom for impact
-            let shatterProgress = max(0, min(1, (progress - triggerPoint) * 6.0)) 
+        case .agenticOrchestration:
+            animateAgenticOrchestration(progress: progress, dt: dt)
             
-            if bloomProgress > 0 {
-                // Narrative Flare: Increase light intensity dramatically during bloom
-                if let keyLight = experienceRoot.findEntity(named: "KeyLight") {
-                    var comp = keyLight.components[PointLightComponent.self] ?? PointLightComponent()
-                    let flare = 1.0 + (sin(bloomProgress * .pi) * 2.0) // 3x brighter at peak
-                    comp.intensity = 100000 * flare
-                    keyLight.components.set(comp)
-                }
-                
-                if bloomProgress < 0.5 {
-                    let s = easeOutBack(bloomProgress * 2.0) * 15.0
-                    bloomLight?.scale = SIMD3<Float>(repeating: s)
-                    bloomLight?.components.set(OpacityComponent(opacity: 0.8))
-                    
-                    // Shockwave expansion
-                    let waveS = bloomProgress * 2.0 * 12.0
-                    bloomShockwave?.scale = SIMD3<Float>(repeating: waveS)
-                    bloomShockwave?.components.set(OpacityComponent(opacity: (0.5 - bloomProgress) * 0.6))
-                } else {
-                    let fade = max(0, 1.0 - ((bloomProgress - 0.5) * 2.0))
-                    bloomLight?.components.set(OpacityComponent(opacity: fade * 0.8))
-                    bloomLight?.scale = SIMD3<Float>(repeating: 15.0 + bloomProgress * 5.0)
-                    bloomShockwave?.components.set(OpacityComponent(opacity: 0.0))
-                }
-            } else {
-                bloomLight?.scale = .zero
-                bloomLight?.components.set(OpacityComponent(opacity: 0.0))
-                bloomShockwave?.scale = .zero
-                
-                // Reset lighting
-                if let keyLight = experienceRoot.findEntity(named: "KeyLight") {
-                    var comp = keyLight.components[PointLightComponent.self] ?? PointLightComponent()
-                    comp.intensity = 100000
-                    keyLight.components.set(comp)
-                }
-            }
+        case .humanReturn:
+            animateHumanReturn(progress: progress, dt: dt)
             
-            // "Shatter" windows by scaling them down into miniature cards
-            for (i, window) in windows.enumerated() {
-                let targetScale: Float = 0.22
-                let scale = 1.0 - (shatterProgress * (1.0 - targetScale))
-                window.scale = SIMD3<Float>(repeating: max(targetScale, scale))
-                
-                // Add a small chaotic push to the windows as they shatter
-                if shatterProgress > 0 && shatterProgress < 1.0 {
-                    let pushDir = normalize(window.position - SIMD3<Float>(0, 1.6, -1.5))
-                    window.position += pushDir * dt * 2.0 * shatterProgress
-                }
-            }
+        case .personalization:
+            animatePersonalization(progress: progress, dt: dt)
             
-            if bloomProgress <= 0 {
-                let tremble = sin(animationTime * 40.0) * 0.003
-                windowsParent.position.x += tremble
-            }
+        case .stillnessCTA:
+            animateCTA(progress: progress, dt: dt)
             
-        case .dataChoreography:
-            // Reuse the scaled-down windows as the "data cards"
-            // Slower convergence to fill the 18s duration meaningfully
-            let chaosToOrder = max(0, min(1, (progress - 0.05) * 1.8)) 
-            
-            bloomLight?.components.set(OpacityComponent(opacity: 0.0))
-            bloomLight?.scale = .zero
-            bloomShockwave?.scale = .zero
-            
-            for (i, window) in windows.enumerated() {
-                let twinkle = 0.8 + sin(animationTime * 20.0 + Float(i)) * 0.2 // Faster twinkle
-                window.scale = SIMD3<Float>(repeating: 0.22 * twinkle)
-                
-                if chaosToOrder > 0 {
-                    // Golden-angle sphere shell radius 2.2 (slightly wider for text)
-                    let seed = Float(i)
-                    let theta = seed * 2.39996
-                    let y = 1 - (seed / Float(windows.count - 1)) * 2
-                    let r = sqrt(max(0, 1 - y * y)) * 2.2
-                    let targetPos = SIMD3<Float>(cos(theta) * r, y * 2.2 + 1.6, sin(theta) * r)
-                    window.position = simd_mix(window.position, targetPos, SIMD3<Float>(repeating: dt * 1.5 * chaosToOrder)) 
-                    
-                    // Re-billboard as they move to the shell
-                    let dx = 0 - window.position.x
-                    let dz = 0 - window.position.z 
-                    let angle = atan2(dx, dz)
-                    window.orientation = simd_quatf(angle: angle, axis: [0, 1, 0])
-                } else {
-                    // Jittery chaos with noise
-                    window.position += SIMD3<Float>(sin(animationTime * 2.5 + Float(i)), cos(animationTime * 2.2 + Float(i) * 0.5), sin(animationTime * 1.8 + Float(i))) * 0.008
-                }
-            }
-            windowsParent.orientation *= simd_quatf(angle: dt * 0.4 * chaosToOrder, axis: [0, 1, 0]) 
-            
-        case .humanRestoration:
-            let axis = normalize(SIMD3<Float>(1, 1, 0))
-            for window in windows {
-                window.scale = SIMD3<Float>(repeating: 0.22 * (1.0 + sin(animationTime * 3.0) * 0.06)) // Snappier pulse
-            }
-            windowsParent.orientation *= simd_quatf(angle: dt * 0.25, axis: axis) // Faster rotation
-            
-            // Slow dust drift
-            for mote in dataDust {
-                mote.position += SIMD3<Float>(0, sin(animationTime * 0.8) * 0.0015, 0)
-            }
-            
-        case .exitMoment:
-            let fade = max(0.4, 1.0 - progress * 0.8) // Faster fade
-            for window in windows { 
-                window.scale = SIMD3<Float>(repeating: 0.22 * fade) 
-            }
-            windowsParent.orientation *= simd_quatf(angle: dt * 0.45, axis: [0, 1, 0]) // Faster exit spin
-            
-            for mote in dataDust {
-                if let op = mote.components[OpacityComponent.self] {
-                    mote.components.set(OpacityComponent(opacity: op.opacity * 0.95))
-                }
-            }
-            
-        default: break
+        default:
+            break
         }
     }
     
-    private func easeOutBack(_ t: Float) -> Float {
-        let c1: Float = 1.70158
-        let c3 = c1 + 1
-        return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
+    // MARK: - Vignette Animation (3 Sectors - One at a Time)
+    
+    @MainActor
+    private func animateVignettes(progress: Float, dt: Float, subPhase: NarrativePhase) {
+        let sectorIndex: Int
+        let localProgress: Float
+        
+        switch subPhase {
+        case .spatialOverwhelm: sectorIndex = 0; localProgress = progress
+        case .realityCrack: sectorIndex = 1; localProgress = progress
+        case .humanFragment: sectorIndex = 2; localProgress = progress
+        default: return
+        }
+        
+        // === HIDE ALL OTHER SECTORS ===
+        for (i, sector) in sectorGlows.enumerated() {
+            if i != sectorIndex {
+                sector.scale = SIMD3<Float>(repeating: max(0, sector.scale.x - dt * 2.0))
+            }
+        }
+        
+        // === ANIMATE DATA STREAM ===
+        for (i, bit) in dataStreams.enumerated() {
+            let bitSector = i / 30
+            if bitSector == sectorIndex {
+                let speed = 2.0 + Float(i % 5) * 0.5
+                bit.scale = [1, 1, 1]
+                bit.position.z += dt * speed
+                
+                // Spiral motion
+                bit.position.x += sin(animationTime * 2 + Float(i)) * 0.01
+                bit.position.y += cos(animationTime * 2 + Float(i)) * 0.01
+                
+                // Reset if reached viewer or sector
+                if bit.position.z > -2.5 {
+                    bit.position.z = -8.0
+                    bit.position.x = Float.random(in: -2...2)
+                    bit.position.y = Float.random(in: 0...3)
+                }
+            } else {
+                bit.scale = .zero
+            }
+        }
+        
+        // === ANIMATE CURRENT SECTOR ===
+        if sectorIndex < sectorGlows.count {
+            let sectorParent = sectorGlows[sectorIndex]
+            let sectorScale = easeOutBack(min(1.0, localProgress * 2.5))
+            sectorParent.scale = SIMD3<Float>(repeating: sectorScale)
+            
+            for child in sectorParent.children {
+                if child.name.hasPrefix("FogLayer") {
+                    let i = Int(child.name.split(separator: "_").last ?? "0") ?? 0
+                    child.scale = SIMD3<Float>(repeating: 1.0 + sin(animationTime * 0.8 + Float(i)) * 0.1)
+                }
+                if child.name == "OuterRing" { child.orientation *= simd_quatf(angle: dt * 0.6, axis: [0, 1, 0]) }
+                if child.name == "MiddleRing" { child.scale = SIMD3<Float>(repeating: 1.0 + sin(animationTime * 2.5) * 0.1) }
+                if child.name == "IconGlow" { child.orientation *= simd_quatf(angle: dt * 0.3, axis: [0, 1, 0]) }
+            }
+        }
+        
+        // === CARDS ===
+        let cards = sectorIndex == 0 ? financeCards : (sectorIndex == 1 ? supplyCards : healthcareCards)
+        for (i, card) in cards.enumerated() {
+            let stagger = 0.3 + Float(i) * 0.1
+            let cardProg = max(0, min(1, (localProgress - stagger) * 3))
+            card.scale = SIMD3<Float>(repeating: easeOutBack(cardProg))
+            card.position.y = -0.35 + sin(animationTime * 1.5 + Float(i)) * 0.01
+        }
+        
+        // === PARTICLES ===
+        for (i, particle) in sectorParticles.enumerated() {
+            let particleSector = i / 60
+            if particleSector == sectorIndex {
+                particle.scale = SIMD3<Float>(repeating: min(1.0, localProgress * 2))
+                particle.orientation *= simd_quatf(angle: dt * (0.5 + Float(i % 10) * 0.05), axis: [0, 1, 0])
+            }
+        }
     }
     
-    private func cleanupScene() {
-        for child in experienceRoot.children { child.removeFromParent() }
-        windows.removeAll()
-        dataDust.removeAll()
-        bloomLight = nil
-        bloomShockwave = nil
-        skyDome = nil
-        sceneLoaded = false
+    // MARK: - Pattern Break Animation (The Glitch / Shift)
+    
+    @MainActor
+    private func animatePatternBreak(progress: Float, dt: Float) {
+        // Fade out all sector elements smoothly
+        for sector in sectorGlows {
+            sector.scale = SIMD3<Float>(repeating: max(0, sector.scale.x - dt * 1.5))
+        }
+        for card in financeCards + supplyCards + healthcareCards {
+            card.scale = SIMD3<Float>(repeating: max(0, card.scale.x - dt * 1.5))
+        }
+        for particle in sectorParticles {
+            particle.scale = SIMD3<Float>(repeating: max(0, particle.scale.x - dt * 0.8))
+        }
+        
+        // Stars intensify and SHAKE - building tension
+        let shakeAmount = 0.05 * progress // Increase shake as we near the break
+        
+        for (i, star) in ambientParticles.enumerated() {
+            let intensity: Float = 1.0 + progress * 2.0 // Get very bright
+            let pulse = sin(animationTime * 10 + Float(i)) * 0.5 * progress // Fast strobe
+            star.scale = SIMD3<Float>(repeating: intensity + pulse)
+            
+            // Jitter position to simulate instability
+            let jitter = SIMD3<Float>(
+                Float.random(in: -shakeAmount...shakeAmount),
+                Float.random(in: -shakeAmount...shakeAmount),
+                Float.random(in: -shakeAmount...shakeAmount)
+            )
+            
+            // Apply jitter on top of base position (needs careful state management, simplified here)
+            // Ideally we'd store base pos, but for now we just add noise to movement
+            star.position += jitter * dt * 5.0
+        }
+        
+        // Dramatic "Audio-Visual" Pulse at the end
+        if progress > 0.8 {
+            let flash = sin(animationTime * 20) * 0.5 + 0.5
+            // Maybe pulse the environment light if possible
+        }
     }
+    
+    // MARK: - Agentic Orchestration Animation (iPad Parity)
+    
+    @MainActor
+    private func animateAgenticOrchestration(progress: Float, dt: Float) {
+        let agentAppear = min(1.0, progress / 0.2) // Faster appear
+        let taskPhase = min(1.0, max(0, (progress - 0.2) / 0.5))
+        let gloryPhase = min(1.0, max(0, (progress - 0.7) / 0.3))
+        
+        // === ORCHESTRATOR ===
+        let orchPulse = 1.0 + sin(animationTime * 2.0) * 0.1
+        orchestratorEntity?.scale = SIMD3<Float>(repeating: easeOutBack(agentAppear) * orchPulse)
+        
+        if let orch = orchestratorEntity {
+            for child in orch.children {
+                if child.name == "Core" { child.orientation *= simd_quatf(angle: dt * 0.4, axis: [0, 1, 0]) }
+                if child.name == "EnergyCore" { 
+                    child.scale = SIMD3<Float>(repeating: 1.0 + sin(animationTime * 8) * 0.1) // Vibrating energy
+                }
+                if child.name.hasPrefix("Eye") { child.scale = SIMD3<Float>(repeating: 0.8 + sin(animationTime * 4) * 0.2) }
+                if child.name == "AntennaTip" { child.scale = SIMD3<Float>(repeating: 1.0 + sin(animationTime * 12) * 0.5) }
+                if child.name.hasPrefix("OrbitalRing") {
+                    let i = Int(child.name.split(separator: "_").last ?? "0") ?? 0
+                    child.orientation *= simd_quatf(angle: dt * (1.0 - Float(i) * 0.2), axis: [0, 1, 0])
+                }
+            }
+        }
+        
+        // === LIGHTNING ARCS ===
+        for arc in energyArcs {
+            if taskPhase > 0.1 && taskPhase < 0.9 {
+                arc.scale = [1, 1, 1]
+                // Random crackle visibility
+                arc.isEnabled = Float.random(in: 0...1) > 0.7
+                arc.position.y = sin(animationTime * 20) * 0.05
+            } else {
+                arc.scale = .zero
+            }
+        }
+        
+        // === SHOCKWAVE ===
+        if taskPhase > 0.8 && taskPhase < 1.0 {
+            let shockProg = (taskPhase - 0.8) / 0.2
+            shockwaveRing?.scale = SIMD3<Float>(repeating: 0.1 + shockProg * 10.0)
+            shockwaveRing?.isEnabled = true
+        } else {
+            shockwaveRing?.isEnabled = false
+        }
+        
+        // === AGENTS ===
+        for (i, agent) in agentEntities.enumerated() {
+            let stagger = Float(i) * 0.05
+            let agentProg = max(0, min(1, (agentAppear - stagger) * 2.5))
+            var scale = easeOutBack(agentProg)
+            
+            if taskPhase > 0.1 && taskPhase < 0.9 {
+                scale *= (1.0 + sin(animationTime * 6 + Float(i)) * 0.2)
+            }
+            agent.scale = SIMD3<Float>(repeating: scale)
+            
+            for child in agent.children {
+                if child.name == "Shape" { child.orientation *= simd_quatf(angle: dt * 0.5, axis: [0, 1, 0]) }
+                if child.name == "Orbit" { child.orientation *= simd_quatf(angle: dt * 2.0, axis: [0, 1, 0]) }
+            }
+        }
+        
+        // === CONNECTIONS ===
+        for arc in connectionArcs {
+            if agentAppear > 0.4 {
+                let arcProg = min(1.0, (agentAppear - 0.4) * 3)
+                arc.scale = SIMD3<Float>(repeating: easeOutBack(arcProg))
+            }
+        }
+        
+        // === TASK ORB & CRYSTAL ===
+        if taskPhase > 0 && taskPhase < 0.6 {
+            let p = taskPhase / 0.6
+            taskOrb?.scale = SIMD3<Float>(repeating: (1.2 - p * 0.8) * (1.0 + sin(animationTime * 15) * 0.1))
+            taskOrb?.position = [-1.0 + 1.0 * p, 1.6 + sin(p * Float.pi) * 0.2, -2.0]
+        } else {
+            taskOrb?.scale = .zero
+        }
+        
+        if taskPhase > 0.7 {
+            let p = (taskPhase - 0.7) / 0.3
+            solutionCrystal?.scale = SIMD3<Float>(repeating: easeOutBack(p) * (1.0 + sin(animationTime * 3) * 0.1))
+            solutionCrystal?.orientation *= simd_quatf(angle: dt * 0.6, axis: [0, 1, 0])
+        }
+        
+        // === GLORY ===
+        if gloryPhase > 0 {
+            let glow = 1.0 + sin(animationTime * 2) * 0.2 * gloryPhase
+            orchestratorEntity?.scale *= glow
+            solutionCrystal?.scale *= glow
+            for agent in agentEntities { agent.scale *= glow }
+        }
+    }
+    
+    // MARK: - Human Return Animation
+    
+    @MainActor
+    private func animateHumanReturn(progress: Float, dt: Float) {
+        // Fade out agentic elements smoothly
+        if let orch = orchestratorEntity, orch.scale.x > 0.01 {
+            orch.scale = SIMD3<Float>(repeating: max(0, orch.scale.x - dt * 0.8))
+        }
+        if let crystal = solutionCrystal, crystal.scale.x > 0.01 {
+            crystal.scale = SIMD3<Float>(repeating: max(0, crystal.scale.x - dt * 0.8))
+        }
+        for arc in connectionArcs {
+            arc.scale = SIMD3<Float>(repeating: max(0, arc.scale.x - dt * 1.0))
+        }
+        for agent in agentEntities {
+            agent.scale = SIMD3<Float>(repeating: max(0, agent.scale.x - dt * 1.0))
+        }
+        
+        // Debris appears first (chains showing)
+        let debrisPhase = min(1.0, progress * 3)
+        for (i, debris) in debrisParticles.enumerated() {
+            let stagger = Float(i) * 0.03
+            let debrisAppear = max(0, min(1, (debrisPhase - stagger) * 2))
+            
+            if progress < 0.5 {
+                // Show debris
+                debris.scale = SIMD3<Float>(repeating: debrisAppear)
+            } else {
+                // Debris floats up and fades
+                let fadeProgress = (progress - 0.5) * 2
+                let fadeScale = max(0, 1.0 - fadeProgress)
+                debris.scale = SIMD3<Float>(repeating: fadeScale)
+                debris.position.y += dt * 0.4 * fadeProgress
+                debris.position.x += sin(Float(i)) * dt * 0.08
+                debris.orientation *= simd_quatf(angle: dt * 0.8, axis: normalize([Float(i % 3) + 0.1, 1, Float(i % 2) + 0.1]))
+            }
+        }
+        
+        // Restoration glow appears mid-way
+        if progress > 0.3 {
+            let glowProgress = (progress - 0.3) / 0.4
+            let glowScale = easeOutBack(min(1.0, glowProgress))
+            let glowPulse = 1.0 + sin(animationTime * 1.5) * 0.15
+            restorationGlow?.scale = SIMD3<Float>(repeating: glowScale * glowPulse)
+        }
+        
+        // Light rays (subtle)
+        if progress > 0.4 {
+            let rayPhase = (progress - 0.4) / 0.4
+            for (i, ray) in lightRays.enumerated() {
+                let rayProgress = min(1.0, rayPhase)
+                let rayPulse = 0.9 + sin(animationTime * 0.4 + Float(i) * 0.5) * 0.1
+                ray.scale = SIMD3<Float>(repeating: rayProgress * rayPulse)
+                ray.orientation *= simd_quatf(angle: dt * 0.015, axis: [0, 0, 1])
+            }
+        }
+        
+        // Energy rings expand
+        if progress > 0.5 {
+            let ringPhase = (progress - 0.5) / 0.5
+            for (i, arc) in energyArcs.enumerated() {
+                let stagger = Float(i) * 0.08
+                let arcProgress = max(0, min(1, (ringPhase - stagger) * 2))
+                arc.scale = SIMD3<Float>(repeating: easeOutBack(arcProgress))
+                arc.orientation *= simd_quatf(angle: dt * (0.25 - Float(i) * 0.04), axis: [0, 1, 0])
+            }
+        }
+    }
+    
+    // MARK: - Personalization Animation
+    
+    @MainActor
+    private func animatePersonalization(progress: Float, dt: Float) {
+        // Keep glow with gentle pulse (scale 1.0 base)
+        let calmPulse = 1.0 + sin(animationTime * 1.0) * 0.12
+        restorationGlow?.scale = SIMD3<Float>(repeating: calmPulse)
+        
+        // Keep rays pulsing gently
+        for (i, ray) in lightRays.enumerated() {
+            let rayPulse = 0.9 + sin(animationTime * 0.5 + Float(i) * 0.4) * 0.1
+            ray.scale = SIMD3<Float>(repeating: rayPulse)
+        }
+        
+        // Energy rings rotate
+        for (i, arc) in energyArcs.enumerated() {
+            arc.orientation *= simd_quatf(angle: dt * (0.2 - Float(i) * 0.03), axis: [0, 1, 0])
+        }
+        
+        // Debris should be gone
+        for debris in debrisParticles {
+            debris.scale = SIMD3<Float>(repeating: max(0, debris.scale.x - dt * 1.0))
+        }
+    }
+    
+    // MARK: - CTA Animation
+    
+    @MainActor
+    private func animateCTA(progress: Float, dt: Float) {
+        // Fade restoration elements
+        restorationGlow?.scale = SIMD3<Float>(repeating: max(0, (restorationGlow?.scale.x ?? 0) - dt * 0.4))
+        for ray in lightRays {
+            ray.scale = SIMD3<Float>(repeating: max(0, ray.scale.x - dt * 0.5))
+        }
+        for arc in energyArcs {
+            arc.scale = SIMD3<Float>(repeating: max(0, arc.scale.x - dt * 0.5))
+        }
+        
+        // Portal rings appear
+        for (i, ring) in portalRings.enumerated() {
+            let ringDelay = Float(i) * 0.1
+            let ringProgress = max(0, min(1, (progress - ringDelay) * 2))
+            ring.scale = SIMD3<Float>(repeating: easeOutBack(ringProgress))
+            
+            let rotateSpeed: Float = 0.2 - Float(i) * 0.04
+            let direction: Float = i % 2 == 0 ? 1 : -1
+            ring.orientation *= simd_quatf(angle: dt * rotateSpeed * direction, axis: [0, 1, 0])
+        }
+        
+        // Beacon pulses
+        for (i, pulse) in beaconPulses.enumerated() {
+            let pulseTime = fmod(animationTime * 0.4 + Float(i) * 0.25, 1.0)
+            let pulseRadius = 0.05 + pulseTime * 2.0
+            pulse.scale = SIMD3<Float>(repeating: pulseRadius * progress)
+        }
+        
+        // Portal glow
+        let glowProgress = min(1.0, progress * 1.5)
+        let glowPulse = 1.0 + sin(animationTime * 1.2) * 0.15
+        portalGlow?.scale = SIMD3<Float>(repeating: glowProgress * glowPulse)
+    }
+    
+    // MARK: - Wow Effects Construction
+    
+    @MainActor
+    private func buildWowEffects() async {
+        // 1. Hyperdrive Lines (Speed sensation)
+        for i in 0..<50 {
+            let length = Float.random(in: 0.5...2.0)
+            let lineMesh = MeshResource.generateBox(width: 0.005, height: 0.005, depth: length, cornerRadius: 0.002)
+            var lineMat = UnlitMaterial()
+            lineMat.color = .init(tint: UIColor(white: 1.0, alpha: 0.0)) // Hidden initially
+            lineMat.blending = .transparent(opacity: .init(floatLiteral: 0.0))
+            
+            let line = ModelEntity(mesh: lineMesh, materials: [lineMat])
+            line.name = "Hyperdrive_\(i)"
+            
+            // Random position in a tunnel
+            let angle = Float.random(in: 0...(2 * Float.pi))
+            let radius = Float.random(in: 2.0...5.0)
+            line.position = [cos(angle) * radius, sin(angle) * radius + 1.6, Float.random(in: -5...5)]
+            
+            experienceRoot.addChild(line)
+            hyperdriveLines.append(line)
+        }
+        
+        // 2. Sector Shockwaves (One per sector, reusable)
+        for i in 0..<3 {
+            let waveMesh = MeshResource.generateBox(width: 1.0, height: 0.005, depth: 1.0, cornerRadius: 0.5) // Flat ring-like
+            var waveMat = UnlitMaterial()
+            // Colors matching sectors: Finance (Blue), Supply (Orange), Healthcare (Green)
+            let color: UIColor = i == 0 ? UIColor(red: 0.2, green: 0.5, blue: 1.0, alpha: 1) :
+            (i == 1 ? UIColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 1) :
+             UIColor(red: 0.2, green: 0.8, blue: 0.5, alpha: 1))
+            
+            waveMat.color = .init(tint: color.withAlphaComponent(0.0))
+            waveMat.blending = .transparent(opacity: .init(floatLiteral: 0.0))
+            
+            let wave = ModelEntity(mesh: waveMesh, materials: [waveMat])
+            wave.name = "Shockwave_\(i)"
+            wave.position = [0, 1.6, -2.0]
+            wave.scale = .zero
+            
+            // Tilt slightly for drama
+            wave.orientation = simd_quatf(angle: Float.pi / 6, axis: [1, 0, 0])
+            
+            experienceRoot.addChild(wave)
+            sectorShockwaves.append(wave)
+        }
+    }
+
+    // MARK: - Agent Shape Mesh Creation
+    
+    private func createAgentMesh(shape: AgentShapeType) -> MeshResource {
+        switch shape {
+        case .diamond:
+            // Tall diamond shape (stretched box rotated)
+            return MeshResource.generateBox(width: 0.05, height: 0.07, depth: 0.05, cornerRadius: 0.005)
+            
+        case .triangle:
+            // Forward-pointing triangle (cone approximation)
+            return MeshResource.generateCone(height: 0.06, radius: 0.04)
+            
+        case .star:
+            // Star approximated with stretched box (cross pattern would need custom mesh)
+            return MeshResource.generateBox(width: 0.08, height: 0.04, depth: 0.04, cornerRadius: 0.01)
+            
+        case .octagon:
+            // Octagon approximated with cylinder with many sides
+            return MeshResource.generateCylinder(height: 0.04, radius: 0.045)
+            
+        case .shield:
+            // Shield shape approximated with rounded box
+            return MeshResource.generateBox(width: 0.05, height: 0.065, depth: 0.03, cornerRadius: 0.015)
+            
+        case .circle:
+            // Standard sphere
+            return MeshResource.generateSphere(radius: 0.04)
+        }
+    }
+    
+    // MARK: - Easing
+    
+    private func easeOutBack(_ t: Float) -> Float {
+        let c1: Float = 1.70158
+        let c3: Float = c1 + 1
+        return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
+    }
+}
+
+#Preview(immersionStyle: .full) {
+    ImmersiveNarrativeView()
+        .environment(ExperienceViewModel())
 }

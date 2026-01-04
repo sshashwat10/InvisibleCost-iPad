@@ -45,7 +45,7 @@ struct NarrativeView: View {
             if viewModel.currentPhase == .waiting {
                 VStack {
                     Text("The Invisible Cost")
-                        .font(.system(size: 48, weight: .light, design: .serif))
+                        .font(.custom("Outfit", size: 48).weight(.ultraLight))
                         .foregroundColor(.white)
                         .padding(.bottom, 40)
                     
@@ -53,7 +53,7 @@ struct NarrativeView: View {
                         viewModel.startExperience()
                     }) {
                         Text("Begin Experience")
-                            .font(.headline)
+                            .font(.custom("Outfit", size: 17).weight(.medium))
                             .foregroundColor(.black)
                             .padding(.horizontal, 40)
                             .padding(.vertical, 20)
@@ -74,12 +74,12 @@ struct NarrativeView: View {
                                 Image(systemName: "waveform")
                                     .foregroundColor(.green)
                                 Text("Speaking")
-                                    .font(.caption2)
+                                    .font(.custom("Outfit", size: 11).weight(.light))
                                     .foregroundColor(.green)
                             }
                         }
                         Text("Progress: \(Int(viewModel.phaseProgress * 100))%")
-                            .font(.caption2)
+                            .font(.custom("Outfit", size: 11).weight(.light))
                             .foregroundColor(.white.opacity(0.5))
                     }
                     .padding(6)
@@ -143,140 +143,122 @@ struct NarrativeView: View {
             }
             
         case .narratorFrame:
-            // Phase duration: 19s (25% faster)
-            // Narrations timed to visual reveals
-            triggerAtProgress("opening_1", threshold: 0.05, progress: progress) { // ~1.5s
+            // Phase duration: 17s - balanced pacing
+            triggerAtProgress("opening_1", threshold: 0.05, progress: progress) {
                 audioManager.playNarration(for: "opening_1")
             }
-            triggerAtProgress("opening_2", threshold: 0.35, progress: progress) { // ~10.5s
+            triggerAtProgress("opening_2", threshold: 0.36, progress: progress) {
                 audioManager.playNarration(for: "opening_2")
             }
-            triggerAtProgress("opening_3", threshold: 0.65, progress: progress) { // ~19.5s
+            triggerAtProgress("opening_3", threshold: 0.68, progress: progress) {
                 audioManager.playNarration(for: "opening_3")
             }
             
         case .humanVignettes:
-            // Phase duration: 17s, 3 vignettes (25% faster)
+            // Phase duration: 15s - 3 vignettes
             triggerOnce("vignette_transition") {
                 audioManager.playTransition()
             }
-            triggerAtProgress("vignette_finance", threshold: 0.08, progress: progress) {
+            triggerAtProgress("vignette_finance", threshold: 0.06, progress: progress) {
                 audioManager.playNarration(for: "vignette_finance")
             }
-            triggerAtProgress("vignette_supply_sound", threshold: 0.38, progress: progress) {
+            triggerAtProgress("vignette_supply_sound", threshold: 0.35, progress: progress) {
                 audioManager.playTransition()
             }
-            triggerAtProgress("vignette_supply", threshold: 0.40, progress: progress) {
+            triggerAtProgress("vignette_supply", threshold: 0.37, progress: progress) {
                 audioManager.playNarration(for: "vignette_supply")
             }
-            triggerAtProgress("vignette_health_sound", threshold: 0.70, progress: progress) {
+            triggerAtProgress("vignette_health_sound", threshold: 0.68, progress: progress) {
                 audioManager.playTransition()
             }
-            triggerAtProgress("vignette_health", threshold: 0.72, progress: progress) {
+            triggerAtProgress("vignette_health", threshold: 0.70, progress: progress) {
                 audioManager.playNarration(for: "vignette_health")
             }
             
         case .patternBreak:
-            // Phase duration: 8s (25% faster)
-            // Ambient music continues playing throughout
-            triggerAtProgress("pattern_break", threshold: 0.30, progress: progress) { // ~3.6s
+            // Phase duration: 6s - pattern break beat
+            triggerAtProgress("pattern_break", threshold: 0.25, progress: progress) {
                 audioManager.playNarration(for: "pattern_break")
             }
             
         case .agenticOrchestration:
-            // Phase duration: 28s - extended for full narration
-            // Animation: agents awaken → organize chaos → connect → sync → text
+            // Phase duration: 24s - THE AWAKENING
             
-            // 🎵 EDM DROP - Transition from ambient to upbeat music
+            // 🎵 Music transition
             triggerOnce("music_transition") {
-                audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.5)
+                audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.2)
             }
             
             triggerOnce("reveal") {
                 audioManager.playReveal()
             }
             
-            // === AGENTS AWAKENING (0-33%) ===
-            triggerAtProgress("dot_01", threshold: 0.05, progress: progress) { audioManager.playDotAppear() }
+            // === NODES APPEARING (0-25%) ===
+            triggerAtProgress("dot_01", threshold: 0.04, progress: progress) { audioManager.playDotAppear() }
             triggerAtProgress("dot_02", threshold: 0.08, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_03", threshold: 0.11, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_04", threshold: 0.14, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_05", threshold: 0.17, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_06", threshold: 0.20, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_07", threshold: 0.23, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_03", threshold: 0.12, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_04", threshold: 0.16, progress: progress) { audioManager.playDotAppear() }
+            triggerAtProgress("dot_05", threshold: 0.20, progress: progress) { audioManager.playDotAppear() }
             
-            // === CONNECTIONS FORMING (25-55%) ===
-            triggerAtProgress("line_01", threshold: 0.28, progress: progress) { audioManager.playLineForming() }
+            // === CONNECTIONS FORMING (25-50%) ===
+            triggerAtProgress("line_01", threshold: 0.26, progress: progress) { audioManager.playLineForming() }
             triggerAtProgress("line_02", threshold: 0.32, progress: progress) { audioManager.playLineForming() }
-            triggerAtProgress("line_03", threshold: 0.36, progress: progress) { audioManager.playLineForming() }
-            triggerAtProgress("line_04", threshold: 0.40, progress: progress) { audioManager.playLineForming() }
-            triggerAtProgress("line_05", threshold: 0.44, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_03", threshold: 0.38, progress: progress) { audioManager.playLineForming() }
+            triggerAtProgress("line_04", threshold: 0.44, progress: progress) { audioManager.playLineForming() }
             
-            // === SYNC PULSES (45-65%) ===
-            triggerAtProgress("pulse_1", threshold: 0.48, progress: progress) { audioManager.playSpherePulse() }
-            triggerAtProgress("pulse_2", threshold: 0.54, progress: progress) { audioManager.playSpherePulse() }
-            triggerAtProgress("pulse_3", threshold: 0.60, progress: progress) { audioManager.playSpherePulse() }
+            // === SYNC PULSES (50-65%) ===
+            triggerAtProgress("pulse_1", threshold: 0.50, progress: progress) { audioManager.playSpherePulse() }
+            triggerAtProgress("pulse_2", threshold: 0.56, progress: progress) { audioManager.playSpherePulse() }
             
-            // === TEXT APPEARS + NARRATION (62-100%) ===
-            // Narration: 7.3s - starts at 62% (17.4s), ends at 24.7s ✅ fits in 28s
+            // === TEXT + NARRATION (65-100%) ===
             triggerAtProgress("agentic", threshold: 0.62, progress: progress) {
                 audioManager.playNarration(for: "agentic")
             }
             
         case .humanReturn:
-            // Phase duration: 22s - ENHANCED with 3 narrations
-            // restoration (3.2s) + human_return (5.1s) + potential (~5.5s) = ~14s
-            triggerAtProgress("return_reveal", threshold: 0.08, progress: progress) {
+            // Phase duration: 18s - 3 narrations
+            triggerAtProgress("return_reveal", threshold: 0.05, progress: progress) {
                 audioManager.playReveal()
             }
-            // "And just like that..." starts at 12% (2.6s), ends at 5.8s
-            triggerAtProgress("restoration", threshold: 0.12, progress: progress) {
+            triggerAtProgress("restoration", threshold: 0.10, progress: progress) {
                 audioManager.playNarration(for: "restoration")
             }
-            // "The noise fades..." starts at 30% (6.6s), ends at 11.7s
-            triggerAtProgress("human_return", threshold: 0.30, progress: progress) {
+            triggerAtProgress("human_return", threshold: 0.32, progress: progress) {
                 audioManager.playNarration(for: "human_return")
             }
-            // "This is what happens..." starts at 58% (12.8s), ends at ~18.3s ✅ fits in 22s
             triggerAtProgress("potential", threshold: 0.58, progress: progress) {
                 audioManager.playNarration(for: "potential")
             }
             
         case .personalization:
-            // Phase duration: 16s - interactive slider
+            // Phase duration: 14s - interactive slider
             triggerOnce("ui_feedback") {
                 audioManager.playUIFeedback()
             }
             
         case .stillnessCTA:
-            // Phase duration: 55s - ENHANCED IMPACT SEQUENCE (5 narrations)
-            // vision (~8.5s) + closing (12.4s) + proof (~6.5s) + question (10.3s) + final_cta (~5.5s) = ~43s
+            // Phase duration: 50s - final impact sequence
             triggerOnce("completion") {
                 audioManager.playCompletion()
             }
-            // 1. "Picture this..." starts at 2% (1.1s), ends at ~9.6s
             triggerAtProgress("vision", threshold: 0.02, progress: progress) {
                 audioManager.playNarration(for: "vision")
             }
-            // 2. "Imagine what's possible..." starts at 20% (11s), ends at ~23.4s
             triggerAtProgress("closing", threshold: 0.20, progress: progress) {
                 audioManager.playNarration(for: "closing")
             }
-            // 3. "This isn't a vision..." starts at 45% (24.8s), ends at ~31.3s
-            triggerAtProgress("proof", threshold: 0.45, progress: progress) {
+            triggerAtProgress("proof", threshold: 0.46, progress: progress) {
                 audioManager.playNarration(for: "proof")
             }
-            // 4. "In a world that demands..." starts at 60% (33s), ends at ~43.3s
             triggerAtProgress("question", threshold: 0.60, progress: progress) {
                 audioManager.playNarration(for: "question")
             }
-            // 5. "The invisible cost ends here..." starts at 80% (44s), ends at ~49.5s ✅ fits in 55s
             triggerAtProgress("final_cta", threshold: 0.80, progress: progress) {
                 audioManager.playNarration(for: "final_cta")
             }
-            // Music fadeout at 75% (41s) with 12s gradual fade = gentle ending
-            triggerAtProgress("music_fadeout", threshold: 0.75, progress: progress) {
-                audioManager.fadeOutUpbeatMusic(duration: 12.0)
+            // Music fadeout - starts earlier for smoother ending
+            triggerAtProgress("music_fadeout", threshold: 0.65, progress: progress) {
+                audioManager.fadeOutUpbeatMusic(duration: 15.0)
             }
             
         case .complete:

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The Invisible Cost - A Spatial Narrative Experience for Vision Pro
-/// Davos 2026 Tier 2 Experience
+/// 1:1 replica of the iPad Tier 1 Experience
 
 @main
 struct InvisibleCostApp: App {
@@ -24,4 +24,3 @@ struct InvisibleCostApp: App {
         .immersionStyle(selection: $immersionStyle, in: .progressive, .full)
     }
 }
-
