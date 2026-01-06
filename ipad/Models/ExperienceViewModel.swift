@@ -11,11 +11,12 @@ enum Tier1Phase: Int, CaseIterable {
     case humanVignettes        // 3 vignettes
     case patternBreak          // Pattern break
     case agenticOrchestration  // THE AWAKENING animation
+    case automationAnywhereReveal // Epic AA brand reveal with logo
     case humanReturn           // 3 narrations
     case personalization       // Interactive slider
     case stillnessCTA          // Final impact sequence
     case complete
-    
+
     var duration: TimeInterval {
         switch self {
         case .waiting: return 0
@@ -24,6 +25,7 @@ enum Tier1Phase: Int, CaseIterable {
         case .humanVignettes: return 15        // 3 vignettes
         case .patternBreak: return 6           // Pattern break beat
         case .agenticOrchestration: return 24  // THE AWAKENING
+        case .automationAnywhereReveal: return 8 // Epic brand reveal
         case .humanReturn: return 18           // Restoration
         case .personalization: return 14       // Interactive slider
         case .stillnessCTA: return 50          // Final impact sequence

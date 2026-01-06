@@ -85,8 +85,8 @@ NARRATION_LINES = [
     },
     {
         "key": "opening_3",
-        "text": "Hundreds of decisions that should never have been yours.",
-        "note": "Definitive ending - hard full stop"
+        "text": "Imagine being freed from repetitive, mundane tasks.",
+        "note": "Hopeful, inviting - sparks imagination"
     },
     
     # VIGNETTES - definitive endings
@@ -113,13 +113,20 @@ NARRATION_LINES = [
         "note": "Hopeful question, smooth flow"
     },
     
-    # AGENTIC - clean and powerful
+    # AGENTIC - clean and powerful with brand callout
     {
         "key": "agentic",
-        "text": "This is Agentic Orchestration. Intelligence that anticipates. Acts. And frees you to think.",
-        "note": "Periods create weight on each word"
+        "text": "This is... Agentic Orchestration... Intelligence that anticipates. Acts. And frees you to think.",
+        "note": "Dramatic pause after Agentic Orchestration, then powerful statements"
     },
-    
+
+    # AUTOMATION ANYWHERE REVEAL - simple brand reveal
+    {
+        "key": "aa_reveal",
+        "text": "From Automation Anywhere... Agentic A.I. without the B.S.",
+        "note": "Brand reveal with tagline - periods in A.I. and B.S. for pronunciation"
+    },
+
     # HUMAN RETURN - COMPLEMENTS screen text, doesn't read it
     # Screen shows: "RELEASED" / "Rise." / "Your genius awaits."
     # Narration provides emotional context

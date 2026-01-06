@@ -31,6 +31,8 @@ struct NarrativeView: View {
                 case .agenticOrchestration:
                     AgenticOrchestrationAnimation(progress: viewModel.phaseProgress)
                         .environment(motionManager)
+                case .automationAnywhereReveal:
+                    AutomationAnywhereRevealAnimation(progress: viewModel.phaseProgress)
                 case .humanReturn:
                     HumanReturnAnimation(progress: viewModel.phaseProgress)
                 case .personalization:
@@ -63,33 +65,6 @@ struct NarrativeView: View {
                 }
             }
             
-            // Audio indicator (debug)
-            #if DEBUG
-            VStack {
-                HStack {
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
-                        if audioManager.isNarrationPlaying {
-                            HStack(spacing: 4) {
-                                Image(systemName: "waveform")
-                                    .foregroundColor(.green)
-                                Text("Speaking")
-                                    .font(.custom("Outfit", size: 11).weight(.light))
-                                    .foregroundColor(.green)
-                            }
-                        }
-                        Text("Progress: \(Int(viewModel.phaseProgress * 100))%")
-                            .font(.custom("Outfit", size: 11).weight(.light))
-                            .foregroundColor(.white.opacity(0.5))
-                    }
-                    .padding(6)
-                    .background(Color.black.opacity(0.5))
-                    .cornerRadius(8)
-                }
-                Spacer()
-            }
-            .padding()
-            #endif
         }
         .onReceive(timer) { _ in
             if viewModel.isExperienceActive {
@@ -114,8 +89,10 @@ struct NarrativeView: View {
             // Phase changed - stop any playing narration first
             audioManager.stopNarration()
             
-            // Play transition sound (except for first phase)
-            if lastPhase != .waiting {
+            // Play transition sound (except for first phase and smooth transitions)
+            // Skip transition sounds for: agenticOrchestration → automationAnywhereReveal → humanReturn
+            let silentTransitions: Set<Tier1Phase> = [.automationAnywhereReveal, .humanReturn]
+            if lastPhase != .waiting && !silentTransitions.contains(viewModel.currentPhase) {
                 audioManager.playTransition()
             }
             
@@ -143,35 +120,35 @@ struct NarrativeView: View {
             }
             
         case .narratorFrame:
-            // Phase duration: 17s - balanced pacing
+            // Phase duration: 17s
             triggerAtProgress("opening_1", threshold: 0.05, progress: progress) {
                 audioManager.playNarration(for: "opening_1")
             }
-            triggerAtProgress("opening_2", threshold: 0.36, progress: progress) {
+            triggerAtProgress("opening_2", threshold: 0.35, progress: progress) {
                 audioManager.playNarration(for: "opening_2")
             }
-            triggerAtProgress("opening_3", threshold: 0.68, progress: progress) {
+            triggerAtProgress("opening_3", threshold: 0.65, progress: progress) {
                 audioManager.playNarration(for: "opening_3")
             }
             
         case .humanVignettes:
-            // Phase duration: 15s - 3 vignettes
+            // Phase duration: 15s - 3 vignettes at 0%, 33%, 66%
             triggerOnce("vignette_transition") {
                 audioManager.playTransition()
             }
-            triggerAtProgress("vignette_finance", threshold: 0.06, progress: progress) {
+            triggerAtProgress("vignette_finance", threshold: 0.05, progress: progress) {
                 audioManager.playNarration(for: "vignette_finance")
             }
-            triggerAtProgress("vignette_supply_sound", threshold: 0.35, progress: progress) {
+            triggerAtProgress("vignette_supply_sound", threshold: 0.33, progress: progress) {
                 audioManager.playTransition()
             }
-            triggerAtProgress("vignette_supply", threshold: 0.37, progress: progress) {
+            triggerAtProgress("vignette_supply", threshold: 0.38, progress: progress) {
                 audioManager.playNarration(for: "vignette_supply")
             }
-            triggerAtProgress("vignette_health_sound", threshold: 0.68, progress: progress) {
+            triggerAtProgress("vignette_health_sound", threshold: 0.66, progress: progress) {
                 audioManager.playTransition()
             }
-            triggerAtProgress("vignette_health", threshold: 0.70, progress: progress) {
+            triggerAtProgress("vignette_health", threshold: 0.71, progress: progress) {
                 audioManager.playNarration(for: "vignette_health")
             }
             
@@ -186,47 +163,30 @@ struct NarrativeView: View {
             
             // 🎵 Music transition
             triggerOnce("music_transition") {
-                audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.2)
+                audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.5)
             }
             
-            triggerOnce("reveal") {
-                audioManager.playReveal()
-            }
-            
-            // === NODES APPEARING (0-25%) ===
-            triggerAtProgress("dot_01", threshold: 0.04, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_02", threshold: 0.08, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_03", threshold: 0.12, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_04", threshold: 0.16, progress: progress) { audioManager.playDotAppear() }
-            triggerAtProgress("dot_05", threshold: 0.20, progress: progress) { audioManager.playDotAppear() }
-            
-            // === CONNECTIONS FORMING (25-50%) ===
-            triggerAtProgress("line_01", threshold: 0.26, progress: progress) { audioManager.playLineForming() }
-            triggerAtProgress("line_02", threshold: 0.32, progress: progress) { audioManager.playLineForming() }
-            triggerAtProgress("line_03", threshold: 0.38, progress: progress) { audioManager.playLineForming() }
-            triggerAtProgress("line_04", threshold: 0.44, progress: progress) { audioManager.playLineForming() }
-            
-            // === SYNC PULSES (50-65%) ===
-            triggerAtProgress("pulse_1", threshold: 0.50, progress: progress) { audioManager.playSpherePulse() }
-            triggerAtProgress("pulse_2", threshold: 0.56, progress: progress) { audioManager.playSpherePulse() }
-            
-            // === TEXT + NARRATION (65-100%) ===
+            // === TEXT + NARRATION (60-100%) ===
             triggerAtProgress("agentic", threshold: 0.62, progress: progress) {
                 audioManager.playNarration(for: "agentic")
             }
-            
+
+        case .automationAnywhereReveal:
+            // Phase duration: 8s - Simple logo reveal
+            // Delayed narration to sync with tagline appearing at 50%
+            triggerAtProgress("aa_reveal", threshold: 0.52, progress: progress) {
+                audioManager.playNarration(for: "aa_reveal")
+            }
+
         case .humanReturn:
             // Phase duration: 18s - 3 narrations
-            triggerAtProgress("return_reveal", threshold: 0.05, progress: progress) {
-                audioManager.playReveal()
-            }
             triggerAtProgress("restoration", threshold: 0.10, progress: progress) {
                 audioManager.playNarration(for: "restoration")
             }
-            triggerAtProgress("human_return", threshold: 0.32, progress: progress) {
+            triggerAtProgress("human_return", threshold: 0.35, progress: progress) {
                 audioManager.playNarration(for: "human_return")
             }
-            triggerAtProgress("potential", threshold: 0.58, progress: progress) {
+            triggerAtProgress("potential", threshold: 0.60, progress: progress) {
                 audioManager.playNarration(for: "potential")
             }
             
@@ -244,21 +204,21 @@ struct NarrativeView: View {
             triggerAtProgress("vision", threshold: 0.02, progress: progress) {
                 audioManager.playNarration(for: "vision")
             }
-            triggerAtProgress("closing", threshold: 0.20, progress: progress) {
+            triggerAtProgress("closing", threshold: 0.18, progress: progress) {
                 audioManager.playNarration(for: "closing")
             }
-            triggerAtProgress("proof", threshold: 0.46, progress: progress) {
+            triggerAtProgress("proof", threshold: 0.38, progress: progress) {
                 audioManager.playNarration(for: "proof")
             }
-            triggerAtProgress("question", threshold: 0.60, progress: progress) {
+            triggerAtProgress("question", threshold: 0.54, progress: progress) {
                 audioManager.playNarration(for: "question")
             }
-            triggerAtProgress("final_cta", threshold: 0.80, progress: progress) {
+            triggerAtProgress("final_cta", threshold: 0.72, progress: progress) {
                 audioManager.playNarration(for: "final_cta")
             }
-            // Music fadeout - starts earlier for smoother ending
-            triggerAtProgress("music_fadeout", threshold: 0.65, progress: progress) {
-                audioManager.fadeOutUpbeatMusic(duration: 15.0)
+            // Music fadeout
+            triggerAtProgress("music_fadeout", threshold: 0.60, progress: progress) {
+                audioManager.fadeOutUpbeatMusic(duration: 16.0)
             }
             
         case .complete:
@@ -319,7 +279,12 @@ struct NarrativeView: View {
                 hapticGenerator.impactOccurred(intensity: 0.2)
             }
         }
-        
+
+        // Automation Anywhere Reveal: Gentle tap on logo appearance
+        if viewModel.currentPhase == .automationAnywhereReveal && progress > 0.20 && progress < 0.24 {
+            hapticGenerator.impactOccurred(intensity: 0.4)
+        }
+
         // Human Return: Warm tap on restoration
         if viewModel.currentPhase == .humanReturn && progress > 0.15 && progress < 0.18 {
             hapticGenerator.impactOccurred(intensity: 0.6)

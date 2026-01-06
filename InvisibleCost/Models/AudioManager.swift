@@ -2,7 +2,11 @@ import Foundation
 import AVFoundation
 
 /// Audio manager for the Invisible Cost Vision Pro experience
-/// Handles narration, ambient sounds, and spatial audio effects
+/// Handles narration, ambient sounds, and audio effects
+/// 
+/// NOTE: For true spatial audio in Vision Pro, use RealityKit's
+/// SpatialAudioComponent attached to entities in ImmersiveNarrativeView.
+/// This manager handles the audio content; positioning is done in 3D space.
 @Observable
 class AudioManager {
     static let shared = AudioManager()
@@ -21,13 +25,16 @@ class AudioManager {
     private(set) var isNarrationPlaying = false
     private var isUpbeatMode = false
     
-    // Volume controls
-    var ambientVolume: Float = 0.08
+    // Volume controls - optimized for Vision Pro immersion
+    var ambientVolume: Float = 0.10  // Slightly higher for spatial presence
     var narrationVolume: Float = 1.0
-    var effectsVolume: Float = 0.55
+    var effectsVolume: Float = 0.60
     
     // Track triggered audio (prevents re-triggers)
     private var triggeredAudio: Set<String> = []
+    
+    // Current phase tracking for dynamic audio adjustments
+    private(set) var currentPhase: NarrativePhase = .waiting
     
     private init() {
         setupAudioSession()
@@ -141,24 +148,35 @@ class AudioManager {
     
     // MARK: - Narration
     
-    /// Narration texts (fallback if MP3 not found)
+    /// Narration texts (fallback if MP3 not found) - 1:1 PARITY with iPad
     private let narratorLines: [String: String] = [
-        "opening_1": "Twelve hours of reports. Seventeen hours of data entry. Twenty-three hours lost to scheduling.",
-        "opening_2": "This shouldn't have been yours to make. Hours vanishing. Potential fading.",
-        "opening_3": "Work that fills your day, but empties your purpose.",
-        "vignette_finance": "In Finance, three days of reconciliation. Errors cascade into crisis.",
-        "vignette_supply": "In Supply Chain, four days to cross-reference. Markets move without you.",
-        "vignette_health": "In Healthcare, eighty hours of charting. Patients wait for human connection.",
+        // Opening - matches iPad exactly
+        "opening_1": "There's something your organization doesn't talk about.",
+        "opening_2": "A silent drain on every leader, every team, every single day.",
+        "opening_3": "Hundreds of decisions that should never have been yours.",
+        
+        // Vignettes - matches iPad exactly
+        "vignette_finance": "Hours lost to tasks that machines were made for.",
+        "vignette_supply": "Brilliant minds trapped in busywork.",
+        "vignette_health": "Healers buried under paperwork.",
+        
+        // Pattern break
         "pattern_break": "But what if tomorrow looked different?",
-        "agentic": "Intelligence that anticipates. Acts. And frees you to think.",
+        
+        // Agentic - matches iPad exactly
+        "agentic": "This is Agentic Orchestration. Intelligence that anticipates. Acts. And frees you to think.",
+        
+        // Human return
         "restoration": "The chains dissolve. One by one.",
         "human_return": "And suddenly you remember what it feels like to breathe.",
         "potential": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
+        
+        // Closing - matches iPad exactly
         "vision": "Picture a world where strategists think bigger. Innovators move faster. Leaders focus on what truly matters.",
-        "proof": "The evidence is clear.",
         "closing": "When your people are free, everything changes. Innovation accelerates. Sustainability becomes possible. People thrive.",
-        "question": "With Automationanywhere, you have the power to lead in a world that demands more.",
-        "final_cta": "The invisible cost ends now."
+        "proof": "This isn't tomorrow. Organizations are living this today.",
+        "question": "With Automation Anywhere, you have the power to lead in a world that demands more.",
+        "final_cta": "The invisible cost... ends now. The future of work... starts here."
     ]
     
     func playNarration(for key: String) {
@@ -248,99 +266,128 @@ class AudioManager {
     func playLineForming() { playEffect(named: "sfx_line_forming") }
     func playSpherePulse() { playEffect(named: "sfx_pulse") }
     func playSphereShrink() { playEffect(named: "sfx_shrink") }
+    func playUIFeedback() { playEffect(named: "sfx_ui_feedback") }
+    func transitionToUpbeatMusic(crossfadeDuration: TimeInterval = 1.0) { startUpbeatMusic() }
     
-    // MARK: - Phase Audio Triggers
+    // MARK: - Phase Audio Triggers (1:1 PARITY with iPad)
     
     func playAudioForPhase(_ phase: NarrativePhase, progress: Double) {
+        // Track current phase for spatial audio adjustments
+        currentPhase = phase
+        
         switch phase {
         case .microColdOpen:
+            // Start ambient immediately
             triggerOnce("ambient_start", at: 0.01, progress: progress) {
                 self.playAmbientHum()
             }
             
         case .narratorFrame:
+            // Phase duration: 17s - balanced pacing (matches iPad)
             triggerOnce("opening_1", at: 0.05, progress: progress) {
                 self.playNarration(for: "opening_1")
             }
-            triggerOnce("opening_2", at: 0.40, progress: progress) {
+            triggerOnce("opening_2", at: 0.36, progress: progress) {
                 self.playNarration(for: "opening_2")
             }
-            triggerOnce("opening_3", at: 0.75, progress: progress) {
+            triggerOnce("opening_3", at: 0.68, progress: progress) {
                 self.playNarration(for: "opening_3")
             }
             
         case .spatialOverwhelm:
-            triggerOnce("vignette_finance", at: 0.15, progress: progress) {
+            // Phase duration: 5s - tight vignette (matches iPad's 15s / 3)
+            triggerOnce("vignette_finance", at: 0.10, progress: progress) {
                 self.playNarration(for: "vignette_finance")
             }
             
         case .realityCrack:
-            triggerOnce("vignette_supply", at: 0.15, progress: progress) {
+            // Phase duration: 5s
+            triggerOnce("vignette_supply", at: 0.10, progress: progress) {
                 self.playNarration(for: "vignette_supply")
             }
             
         case .humanFragment:
-            triggerOnce("vignette_health", at: 0.15, progress: progress) {
+            // Phase duration: 5s
+            triggerOnce("vignette_health", at: 0.10, progress: progress) {
                 self.playNarration(for: "vignette_health")
             }
             
         case .patternBreak:
-            triggerOnce("pattern_break", at: 0.25, progress: progress) {
+            // Phase duration: 6s (matches iPad)
+            triggerOnce("pattern_break", at: 0.20, progress: progress) {
                 self.playNarration(for: "pattern_break")
             }
-            triggerOnce("transition_sfx", at: 0.60, progress: progress) {
+            triggerOnce("transition_sfx", at: 0.65, progress: progress) {
                 self.playTransition()
             }
             
         case .agenticOrchestration:
+            // Phase duration: 24s (matches iPad) - THE AWAKENING
             triggerOnce("upbeat_start", at: 0.01, progress: progress) {
                 self.startUpbeatMusic()
             }
-            triggerOnce("sphere_forming", at: 0.10, progress: progress) {
-                self.playSphereForming()
+            triggerOnce("reveal_sfx", at: 0.03, progress: progress) {
+                self.playReveal()
             }
-            triggerOnce("agentic", at: 0.70, progress: progress) {
+            // Dot appear sounds (matches iPad)
+            triggerOnce("dot_01", at: 0.04, progress: progress) { self.playDotAppear() }
+            triggerOnce("dot_02", at: 0.08, progress: progress) { self.playDotAppear() }
+            triggerOnce("dot_03", at: 0.12, progress: progress) { self.playDotAppear() }
+            triggerOnce("dot_04", at: 0.16, progress: progress) { self.playDotAppear() }
+            triggerOnce("dot_05", at: 0.20, progress: progress) { self.playDotAppear() }
+            // Line forming sounds
+            triggerOnce("line_01", at: 0.26, progress: progress) { self.playLineForming() }
+            triggerOnce("line_02", at: 0.32, progress: progress) { self.playLineForming() }
+            triggerOnce("line_03", at: 0.38, progress: progress) { self.playLineForming() }
+            triggerOnce("line_04", at: 0.44, progress: progress) { self.playLineForming() }
+            // Pulse sounds
+            triggerOnce("pulse_1", at: 0.50, progress: progress) { self.playSpherePulse() }
+            triggerOnce("pulse_2", at: 0.56, progress: progress) { self.playSpherePulse() }
+            // Narration at 62% (matches iPad)
+            triggerOnce("agentic", at: 0.62, progress: progress) {
                 self.playNarration(for: "agentic")
             }
             
         case .humanReturn:
-            triggerOnce("reveal_sfx", at: 0.12, progress: progress) {
+            // Phase duration: 18s (matches iPad)
+            triggerOnce("reveal_sfx", at: 0.05, progress: progress) {
                 self.playReveal()
             }
-            triggerOnce("restoration", at: 0.18, progress: progress) {
+            triggerOnce("restoration", at: 0.10, progress: progress) {
                 self.playNarration(for: "restoration")
             }
-            triggerOnce("human_return", at: 0.45, progress: progress) {
+            triggerOnce("human_return", at: 0.32, progress: progress) {
                 self.playNarration(for: "human_return")
             }
-            triggerOnce("potential", at: 0.72, progress: progress) {
+            triggerOnce("potential", at: 0.58, progress: progress) {
                 self.playNarration(for: "potential")
             }
             
         case .personalization:
-            // Calm phase - no new audio
+            // Calm phase - UI feedback only
             break
             
         case .stillnessCTA:
-            triggerOnce("vision", at: 0.05, progress: progress) {
+            // Phase duration: 50s (matches iPad)
+            triggerOnce("vision", at: 0.04, progress: progress) {
                 self.playNarration(for: "vision")
             }
-            triggerOnce("proof", at: 0.22, progress: progress) {
-                self.playNarration(for: "proof")
-            }
-            triggerOnce("closing", at: 0.38, progress: progress) {
+            triggerOnce("closing", at: 0.18, progress: progress) {
                 self.playNarration(for: "closing")
             }
-            triggerOnce("question", at: 0.58, progress: progress) {
+            triggerOnce("proof", at: 0.34, progress: progress) {
+                self.playNarration(for: "proof")
+            }
+            triggerOnce("question", at: 0.50, progress: progress) {
                 self.playNarration(for: "question")
             }
-            triggerOnce("final_cta", at: 0.78, progress: progress) {
+            triggerOnce("final_cta", at: 0.70, progress: progress) {
                 self.playNarration(for: "final_cta")
             }
-            triggerOnce("music_fadeout", at: 0.75, progress: progress) {
-                self.fadeOutUpbeatMusic(duration: 12.0)
+            triggerOnce("music_fadeout", at: 0.72, progress: progress) {
+                self.fadeOutUpbeatMusic(duration: 10.0)
             }
-            triggerOnce("completion_sfx", at: 0.90, progress: progress) {
+            triggerOnce("completion_sfx", at: 0.92, progress: progress) {
                 self.playCompletion()
             }
             

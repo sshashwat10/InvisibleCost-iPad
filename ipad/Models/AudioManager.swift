@@ -305,7 +305,7 @@ class AudioManager {
         // Opening - definitive full stops
         "opening_1": "There's something your organization doesn't talk about.",
         "opening_2": "A silent drain on every leader, every team, every single day.",
-        "opening_3": "Hundreds of decisions that should never have been yours.",
+        "opening_3": "Imagine being freed from repetitive, mundane tasks.",
         
         // Vignettes - definitive endings
         "vignette_finance": "Hours lost to tasks that machines were made for.",
@@ -314,9 +314,12 @@ class AudioManager {
         
         // Pattern break
         "pattern_break": "But what if tomorrow looked different?",
-        
+
         // Agentic - periods create weight
         "agentic": "This is Agentic Orchestration. Intelligence that anticipates. Acts. And frees you to think.",
+
+        // Automation Anywhere reveal
+        "aa_reveal": "Automation Anywhere. Powering the future of work.",
         
         // Human return - COMPLEMENTS screen text, doesn't read it
         "restoration": "The chains dissolve. One by one.",
@@ -831,6 +834,8 @@ class AudioManager {
             break
         case .agenticOrchestration:
             playReveal()
+        case .automationAnywhereReveal:
+            playReveal()
         case .humanReturn:
             playReveal()
         case .personalization:
@@ -868,6 +873,8 @@ extension Tier1Phase {
             return ["pattern_break"]
         case .agenticOrchestration:
             return ["agentic"]
+        case .automationAnywhereReveal:
+            return ["aa_reveal"]
         case .humanReturn:
             return ["restoration", "human_return"]
         case .stillnessCTA:

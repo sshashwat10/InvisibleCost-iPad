@@ -2,35 +2,35 @@ import SwiftUI
 import Observation
 
 /// The Invisible Cost - Vision Pro Experience Phases
-/// Mirrors iPad Tier1Phase exactly for 1:1 narrative parity
-/// TOTAL RUNTIME: ~189 seconds (3:09)
+/// 1:1 PARITY with iPad - Exact same timing and narrative flow
+/// TOTAL RUNTIME: ~150 seconds (2:30) - Matches iPad exactly
 enum NarrativePhase: Int, CaseIterable {
     case waiting = 0
-    case microColdOpen           // 00:00-00:07 - Black void, ambient audio
-    case narratorFrame           // 00:07-00:26 - Opening narrations with text
-    case spatialOverwhelm        // Finance vignette
-    case realityCrack            // Supply chain vignette
-    case humanFragment           // Healthcare vignette
-    case patternBreak            // 00:43-00:51 - Pattern break transition
-    case agenticOrchestration    // 00:51-01:19 - THE AWAKENING - 3D agents
-    case humanReturn             // 01:19-01:41 - Restoration phase
-    case personalization         // 01:41-01:57 - Interactive impact calculator
-    case stillnessCTA            // 01:57-02:52 - Call to action
+    case microColdOpen           // 00:00-00:06 - Black void, ambient audio
+    case narratorFrame           // 00:06-00:23 - Opening narrations with text
+    case spatialOverwhelm        // Finance vignette (5s)
+    case realityCrack            // Supply chain vignette (5s)
+    case humanFragment           // Healthcare vignette (5s)
+    case patternBreak            // Pattern break transition
+    case agenticOrchestration    // THE AWAKENING - 3D agents
+    case humanReturn             // Restoration phase
+    case personalization         // Interactive impact calculator
+    case stillnessCTA            // Call to action
     case complete
     
     var duration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .microColdOpen: return 7          // Ambient intro
-        case .narratorFrame: return 16         // Opening narrations
-        case .spatialOverwhelm: return 9       // Finance vignette
-        case .realityCrack: return 9           // Supply chain vignette
-        case .humanFragment: return 9          // Healthcare vignette
-        case .patternBreak: return 8           // Pattern break
-        case .agenticOrchestration: return 28  // THE AWAKENING
-        case .humanReturn: return 22           // Restoration
-        case .personalization: return 16       // Interactive slider
-        case .stillnessCTA: return 55          // CTA - full impact
+        case .microColdOpen: return 6          // Brief ambient intro (matches iPad)
+        case .narratorFrame: return 17         // Opening narrations (matches iPad)
+        case .spatialOverwhelm: return 5       // Finance vignette (15s total / 3)
+        case .realityCrack: return 5           // Supply chain vignette
+        case .humanFragment: return 5          // Healthcare vignette
+        case .patternBreak: return 6           // Pattern break (matches iPad)
+        case .agenticOrchestration: return 24  // THE AWAKENING (matches iPad)
+        case .humanReturn: return 18           // Restoration (matches iPad)
+        case .personalization: return 10       // Animated impact reveal
+        case .stillnessCTA: return 50          // CTA (matches iPad)
         case .complete: return 0
         }
     }
@@ -103,12 +103,17 @@ class ExperienceViewModel {
         totalElapsedTime += deltaTime
         
         let duration = currentPhase.duration
-        if duration > 0 {
-            phaseProgress = min(1.0, phaseElapsedTime / duration)
-            
-            if phaseProgress >= 1.0 {
-                advanceToNextPhase()
-            }
+        
+        // If duration is 0 or very small, skip immediately to next phase
+        if duration <= 0.01 {
+            advanceToNextPhase()
+            return
+        }
+        
+        phaseProgress = min(1.0, phaseElapsedTime / duration)
+        
+        if phaseProgress >= 1.0 {
+            advanceToNextPhase()
         }
     }
     

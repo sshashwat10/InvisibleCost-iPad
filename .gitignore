@@ -110,3 +110,11 @@ secrets.json
 # Uncomment if you regenerate these:
 # *.usdz
 
+# Generated narration output
+output/
+scripts/output/
+
+# Xcode user state files
+*.xcuserstate
+**/UserInterfaceState.xcuserstate
+

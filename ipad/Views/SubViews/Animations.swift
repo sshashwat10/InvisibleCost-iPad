@@ -954,6 +954,11 @@ struct AgenticOrchestrationAnimation: View {
     var progress: Double
     @Environment(MotionManager.self) private var motion
     
+    // Smooth fade-out at the end for seamless transition
+    private var exitFade: Double {
+        progress > 0.90 ? 1.0 - ((progress - 0.90) / 0.10) : 1.0  // Fade out last 10%
+    }
+    
     // Teal color palette - clean and techy
     private let primaryTeal = Color(red: 0.0, green: 0.6, blue: 0.7)
     private let glowTeal = Color(red: 0.1, green: 0.8, blue: 0.9)
@@ -982,16 +987,26 @@ struct AgenticOrchestrationAnimation: View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
-            // Animation phases
+            // Animation phases with smoother easing
             let pointsAppear = min(1.0, progress / 0.25)        // 0-25%: points appear
             let connectPhase = min(1.0, max(0, (progress - 0.20) / 0.25)) // 20-45%: connections
             let pulsePhase = min(1.0, max(0, (progress - 0.40) / 0.20))   // 40-60%: pulse
-            let shrinkPhase = min(1.0, max(0, (progress - 0.55) / 0.15))  // 55-70%: shrink
-            let textPhase = min(1.0, max(0, (progress - 0.60) / 0.15))    // 60-75%: text
             
-            // Sphere scale
-            let sphereScale = 1.0 - shrinkPhase * 0.45
-            let sphereOffsetY = shrinkPhase * -80
+            // Smoother shrink: longer duration with easeInOut curve
+            let shrinkRaw = min(1.0, max(0, (progress - 0.50) / 0.25))  // 50-75%: shrink (longer)
+            let shrinkPhase = shrinkRaw * shrinkRaw * (3 - 2 * shrinkRaw) // smoothstep easing
+            
+            // Text appears after shrink is well underway
+            let textRaw = min(1.0, max(0, (progress - 0.65) / 0.20))    // 65-85%: text (delayed)
+            let textPhase = textRaw * textRaw * (3 - 2 * textRaw) // smoothstep easing
+            
+            // Sphere scale with gentler curve
+            let sphereScale = 1.0 - shrinkPhase * 0.5
+            let sphereOffsetY = shrinkPhase * -100
+            let sphereOpacity = 1.0 - shrinkPhase * 0.5 // fade less so glow is visible
+            
+            // Intensify glow as sphere shrinks (power-up effect)
+            let shrinkGlow = shrinkPhase * 0.6  // Extra glow intensity during shrink
             
             ZStack {
                 Color.black.ignoresSafeArea()
@@ -1017,6 +1032,9 @@ struct AgenticOrchestrationAnimation: View {
                     let center = CGPoint(x: size.width / 2, y: size.height / 2 + CGFloat(sphereOffsetY))
                     let baseRadius: CGFloat = min(size.width, size.height) * 0.30
                     let sphereRadius = baseRadius * CGFloat(sphereScale)
+                    
+                    // Apply opacity for smooth fade
+                    context.opacity = sphereOpacity
                     
                     // Rotation for 3D effect
                     let rotationY = time * 0.2
@@ -1050,16 +1068,33 @@ struct AgenticOrchestrationAnimation: View {
                         }
                     }
                     
-                    // Outer glow
-                    let glowRadius = sphereRadius * 1.6
+                    // Outer glow - intensifies as sphere shrinks (power-up effect)
+                    let baseGlowIntensity = 0.2 + pulsePhase * 0.15 + shrinkGlow
+                    let glowRadius = sphereRadius * (1.6 + shrinkGlow * 1.5)  // Glow expands as it shrinks
+                    
+                    // Primary glow
                     context.fill(
                         Circle().path(in: CGRect(x: center.x - glowRadius, y: center.y - glowRadius,
                                                   width: glowRadius * 2, height: glowRadius * 2)),
                         with: .radialGradient(
-                            Gradient(colors: [primaryTeal.opacity(0.2 + pulsePhase * 0.15), .clear]),
+                            Gradient(colors: [glowTeal.opacity(baseGlowIntensity), primaryTeal.opacity(baseGlowIntensity * 0.5), .clear]),
                             center: center, startRadius: 0, endRadius: glowRadius
                         )
                     )
+                    
+                    // Extra bright core glow when shrinking
+                    if shrinkGlow > 0.1 {
+                        let coreGlowRadius = sphereRadius * 0.8
+                        let coreIntensity = shrinkGlow * 1.2
+                        context.fill(
+                            Circle().path(in: CGRect(x: center.x - coreGlowRadius, y: center.y - coreGlowRadius,
+                                                      width: coreGlowRadius * 2, height: coreGlowRadius * 2)),
+                            with: .radialGradient(
+                                Gradient(colors: [Color.white.opacity(coreIntensity * 0.5), glowTeal.opacity(coreIntensity), .clear]),
+                                center: center, startRadius: 0, endRadius: coreGlowRadius
+                            )
+                        )
+                    }
                     
                     // Draw connections between nearby points (mesh network)
                     if connectPhase > 0 {
@@ -1201,24 +1236,25 @@ struct AgenticOrchestrationAnimation: View {
                                 .shadow(color: electricBlue.opacity(0.5), radius: 30)
                         }
                         .opacity(textPhase)
-                        .scaleEffect(0.9 + textPhase * 0.1)
-                        .offset(y: (1 - textPhase) * 30)
-                        
-                        // Tagline
+                        .scaleEffect(0.95 + textPhase * 0.05)
+                        .offset(y: (1 - textPhase) * 20)
+
+                        // Tagline - appears slightly after main text
+                        let taglinePhase = min(1.0, max(0, (textPhase - 0.4) / 0.6))
                         Text("Intelligence that orchestrates. Agents that deliver.")
                             .font(.custom("Outfit", size: 16).weight(.ultraLight))
                             .foregroundColor(.white.opacity(0.7))
-                            .opacity(min(1, (textPhase - 0.3) * 2))
-                            .offset(y: (1 - textPhase) * 20)
+                            .opacity(taglinePhase)
+                            .offset(y: (1 - taglinePhase) * 15)
                         
                         Spacer()
                             .frame(height: 80)
                     }
-                    .animation(.easeOut(duration: 0.8), value: textPhase > 0.5)
                 }
             }
             .drawingGroup()
         }
+        .opacity(exitFade)
     }
 }
 
@@ -1227,10 +1263,16 @@ struct AgenticOrchestrationAnimation: View {
 struct HumanReturnAnimation: View {
     var progress: Double
     
+    // Smooth fade-in at the start for seamless transition
+    private var entranceFade: Double {
+        min(1.0, progress / 0.08) // Fade in over first 8% of phase
+    }
+    
     var body: some View {
         TimelineView(.animation) { timeline in
             HumanReturnContent(progress: progress, time: timeline.date.timeIntervalSinceReferenceDate)
         }
+        .opacity(entranceFade)
     }
 }
 
@@ -1246,28 +1288,34 @@ private struct HumanReturnContent: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Background gradient
+                // Background gradient (bottom layer)
                 backgroundView
                 
-                // Light rays
+                // Light rays (under everything)
                 lightRaysView(size: geo.size)
+                    .zIndex(0)
                 
-                // Energy arcs
+                // Energy arcs (under figure and text)
                 arcsView(size: geo.size)
+                    .zIndex(1)
                 
-                // Central figure
+                // Central figure and text (on top of everything)
                 figureView(size: geo.size)
+                    .zIndex(10)
             }
         }
         .drawingGroup()
     }
     
     private var backgroundView: some View {
-        LinearGradient(
+        // Smooth eased progress for background transition
+        let easedProgress = progress * progress * (3 - 2 * progress) // smoothstep
+        
+        return LinearGradient(
             colors: [
-                Color(white: 0.02 + 0.96 * progress),
-                Color(white: 0.04 + 0.94 * progress),
-                Color(white: 0.06 + 0.92 * progress)
+                Color(white: 0.02 + 0.96 * easedProgress),
+                Color(white: 0.04 + 0.94 * easedProgress),
+                Color(white: 0.06 + 0.92 * easedProgress)
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -1342,42 +1390,60 @@ private struct HumanReturnContent: View {
     }
     
     private func figureView(size: CGSize) -> some View {
-        let figureBlend = min(1.0, max(0, (progress - 0.25) / 0.5))
-        let textBlend = min(1.0, max(0, (progress - 0.35) / 0.4))
+        // Smoothstep easing function for natural motion
+        func smoothstep(_ t: Double) -> Double {
+            let clamped = min(1.0, max(0, t))
+            return clamped * clamped * (3 - 2 * clamped)
+        }
+        
+        // Image fades in gradually starting at 15% progress
+        let imageRaw = min(1.0, max(0, (progress - 0.15) / 0.35))  // 15-50%: image fades in
+        let imageOpacity = smoothstep(imageRaw)
+        let imageScale = 0.85 + imageOpacity * 0.15  // Subtle scale from 0.85 to 1.0
+        
+        // Text fades in after image
+        let labelRaw = min(1.0, max(0, (progress - 0.25) / 0.25))  // 25-50%: label
+        let labelOpacity = smoothstep(labelRaw)
+        
+        let titleRaw = min(1.0, max(0, (progress - 0.35) / 0.25))  // 35-60%: title
+        let titleOpacity = smoothstep(titleRaw)
+        
+        let subtitleRaw = min(1.0, max(0, (progress - 0.55) / 0.25))  // 55-80%: subtitle
+        let subtitleOpacity = smoothstep(subtitleRaw)
         
         return VStack(spacing: 0) {
-            // Human figure - clean image only
+            // Human figure - smooth fade in
             if let uiImage = UIImage(named: "leader") ?? loadBundleImage("leader") {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 250)
-                    .scaleEffect(0.9 + progress * 0.1)
-                    .opacity(min(1.0, progress * 2.5))
+                    .scaleEffect(imageScale)
+                    .opacity(imageOpacity)
             }
             
             Spacer().frame(height: 50)
             
-            // Text - consistent typography
+            // Text - staggered fade in
             VStack(spacing: 16) {
                 Text("RESTORATION")
                     .font(.custom("Outfit", size: 13).weight(.medium))
                     .tracking(10)
-                    .foregroundColor(accentBlue.opacity(0.6 + textBlend * 0.4))
-                    .opacity(min(1.0, max(0, (progress - 0.2) * 3)))
+                    .foregroundColor(accentBlue)
+                    .opacity(labelOpacity)
+                    .offset(y: (1 - labelOpacity) * 10)
                 
                 Text("Human potential returned.")
                     .font(.custom("Outfit", size: 32).weight(.ultraLight))
-                    .foregroundColor(Color(white: 1.0 - progress * 0.9))
-                    .opacity(min(1.0, max(0, (progress - 0.3) * 2.5)))
-                    .offset(y: progress > 0.3 ? 0 : 15)
+                    .foregroundColor(Color(white: 1.0 - progress * 0.85))
+                    .opacity(titleOpacity)
+                    .offset(y: (1 - titleOpacity) * 15)
                 
-                if progress > 0.55 {
-                    Text("Reviewing insights. Approving paths.")
-                        .font(.custom("Outfit", size: 18).weight(.light))
-                        .foregroundColor(glowBlue)
-                        .opacity(min(1.0, max(0, (progress - 0.55) * 2.5)))
-                }
+                Text("Reviewing insights. Approving paths.")
+                    .font(.custom("Outfit", size: 18).weight(.light))
+                    .foregroundColor(glowBlue)
+                    .opacity(subtitleOpacity)
+                    .offset(y: (1 - subtitleOpacity) * 10)
             }
             .multilineTextAlignment(.center)
         }
@@ -1954,5 +2020,106 @@ private func loadBundleImage(_ name: String) -> UIImage? {
         }
     }
     return nil
+}
+
+// MARK: - Automation Anywhere Simple Reveal
+/// Clean, elegant logo reveal with subtle halo
+/// Simple fade in/out with minimal effects
+struct AutomationAnywhereRevealAnimation: View {
+    var progress: Double
+
+    // Brand colors
+    private let brandOrange = Color(red: 1.0, green: 0.5, blue: 0.1)
+    private let brandGold = Color(red: 1.0, green: 0.75, blue: 0.3)
+
+    // Smoothstep for smooth transitions
+    private func smoothstep(_ t: Double) -> Double {
+        let clamped = min(1.0, max(0, t))
+        return clamped * clamped * (3 - 2 * clamped)
+    }
+
+    // Logo fades in cleanly from 5% to 25%
+    private var logoOpacity: Double {
+        smoothstep(min(1.0, max(0, (progress - 0.05) / 0.20)))
+    }
+
+    // Subtle background halo - fades with logo
+    private var haloOpacity: Double {
+        let fadeIn = smoothstep(min(1.0, max(0, (progress - 0.05) / 0.25)))
+        let fadeOut = progress > 0.75 ? smoothstep(1.0 - (progress - 0.75) / 0.25) : 1.0
+        return fadeIn * fadeOut * 0.3
+    }
+
+    // Tagline fades in smoothly from 50% to 65%
+    private var textOpacity: Double {
+        smoothstep(min(1.0, max(0, (progress - 0.50) / 0.15)))
+    }
+
+    // Exit fade over last 10% - delayed to hold longer on screen
+    private var exitFade: Double {
+        progress > 0.90 ? smoothstep(1.0 - (progress - 0.90) / 0.10) : 1.0
+    }
+
+    var body: some View {
+        ZStack {
+            // Black background
+            Color.black.ignoresSafeArea()
+
+            // Subtle halo glow behind logo
+            RadialGradient(
+                colors: [
+                    brandOrange.opacity(haloOpacity * 0.4),
+                    brandGold.opacity(haloOpacity * 0.2),
+                    .clear
+                ],
+                center: .center,
+                startRadius: 80,
+                endRadius: 400
+            )
+            .blur(radius: 80)
+
+            // Logo and text
+            VStack(spacing: 40) {
+                // Logo - clean fade in, no blur overlay
+                if let logoImage = loadBundleImage("logo") {
+                    Image(uiImage: logoImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 300)
+                        .opacity(logoOpacity * exitFade)
+                } else {
+                    // Fallback text logo
+                    VStack(spacing: 6) {
+                        Text("AUTOMATION")
+                            .font(.custom("Outfit", size: 38).weight(.light))
+                            .tracking(6)
+                        Text("ANYWHERE")
+                            .font(.custom("Outfit", size: 38).weight(.semibold))
+                            .tracking(6)
+                    }
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [brandOrange, brandGold],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .opacity(logoOpacity * exitFade)
+                }
+
+                // Tagline - "Agentic AI without BS." matching website style
+                HStack(spacing: 0) {
+                    Text("Agentic AI ")
+                        .font(.custom("Outfit", size: 32).weight(.bold))
+                        .foregroundColor(brandOrange)
+                    Text("without BS.")
+                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .foregroundColor(.white)
+                }
+                .opacity(textOpacity * exitFade)
+                .offset(y: (1 - textOpacity) * 10) // Subtle slide up as it fades in
+            }
+        }
+    }
 }
 
