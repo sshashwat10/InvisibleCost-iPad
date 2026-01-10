@@ -947,7 +947,7 @@ struct MiniWorkWindow: View {
     }
 }
 
-// MARK: - Agentic Orchestration (01:45-02:45)
+// MARK: - Agentic Solutions (01:45-02:45)
 /// INTERCONNECTED NODES: A 3D rotating sphere of connected nodes
 /// Points appear, connect to nearby neighbors, form a mesh network
 struct AgenticOrchestrationAnimation: View {
@@ -959,22 +959,22 @@ struct AgenticOrchestrationAnimation: View {
         progress > 0.90 ? 1.0 - ((progress - 0.90) / 0.10) : 1.0  // Fade out last 10%
     }
     
-    // Teal color palette - clean and techy
-    private let primaryTeal = Color(red: 0.0, green: 0.6, blue: 0.7)
-    private let glowTeal = Color(red: 0.1, green: 0.8, blue: 0.9)
-    private let darkTeal = Color(red: 0.0, green: 0.35, blue: 0.45)
-    
-    // Gold/Electric colors for dramatic text
+    // Orange/Gold color palette - warm and powerful
+    private let primaryOrange = Color(red: 1.0, green: 0.5, blue: 0.1)
+    private let glowOrange = Color(red: 1.0, green: 0.6, blue: 0.2)
+    private let darkOrange = Color(red: 0.8, green: 0.3, blue: 0.0)
+
+    // Gold to Red gradient colors for dramatic text
     private let coreGold = Color(red: 1.0, green: 0.85, blue: 0.4)
-    private let electricBlue = Color(red: 0.2, green: 0.6, blue: 1.0)
+    private let fireRed = Color(red: 1.0, green: 0.3, blue: 0.2)
     private let hotWhite = Color.white
     
     // 3D sphere points (distributed on a sphere using golden spiral)
     private let spherePoints: [(theta: Double, phi: Double)] = {
         var points: [(Double, Double)] = []
-        let n = 32 // Number of points
+        let n = 48 // Number of points (increased from 32)
         let goldenRatio = (1 + sqrt(5)) / 2
-        
+
         for i in 0..<n {
             let theta = 2 * .pi * Double(i) / goldenRatio
             let phi = acos(1 - 2 * (Double(i) + 0.5) / Double(n))
@@ -1000,13 +1000,13 @@ struct AgenticOrchestrationAnimation: View {
             let textRaw = min(1.0, max(0, (progress - 0.65) / 0.20))    // 65-85%: text (delayed)
             let textPhase = textRaw * textRaw * (3 - 2 * textRaw) // smoothstep easing
             
-            // Sphere scale with gentler curve
-            let sphereScale = 1.0 - shrinkPhase * 0.5
+            // Sphere scale with gentler curve - shrinks to 65% (was 50%)
+            let sphereScale = 1.0 - shrinkPhase * 0.35
             let sphereOffsetY = shrinkPhase * -100
-            let sphereOpacity = 1.0 - shrinkPhase * 0.5 // fade less so glow is visible
-            
-            // Intensify glow as sphere shrinks (power-up effect)
-            let shrinkGlow = shrinkPhase * 0.6  // Extra glow intensity during shrink
+            let sphereOpacity = 1.0 - shrinkPhase * 0.3 // fade less so sphere is more visible
+
+            // Reduce glow as sphere shrinks for better sphere visibility
+            let shrinkGlow = shrinkPhase * 0.3  // Less glow intensity (was 0.6)
             
             ZStack {
                 Color.black.ignoresSafeArea()
@@ -1022,7 +1022,7 @@ struct AgenticOrchestrationAnimation: View {
                         
                         context.fill(
                             Circle().path(in: CGRect(x: x, y: y, width: particleSize, height: particleSize)),
-                            with: .color(primaryTeal.opacity(0.06 + pulse * 0.06))
+                            with: .color(primaryOrange.opacity(0.06 + pulse * 0.06))
                         )
                     }
                 }
@@ -1068,29 +1068,29 @@ struct AgenticOrchestrationAnimation: View {
                         }
                     }
                     
-                    // Outer glow - intensifies as sphere shrinks (power-up effect)
-                    let baseGlowIntensity = 0.2 + pulsePhase * 0.15 + shrinkGlow
-                    let glowRadius = sphereRadius * (1.6 + shrinkGlow * 1.5)  // Glow expands as it shrinks
+                    // Outer glow - subtle effect for sphere visibility
+                    let baseGlowIntensity = 0.15 + pulsePhase * 0.10 + shrinkGlow * 0.5
+                    let glowRadius = sphereRadius * (1.4 + shrinkGlow * 0.8)  // Less glow expansion
                     
                     // Primary glow
                     context.fill(
                         Circle().path(in: CGRect(x: center.x - glowRadius, y: center.y - glowRadius,
                                                   width: glowRadius * 2, height: glowRadius * 2)),
                         with: .radialGradient(
-                            Gradient(colors: [glowTeal.opacity(baseGlowIntensity), primaryTeal.opacity(baseGlowIntensity * 0.5), .clear]),
+                            Gradient(colors: [glowOrange.opacity(baseGlowIntensity), primaryOrange.opacity(baseGlowIntensity * 0.5), .clear]),
                             center: center, startRadius: 0, endRadius: glowRadius
                         )
                     )
                     
-                    // Extra bright core glow when shrinking
+                    // Subtle core glow when shrinking
                     if shrinkGlow > 0.1 {
-                        let coreGlowRadius = sphereRadius * 0.8
-                        let coreIntensity = shrinkGlow * 1.2
+                        let coreGlowRadius = sphereRadius * 0.6
+                        let coreIntensity = shrinkGlow * 0.6  // Less intense core (was 1.2)
                         context.fill(
                             Circle().path(in: CGRect(x: center.x - coreGlowRadius, y: center.y - coreGlowRadius,
                                                       width: coreGlowRadius * 2, height: coreGlowRadius * 2)),
                             with: .radialGradient(
-                                Gradient(colors: [Color.white.opacity(coreIntensity * 0.5), glowTeal.opacity(coreIntensity), .clear]),
+                                Gradient(colors: [Color.white.opacity(coreIntensity * 0.5), glowOrange.opacity(coreIntensity), .clear]),
                                 center: center, startRadius: 0, endRadius: coreGlowRadius
                             )
                         )
@@ -1108,8 +1108,8 @@ struct AgenticOrchestrationAnimation: View {
                                 let p2 = screenPoints[j]
                                 let dist = hypot(p2.pos.x - p1.pos.x, p2.pos.y - p1.pos.y)
                                 
-                                // Connect nearby points
-                                let maxDist = sphereRadius * 0.6
+                                // Connect nearby points (increased distance for more connections)
+                                let maxDist = sphereRadius * 0.85
                                 if dist < maxDist {
                                     let connectionIndex = Double(i + j) / Double(spherePoints.count * 2)
                                     let connProgress = min(1.0, max(0, (connectPhase - connectionIndex * 0.5) * 2.5))
@@ -1125,17 +1125,17 @@ struct AgenticOrchestrationAnimation: View {
                                         let avgZ = (p1.z + p2.z) / 2
                                         let depthOpacity = 0.15 + max(0, avgZ) * 0.2
                                         
-                                        context.stroke(line, with: .color(primaryTeal.opacity(depthOpacity * connProgress)), lineWidth: 0.8)
-                                        
-                                        // Pulse traveling along connection
-                                        if pulsePhase > 0.3 {
+                                        context.stroke(line, with: .color(primaryOrange.opacity(depthOpacity * connProgress)), lineWidth: 0.8)
+
+                                        // Pulse traveling along connection - only show on every 5th connection to reduce clutter
+                                        if pulsePhase > 0.3 && (i + j) % 5 == 0 {
                                             let pulseT = fmod(time * 1.5 + connectionIndex * 3, 1.0)
                                             let pulseX = p1.pos.x + (p2.pos.x - p1.pos.x) * CGFloat(pulseT)
                                             let pulseY = p1.pos.y + (p2.pos.y - p1.pos.y) * CGFloat(pulseT)
-                                            
+
                                             context.fill(
                                                 Circle().path(in: CGRect(x: pulseX - 2, y: pulseY - 2, width: 4, height: 4)),
-                                                with: .color(glowTeal.opacity(0.7 * pulsePhase))
+                                                with: .color(glowOrange.opacity(0.6 * pulsePhase))
                                             )
                                         }
                                     }
@@ -1158,14 +1158,14 @@ struct AgenticOrchestrationAnimation: View {
                         context.fill(
                             Circle().path(in: CGRect(x: point.pos.x - nodeGlowSize, y: point.pos.y - nodeGlowSize,
                                                       width: nodeGlowSize * 2, height: nodeGlowSize * 2)),
-                            with: .color(glowTeal.opacity((0.15 + pulsePhase * 0.1) * (0.5 + depth * 0.5)))
+                            with: .color(glowOrange.opacity((0.15 + pulsePhase * 0.1) * (0.5 + depth * 0.5)))
                         )
                         
                         // Core
                         context.fill(
                             Circle().path(in: CGRect(x: point.pos.x - nodeSize / 2, y: point.pos.y - nodeSize / 2,
                                                       width: nodeSize, height: nodeSize)),
-                            with: .color(glowTeal.opacity(0.7 + depth * 0.3))
+                            with: .color(glowOrange.opacity(0.7 + depth * 0.3))
                         )
                         
                         // Pulse center
@@ -1191,7 +1191,7 @@ struct AgenticOrchestrationAnimation: View {
                                                       width: coreSize * 2 * CGFloat(corePulse),
                                                       height: coreSize * 2 * CGFloat(corePulse))),
                             with: .radialGradient(
-                                Gradient(colors: [glowTeal, primaryTeal.opacity(0.6), .clear]),
+                                Gradient(colors: [glowOrange, primaryOrange.opacity(0.6), .clear]),
                                 center: center, startRadius: 0, endRadius: coreSize * CGFloat(corePulse)
                             )
                         )
@@ -1199,41 +1199,41 @@ struct AgenticOrchestrationAnimation: View {
                 }
                 
                 // ═══════════════════════════════════════════════════════════════
-                // DRAMATIC TEXT - "AGENTIC ORCHESTRATION" with gold power
+                // DRAMATIC TEXT - "AGENTIC SOLUTIONS" with gold to red power
                 // ═══════════════════════════════════════════════════════════════
                 if textPhase > 0 {
                     VStack(spacing: 12) {
                         Spacer()
-                        
+
                         // Main title with epic reveal - loads in dramatically
                         ZStack {
-                            // Outer glow layer
-                            Text("AGENTIC ORCHESTRATION")
+                            // Outer glow layer - gold
+                            Text("AGENTIC SOLUTIONS")
                                 .font(.custom("Outfit", size: 32).weight(.medium))
                                 .tracking(8)
                                 .foregroundColor(coreGold.opacity(0.3))
                                 .blur(radius: 20)
-                            
-                            // Mid glow
-                            Text("AGENTIC ORCHESTRATION")
+
+                            // Mid glow - fire red
+                            Text("AGENTIC SOLUTIONS")
                                 .font(.custom("Outfit", size: 32).weight(.medium))
                                 .tracking(8)
-                                .foregroundColor(electricBlue.opacity(0.5))
+                                .foregroundColor(fireRed.opacity(0.5))
                                 .blur(radius: 10)
-                            
-                            // Main text with gradient
-                            Text("AGENTIC ORCHESTRATION")
+
+                            // Main text with gold to red gradient
+                            Text("AGENTIC SOLUTIONS")
                                 .font(.custom("Outfit", size: 32).weight(.medium))
                                 .tracking(8)
                                 .foregroundStyle(
                                     LinearGradient(
-                                        colors: [coreGold, hotWhite, electricBlue],
+                                        colors: [coreGold, hotWhite, fireRed],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
                                 )
                                 .shadow(color: coreGold.opacity(0.8), radius: 15)
-                                .shadow(color: electricBlue.opacity(0.5), radius: 30)
+                                .shadow(color: fireRed.opacity(0.5), radius: 30)
                         }
                         .opacity(textPhase)
                         .scaleEffect(0.95 + textPhase * 0.05)
@@ -1280,10 +1280,11 @@ struct HumanReturnAnimation: View {
 private struct HumanReturnContent: View {
     let progress: Double
     let time: Double
-    
-    // Colors - teal/cyan theme
-    private let accentBlue = Color(red: 0.0, green: 0.6, blue: 0.75)
-    private let glowBlue = Color(red: 0.1, green: 0.7, blue: 0.85)
+
+    // Colors - red/orange theme (matching sphere animation)
+    private let accentOrange = Color(red: 1.0, green: 0.5, blue: 0.1)
+    private let glowOrange = Color(red: 1.0, green: 0.6, blue: 0.2)
+    private let fireRed = Color(red: 1.0, green: 0.3, blue: 0.2)
     
     var body: some View {
         GeometryReader { geo in
@@ -1341,7 +1342,7 @@ private struct HumanReturnContent: View {
                 ray.addLine(to: CGPoint(x: endX, y: endY))
                 
                 let rayOpacity = (0.03 + sin(time * 0.8 + Double(i)) * 0.02) * progress
-                context.stroke(ray, with: .color(glowBlue.opacity(rayOpacity)), lineWidth: rayWidth)
+                context.stroke(ray, with: .color(glowOrange.opacity(rayOpacity)), lineWidth: rayWidth)
             }
         }
         .blur(radius: 30)
@@ -1366,7 +1367,7 @@ private struct HumanReturnContent: View {
                                startAngle: .radians(startAngle), endAngle: .radians(endAngle), clockwise: false)
                     
                     let opacity = 0.2 + 0.3 * arcProgress - Double(i) * 0.02
-                    context.stroke(arc, with: .color(accentBlue.opacity(opacity)), lineWidth: 2.5)
+                    context.stroke(arc, with: .color(accentOrange.opacity(opacity)), lineWidth: 2.5)
                 }
             }
             
@@ -1382,7 +1383,7 @@ private struct HumanReturnContent: View {
                     
                     context.fill(
                         Circle().path(in: CGRect(x: x - particleSize/2, y: y - particleSize/2, width: particleSize, height: particleSize)),
-                        with: .color(glowBlue.opacity(0.4 * particleProgress))
+                        with: .color(glowOrange.opacity(0.4 * particleProgress))
                     )
                 }
             }
@@ -1429,19 +1430,19 @@ private struct HumanReturnContent: View {
                 Text("RESTORATION")
                     .font(.custom("Outfit", size: 13).weight(.medium))
                     .tracking(10)
-                    .foregroundColor(accentBlue)
+                    .foregroundColor(accentOrange)
                     .opacity(labelOpacity)
                     .offset(y: (1 - labelOpacity) * 10)
-                
+
                 Text("Human potential returned.")
                     .font(.custom("Outfit", size: 32).weight(.ultraLight))
                     .foregroundColor(Color(white: 1.0 - progress * 0.85))
                     .opacity(titleOpacity)
                     .offset(y: (1 - titleOpacity) * 15)
-                
+
                 Text("Reviewing insights. Approving paths.")
                     .font(.custom("Outfit", size: 18).weight(.light))
-                    .foregroundColor(glowBlue)
+                    .foregroundColor(glowOrange)
                     .opacity(subtitleOpacity)
                     .offset(y: (1 - subtitleOpacity) * 10)
             }
@@ -1693,36 +1694,49 @@ private struct FinalCTAContent: View {
     }
     
     private func signalLayer(centerX: CGFloat, centerY: CGFloat) -> some View {
-        Canvas { context, _ in
-            let center = CGPoint(x: centerX, y: centerY)
-            
-            // Pulse rings
-            for ring in 0..<4 {
-                let ringDelay = Double(ring) * 0.25
-                let pulseT = fmod(time * 0.4 + ringDelay, 1.0)
-                let ringRadius = 20 + CGFloat(pulseT) * 200
-                let ringOpacity = (1 - pulseT) * pulsePhase * 0.3
-                
-                var ringPath = Path()
-                ringPath.addEllipse(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius,
-                                               width: ringRadius * 2, height: ringRadius * 2))
-                context.stroke(ringPath, with: .color(signalGold.opacity(ringOpacity)), lineWidth: 1.5)
-            }
-            
-            // Central beacon
-            let beaconSize: CGFloat = 10
-            context.fill(
-                Circle().path(in: CGRect(x: center.x - 30, y: center.y - 30, width: 60, height: 60)),
-                with: .radialGradient(
-                    Gradient(colors: [signalGold.opacity(0.3 * pulsePhase), .clear]),
-                    center: center, startRadius: 0, endRadius: 30
+        ZStack {
+            // Pulse rings layer
+            Canvas { context, _ in
+                let center = CGPoint(x: centerX, y: centerY)
+
+                // Pulse rings
+                for ring in 0..<4 {
+                    let ringDelay = Double(ring) * 0.25
+                    let pulseT = fmod(time * 0.4 + ringDelay, 1.0)
+                    let ringRadius = 60 + CGFloat(pulseT) * 200
+                    let ringOpacity = (1 - pulseT) * pulsePhase * 0.3
+
+                    var ringPath = Path()
+                    ringPath.addEllipse(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius,
+                                                   width: ringRadius * 2, height: ringRadius * 2))
+                    context.stroke(ringPath, with: .color(signalGold.opacity(ringOpacity)), lineWidth: 1.5)
+                }
+
+                // Outer glow
+                context.fill(
+                    Circle().path(in: CGRect(x: center.x - 70, y: center.y - 70, width: 140, height: 140)),
+                    with: .radialGradient(
+                        Gradient(colors: [signalGold.opacity(0.4 * pulsePhase), .clear]),
+                        center: center, startRadius: 50, endRadius: 70
+                    )
                 )
-            )
-            context.fill(
-                Circle().path(in: CGRect(x: center.x - beaconSize/2, y: center.y - beaconSize/2,
-                                         width: beaconSize, height: beaconSize)),
-                with: .color(signalGold.opacity(pulsePhase))
-            )
+            }
+
+            // Central solid circle with lighter cream color for AA logo visibility
+            Circle()
+                .fill(Color(red: 1.0, green: 0.97, blue: 0.9).opacity(pulsePhase))
+                .frame(width: 100, height: 100)
+                .position(x: centerX, y: centerY)
+
+            // AA Logo in center - on top of circle
+            if let aaImage = loadBundleImage("aa") {
+                Image(uiImage: aaImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    .position(x: centerX, y: centerY)
+                    .opacity(pulsePhase)
+            }
         }
     }
     
@@ -2107,12 +2121,21 @@ struct AutomationAnywhereRevealAnimation: View {
                     .opacity(logoOpacity * exitFade)
                 }
 
-                // Tagline - "Agentic AI without BS." matching website style
+                // Tagline - "Elevating Human Potential" with a and i highlighted in orange (lowercase)
                 HStack(spacing: 0) {
-                    Text("Agentic AI ")
-                        .font(.custom("Outfit", size: 32).weight(.bold))
+                    Text("Elevating Hum")
+                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .foregroundColor(.white)
+                    Text("a")
+                        .font(.custom("Outfit", size: 32).weight(.medium))
                         .foregroundColor(brandOrange)
-                    Text("without BS.")
+                    Text("n Potent")
+                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .foregroundColor(.white)
+                    Text("i")
+                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .foregroundColor(brandOrange)
+                    Text("al")
                         .font(.custom("Outfit", size: 32).weight(.medium))
                         .foregroundColor(.white)
                 }

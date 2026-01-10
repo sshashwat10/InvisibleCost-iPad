@@ -316,10 +316,10 @@ class AudioManager {
         "pattern_break": "But what if tomorrow looked different?",
 
         // Agentic - periods create weight
-        "agentic": "This is Agentic Orchestration. Intelligence that anticipates. Acts. And frees you to think.",
+        "agentic": "This is Agentic Solutions. Intelligence that anticipates. Acts. And frees you to think.",
 
         // Automation Anywhere reveal
-        "aa_reveal": "Automation Anywhere. Powering the future of work.",
+        "aa_reveal": "From Automation Anywhere. Elevating Human Potential.",
         
         // Human return - COMPLEMENTS screen text, doesn't read it
         "restoration": "The chains dissolve. One by one.",
