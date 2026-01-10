@@ -166,15 +166,16 @@ struct NarrativeView: View {
                 audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.5)
             }
             
-            // === TEXT + NARRATION (60-100%) ===
-            triggerAtProgress("agentic", threshold: 0.62, progress: progress) {
+            // === TEXT + NARRATION (synced with text at 65%) ===
+            triggerAtProgress("agentic", threshold: 0.65, progress: progress) {
                 audioManager.playNarration(for: "agentic")
             }
 
         case .automationAnywhereReveal:
             // Phase duration: 8s - Simple logo reveal
-            // Delayed narration to sync with tagline appearing at 50%
-            triggerAtProgress("aa_reveal", threshold: 0.52, progress: progress) {
+            // Narration synced with logo appearing at 5% - "From Automation Anywhere" plays with logo,
+            // then "Elevating Human Potential" lands as tagline appears at 50%
+            triggerAtProgress("aa_reveal", threshold: 0.10, progress: progress) {
                 audioManager.playNarration(for: "aa_reveal")
             }
 

@@ -55,13 +55,16 @@ MODEL_ID = "eleven_multilingual_v2"
 # Output directory
 OUTPUT_DIR = Path("output")
 
-# Voice settings - MORE DRAMATIC & EXPRESSIVE
+# Voice settings - CONFIDENT, UPBEAT, ENERGETIC
 VOICE_SETTINGS = VoiceSettings(
-    stability=0.55,           # More variation for drama
-    similarity_boost=0.80,    # Clear voice match
-    style=0.65,               # HIGH expressiveness for wow factor
+    stability=0.70,           # Slightly higher for more upbeat, less brooding
+    similarity_boost=0.75,    # Good voice match
+    style=0.65,               # Confident but not overly dramatic
     use_speaker_boost=True    # Enhanced clarity
 )
+
+# Keys to SKIP regenerating (already have the right tone)
+SKIP_KEYS = ["aa_reveal", "pattern_break"]
 
 # ============================================================================
 # NARRATION LINES - DRAMATIC CINEMATIC VERSION
@@ -109,41 +112,41 @@ NARRATION_LINES = [
     # PATTERN BREAK
     {
         "key": "pattern_break",
-        "text": "But what if tomorrow looked different?",
-        "note": "Hopeful question, smooth flow"
+        "text": "But... what if this work?... wasn't your work.",
+        "note": "Dots after but, question mark after work then dots, no spaces around dots"
     },
-    
-    # AGENTIC - clean and powerful with brand callout
+
+    # AGENTIC - BOLD, CONFIDENT, REVEALING with conviction
     {
         "key": "agentic",
-        "text": "This is... Agentic Orchestration... Intelligence that anticipates. Acts. And frees you to think.",
-        "note": "Dramatic pause after Agentic Orchestration, then powerful statements"
+        "text": "This is Agentic Solutions. Intelligence that anticipates. Acts. And frees you to think.",
+        "note": "BOLD and CONFIDENT - no hesitation, powerful declarative statement, conviction throughout"
     },
 
     # AUTOMATION ANYWHERE REVEAL - simple brand reveal
     {
         "key": "aa_reveal",
-        "text": "From Automation Anywhere... Agentic A.I. without the B.S.",
-        "note": "Brand reveal with tagline - periods in A.I. and B.S. for pronunciation"
+        "text": "From Automation Anywhere.... Elevating Human Potential.",
+        "note": "Four dots after Automation Anywhere for pause, then tagline"
     },
 
     # HUMAN RETURN - COMPLEMENTS screen text, doesn't read it
     # Screen shows: "RELEASED" / "Rise." / "Your genius awaits."
-    # Narration provides emotional context
+    # Narration provides emotional context - BOLD and CONFIDENT with conviction
     {
         "key": "restoration",
-        "text": "The chains dissolve. One by one.",
-        "note": "Complements 'Released' visual, doesn't read it"
+        "text": "The chains dissolve. The weight lifts. Humanity rises.",
+        "note": "BOLD and CONFIDENT - declarative, powerful, building intensity"
     },
     {
         "key": "human_return",
-        "text": "And suddenly you remember what it feels like to breathe.",
-        "note": "Emotional complement to 'Rise' visual"
+        "text": "This is the moment you take back what was always yours.",
+        "note": "BOLD and CONFIDENT - powerful statement with conviction"
     },
     {
         "key": "potential",
-        "text": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
-        "note": "Complements 'Your genius awaits' - provides why"
+        "text": "Machines serve their purpose. So humans can finally reclaim theirs.",
+        "note": "BOLD and CONFIDENT - only 'reclaim' here, strong declarative ending"
     },
     
     # CLOSING - COMPLEMENTS screen text, doesn't read it
@@ -235,15 +238,23 @@ def main():
     print("-" * 60)
     
     success_count = 0
+    skipped_count = 0
     for i, line in enumerate(NARRATION_LINES, 1):
         filename = f"narration_{line['key']}.mp3"
         output_path = OUTPUT_DIR / filename
-        
+
+        # Skip keys that already have the right tone
+        if line['key'] in SKIP_KEYS:
+            print(f"\n[{i}/{len(NARRATION_LINES)}] {filename}")
+            print(f"   ⏭️  SKIPPED (already has correct tone)")
+            skipped_count += 1
+            continue
+
         print(f"\n[{i}/{len(NARRATION_LINES)}] {filename}")
         print(f"   📝 \"{line['text'][:50]}...\"" if len(line['text']) > 50 else f"   📝 \"{line['text']}\"")
         print(f"   🎭 {line['note']}")
         print(f"   ⏳ Generating...", end=" ", flush=True)
-        
+
         if generate_audio(client, line['text'], output_path):
             size_kb = output_path.stat().st_size / 1024
             print(f"✅ Saved ({size_kb:.1f} KB)")
@@ -254,7 +265,7 @@ def main():
     # Summary
     print()
     print("=" * 60)
-    print(f"✨ Complete! Generated {success_count}/{len(NARRATION_LINES)} files")
+    print(f"✨ Complete! Generated {success_count} files, skipped {skipped_count}")
     print("=" * 60)
     print()
     print("📋 Next steps:")

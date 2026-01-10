@@ -23,8 +23,8 @@ enum Tier1Phase: Int, CaseIterable {
         case .microColdOpen: return 6          // Brief ambient intro
         case .narratorFrame: return 17         // Opening narrations
         case .humanVignettes: return 15        // 3 vignettes
-        case .patternBreak: return 6           // Pattern break beat
-        case .agenticOrchestration: return 24  // THE AWAKENING
+        case .patternBreak: return 7.5         // Pattern break beat + slight pause at end
+        case .agenticOrchestration: return 26  // THE AWAKENING + slight pause at end
         case .automationAnywhereReveal: return 8 // Epic brand reveal
         case .humanReturn: return 18           // Restoration
         case .personalization: return 14       // Interactive slider
