@@ -132,6 +132,9 @@ struct NarrativeView: View {
                     industry: industry,
                     onComplete: {
                         viewModel.advanceToNextPhase()
+                    },
+                    onCardChange: { audioKey in
+                        print("[Narrative] Comparison card audio: \(audioKey)")
                     }
                 )
             }

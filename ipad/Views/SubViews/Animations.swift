@@ -2716,16 +2716,20 @@ struct SuckerPunchRevealView: View {
 struct ComparisonCarouselView: View {
     let industry: Industry
     let onComplete: () -> Void
+    let onCardChange: ((String) -> Void)?  // Callback with audioKey when card changes
 
     @State private var currentCardIndex = 0
     @State private var cardsShown = false
+    @State private var hasPlayedFirstCard = false
 
     private let comparisons: [ComparisonCard]
     private let theme: IndustryTheme
+    private let audioManager = AudioManager.shared
 
-    init(industry: Industry, onComplete: @escaping () -> Void) {
+    init(industry: Industry, onComplete: @escaping () -> Void, onCardChange: ((String) -> Void)? = nil) {
         self.industry = industry
         self.onComplete = onComplete
+        self.onCardChange = onCardChange
         self.comparisons = IndustryContent.comparisonCards(for: industry)
         self.theme = industry.theme
     }
@@ -2791,6 +2795,13 @@ struct ComparisonCarouselView: View {
             .onAppear {
                 withAnimation(.easeOut(duration: 0.5)) {
                     cardsShown = true
+                }
+                // Play first card's narration
+                if !hasPlayedFirstCard && currentCardIndex < comparisons.count {
+                    hasPlayedFirstCard = true
+                    let audioKey = comparisons[currentCardIndex].audioKey
+                    audioManager.playNarration(for: audioKey, completion: nil)
+                    onCardChange?(audioKey)
                 }
             }
             .onTapGesture {
@@ -2898,6 +2909,20 @@ struct ComparisonCarouselView: View {
         } else {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentCardIndex += 1
+            }
+
+            // Play audio for new card after animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if currentCardIndex < comparisons.count {
+                    // Play comparison card audio
+                    let audioKey = comparisons[currentCardIndex].audioKey
+                    audioManager.playNarration(for: audioKey, completion: nil)
+                    onCardChange?(audioKey)
+                } else {
+                    // Play "ready to change" audio for final card
+                    audioManager.playNarration(for: "ready_change", completion: nil)
+                    onCardChange?("ready_change")
+                }
             }
         }
     }
