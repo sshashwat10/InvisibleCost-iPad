@@ -6,7 +6,7 @@ import Observation
 /// TOTAL RUNTIME: ~180 seconds (3:00) - User-controlled pacing
 /// Implements Neeti's feedback: agency, personalization, sucker punch moment
 
-enum Tier1Phase: Int, CaseIterable {
+enum EnhancedPhase: Int, CaseIterable {
     case waiting = 0
     case industrySelection       // User chooses Finance/Supply Chain/Healthcare
     case buildingTension         // Industry-specific tension building
@@ -49,8 +49,8 @@ enum Tier1Phase: Int, CaseIterable {
         }
     }
 
-    var next: Tier1Phase? {
-        let all = Tier1Phase.allCases
+    var next: EnhancedPhase? {
+        let all = EnhancedPhase.allCases
         guard let currentIndex = all.firstIndex(of: self),
               currentIndex + 1 < all.count else { return nil }
         return all[currentIndex + 1]
@@ -78,9 +78,9 @@ enum Tier1Phase: Int, CaseIterable {
 // MARK: - Enhanced Experience View Model
 
 @Observable
-class ExperienceViewModel {
+class EnhancedExperienceViewModel {
     // MARK: - Core State
-    var currentPhase: Tier1Phase = .waiting
+    var currentPhase: EnhancedPhase = .waiting
     var isExperienceActive: Bool = false
     var phaseProgress: Double = 0
     var phaseElapsedTime: TimeInterval = 0
@@ -208,7 +208,7 @@ class ExperienceViewModel {
     // MARK: - Audio Keys
 
     /// Get the appropriate narration key for current state
-    func narrationKey(for phase: Tier1Phase, subIndex: Int = 0) -> String? {
+    func narrationKey(for phase: EnhancedPhase, subIndex: Int = 0) -> String? {
         guard let industry = selectedIndustry else { return nil }
 
         switch phase {
@@ -246,7 +246,7 @@ class ExperienceViewModel {
 
 // MARK: - Phase Extensions for Audio
 
-extension Tier1Phase {
+extension EnhancedPhase {
     /// All narration keys needed for this phase
     var narratorKeys: [String] {
         switch self {

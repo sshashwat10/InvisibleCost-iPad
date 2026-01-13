@@ -11,7 +11,8 @@ import SwiftUI
 struct InvisibleCost_iPadApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NarrativeView()
+                .preferredColorScheme(.dark)
         }
     }
 }

@@ -7,8 +7,8 @@ import AudioToolbox
 /// Handles narration, ambient sounds, transition effects, and precise sync points
 
 @Observable
-class AudioManager {
-    static let shared = AudioManager()
+class EnhancedAudioManager {
+    static let shared = EnhancedAudioManager()
 
     // MARK: - Audio Engine
     private var audioEngine: AVAudioEngine!
@@ -729,7 +729,7 @@ class AudioManager {
 
 // MARK: - Phase Audio Handling Extension
 
-extension AudioManager {
+extension EnhancedAudioManager {
     /// Play audio for a specific enhanced phase
     func playAudioForPhase(_ phase: EnhancedPhase, industry: Industry? = nil) {
         switch phase {

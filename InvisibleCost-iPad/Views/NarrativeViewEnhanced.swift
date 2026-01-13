@@ -5,14 +5,14 @@ import Combine
 /// Main orchestrator for the enhanced Invisible Cost experience
 /// Implements Neeti's feedback: agency, personalization, sucker punch moment
 
-struct NarrativeView: View {
-    @State private var viewModel = ExperienceViewModel()
+struct NarrativeViewEnhanced: View {
+    @State private var viewModel = EnhancedExperienceViewModel()
     @State private var motionManager = MotionManager()
     @State private var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
-    @State private var lastPhase: Tier1Phase = .waiting
+    @State private var lastPhase: EnhancedPhase = .waiting
     @State private var audioTriggered: Set<String> = []
 
-    private let audioManager = AudioManager.shared
+    private let audioManager = EnhancedAudioManager.shared
 
     var body: some View {
         ZStack {
