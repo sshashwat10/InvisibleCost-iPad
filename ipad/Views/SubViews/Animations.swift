@@ -310,12 +310,12 @@ struct NarratorFrameAnimation: View {
                         // First line with typewriter shimmer effect
                         ZStack {
                             Text("Every organization carries a hidden cost.")
-                                .font(.custom("Outfit", size: 38).weight(.light))
+                                .font(.system(size: 38, design: .rounded).weight(.light))
                                 .foregroundColor(.white.opacity(0.15))
                                 .blur(radius: 20)
                             
                             Text("Every organization carries a hidden cost.")
-                                .font(.custom("Outfit", size: 38).weight(.light))
+                                .font(.system(size: 38, design: .rounded).weight(.light))
                                 .foregroundStyle(
                                     LinearGradient(
                                         colors: [.white, .white.opacity(0.8), .white],
@@ -334,12 +334,12 @@ struct NarratorFrameAnimation: View {
                         // Second line with dramatic red undertone
                         ZStack {
                             Text("Most leaders never see it.")
-                                .font(.custom("Outfit", size: 38).weight(.medium))
+                                .font(.system(size: 38, design: .rounded).weight(.medium))
                                 .foregroundColor(Color.red.opacity(0.3))
                                 .blur(radius: 25)
                             
                             Text("Most leaders never see it.")
-                                .font(.custom("Outfit", size: 38).weight(.medium))
+                                .font(.system(size: 38, design: .rounded).weight(.medium))
                                 .foregroundStyle(
                                     LinearGradient(
                                         colors: [.white, Color(red: 1, green: 0.9, blue: 0.9)],
@@ -361,22 +361,22 @@ struct NarratorFrameAnimation: View {
                                 // Single line stat display
                                 HStack(spacing: 8) {
                                     Text("You made")
-                                        .font(.custom("Outfit", size: 22).weight(.ultraLight))
+                                        .font(.system(size: 22, design: .rounded).weight(.ultraLight))
                                         .foregroundColor(.white.opacity(0.7))
                                     
                                     Text("247")
-                                        .font(.custom("Outfit", size: 28).weight(.light))
+                                        .font(.system(size: 28, design: .rounded).weight(.light))
                                         .foregroundColor(.white)
                                     
                                     Text("decisions today.")
-                                        .font(.custom("Outfit", size: 22).weight(.ultraLight))
+                                        .font(.system(size: 22, design: .rounded).weight(.ultraLight))
                                         .foregroundColor(.white.opacity(0.7))
                                 }
                                 
                                 // Dramatic red stat
                                 HStack(spacing: 8) {
                                     Text("142")
-                                        .font(.custom("Outfit", size: 48).weight(.medium))
+                                        .font(.system(size: 48, design: .rounded).weight(.medium))
                                         .foregroundStyle(
                                             LinearGradient(
                                                 colors: [Color(red: 1.0, green: 0.4, blue: 0.4), Color(red: 1.0, green: 0.2, blue: 0.2)],
@@ -387,7 +387,7 @@ struct NarratorFrameAnimation: View {
                                         .shadow(color: Color.red.opacity(0.5), radius: 15)
                                     
                                     Text("were unnecessary")
-                                        .font(.custom("Outfit", size: 24).weight(.light))
+                                        .font(.system(size: 24, design: .rounded).weight(.light))
                                         .foregroundColor(Color(red: 1.0, green: 0.5, blue: 0.5))
                                 }
                                 
@@ -411,7 +411,7 @@ struct NarratorFrameAnimation: View {
                                     }
                                     
                                     Text("57% of your decisions could be automated")
-                                        .font(.custom("Outfit", size: 13).weight(.light))
+                                        .font(.system(size: 13, design: .rounded).weight(.light))
                                         .foregroundColor(.white.opacity(0.6))
                                         .tracking(1)
                                 }
@@ -427,7 +427,7 @@ struct NarratorFrameAnimation: View {
                         HStack {
                             Spacer()
                             Text(TimestampGenerator.getTime(for: progress))
-                                .font(.custom("Outfit", size: 100).weight(.thin))
+                                .font(.system(size: 100, design: .rounded).weight(.thin))
                                 .foregroundColor(.white.opacity(0.08))
                                 .shadow(color: .white.opacity(0.05), radius: 30)
                                 .padding(35)
@@ -705,13 +705,13 @@ struct VignetteContent: View {
             // GLOWING Title with department color
             ZStack {
                 Text(title)
-                    .font(.custom("Outfit", size: 18).weight(.medium))
+                    .font(.system(size: 18, design: .rounded).weight(.medium))
                     .tracking(16)
                     .foregroundColor(theme.accent.opacity(0.3))
                     .blur(radius: 10)
                 
                 Text(title)
-                    .font(.custom("Outfit", size: 18).weight(.medium))
+                    .font(.system(size: 18, design: .rounded).weight(.medium))
                     .tracking(16)
                     .foregroundColor(theme.accent)
                     .shadow(color: theme.primary.opacity(0.5), radius: 12)
@@ -724,13 +724,13 @@ struct VignetteContent: View {
             // DRAMATIC Subtitle with glow
             ZStack {
                 Text(subtitle)
-                    .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                    .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                     .italic()
                     .foregroundColor(.white.opacity(0.2))
                     .blur(radius: 15)
                 
                 Text(subtitle)
-                    .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                    .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                     .italic()
                     .foregroundColor(.white)
                     .shadow(color: .white.opacity(0.3), radius: 10)
@@ -766,11 +766,11 @@ struct PainMetricView: View {
     var body: some View {
         VStack(spacing: 6) {
             Text(value)
-                .font(.custom("Outfit", size: 24).weight(.light))
+                .font(.system(size: 24, design: .rounded).weight(.light))
                 .foregroundColor(theme.accent)
                 .shadow(color: theme.primary.opacity(0.3), radius: 4)
             Text(label)
-                .font(.custom("Outfit", size: 11).weight(.light))
+                .font(.system(size: 11, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.55))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -876,14 +876,14 @@ struct PatternBreakView: View {
                         // Main question text with dramatic reveal
                         VStack(spacing: 15) {
                             Text("What if this work...")
-                                .font(.custom("Outfit", size: 44).weight(.ultraLight))
+                                .font(.system(size: 44, design: .rounded).weight(.ultraLight))
                                 .foregroundColor(.black)
                                 .opacity(progress > 0.15 ? 1 : 0)
                                 .offset(y: progress > 0.15 ? 0 : 25)
                                 .blur(radius: progress > 0.15 ? 0 : 8)
                             
                             Text("wasn't your work?")
-                                .font(.custom("Outfit", size: 44).weight(.light))
+                                .font(.system(size: 44, design: .rounded).weight(.light))
                                 .foregroundColor(.black)
                                 .shadow(color: .black.opacity(0.1), radius: 10)
                                 .opacity(progress > 0.35 ? 1 : 0)
@@ -1209,21 +1209,21 @@ struct AgenticOrchestrationAnimation: View {
                         ZStack {
                             // Outer glow layer - gold
                             Text("AGENTIC SOLUTIONS")
-                                .font(.custom("Outfit", size: 32).weight(.medium))
+                                .font(.system(size: 32, design: .rounded).weight(.medium))
                                 .tracking(8)
                                 .foregroundColor(coreGold.opacity(0.3))
                                 .blur(radius: 20)
 
                             // Mid glow - fire red
                             Text("AGENTIC SOLUTIONS")
-                                .font(.custom("Outfit", size: 32).weight(.medium))
+                                .font(.system(size: 32, design: .rounded).weight(.medium))
                                 .tracking(8)
                                 .foregroundColor(fireRed.opacity(0.5))
                                 .blur(radius: 10)
 
                             // Main text with gold to red gradient
                             Text("AGENTIC SOLUTIONS")
-                                .font(.custom("Outfit", size: 32).weight(.medium))
+                                .font(.system(size: 32, design: .rounded).weight(.medium))
                                 .tracking(8)
                                 .foregroundStyle(
                                     LinearGradient(
@@ -1242,7 +1242,7 @@ struct AgenticOrchestrationAnimation: View {
                         // Tagline - appears slightly after main text
                         let taglinePhase = min(1.0, max(0, (textPhase - 0.4) / 0.6))
                         Text("Intelligence that orchestrates. Agents that deliver.")
-                            .font(.custom("Outfit", size: 16).weight(.ultraLight))
+                            .font(.system(size: 16, design: .rounded).weight(.ultraLight))
                             .foregroundColor(.white.opacity(0.7))
                             .opacity(taglinePhase)
                             .offset(y: (1 - taglinePhase) * 15)
@@ -1428,20 +1428,20 @@ private struct HumanReturnContent: View {
             // Text - staggered fade in
             VStack(spacing: 16) {
                 Text("RESTORATION")
-                    .font(.custom("Outfit", size: 13).weight(.medium))
+                    .font(.system(size: 13, design: .rounded).weight(.medium))
                     .tracking(10)
                     .foregroundColor(accentOrange)
                     .opacity(labelOpacity)
                     .offset(y: (1 - labelOpacity) * 10)
 
                 Text("Human potential returned.")
-                    .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                    .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                     .foregroundColor(Color(white: 1.0 - progress * 0.85))
                     .opacity(titleOpacity)
                     .offset(y: (1 - titleOpacity) * 15)
 
                 Text("Reviewing insights. Approving paths.")
-                    .font(.custom("Outfit", size: 18).weight(.light))
+                    .font(.system(size: 18, design: .rounded).weight(.light))
                     .foregroundColor(glowOrange)
                     .opacity(subtitleOpacity)
                     .offset(y: (1 - subtitleOpacity) * 10)
@@ -1504,12 +1504,12 @@ struct PersonalizationView: View {
                     // GLOWING question text
                     ZStack {
                         Text("How many hours of invisible work does your team lose each week?")
-                            .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                            .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                             .foregroundColor(accentBlue.opacity(0.3))
                             .blur(radius: 15)
                         
                         Text("How many hours of invisible work does your team lose each week?")
-                            .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                            .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                             .foregroundColor(.white)
                             .shadow(color: .white.opacity(0.2), radius: 10)
                     }
@@ -1529,12 +1529,12 @@ struct PersonalizationView: View {
                                 // MASSIVE glowing number
                                 ZStack {
                                     Text("\(Int(viewModel.lostHoursPerWeek))")
-                                        .font(.custom("Outfit", size: 100).weight(.ultraLight))
+                                        .font(.system(size: 100, design: .rounded).weight(.ultraLight))
                                         .foregroundColor(accentBlue.opacity(0.3))
                                         .blur(radius: 20)
                                     
                                     Text("\(Int(viewModel.lostHoursPerWeek))")
-                                        .font(.custom("Outfit", size: 100).weight(.ultraLight))
+                                        .font(.system(size: 100, design: .rounded).weight(.ultraLight))
                                         .foregroundStyle(
                                             LinearGradient(
                                                 colors: [glowBlue, accentBlue],
@@ -1547,7 +1547,7 @@ struct PersonalizationView: View {
                                 }
                                 
                                 Text("HOURS PER WEEK")
-                                    .font(.custom("Outfit", size: 14).weight(.medium))
+                                    .font(.system(size: 14, design: .rounded).weight(.medium))
                                     .tracking(6)
                                     .foregroundColor(.white.opacity(0.5))
                                 
@@ -1624,18 +1624,18 @@ struct EnhancedMetricView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 10) {
             Text(label)
-                .font(.custom("Outfit", size: 12).weight(.medium))
+                .font(.system(size: 12, design: .rounded).weight(.medium))
                 .tracking(5)
                 .foregroundColor(.white.opacity(0.4))
             
             ZStack {
                 Text(value)
-                    .font(.custom("Outfit", size: 32).weight(.light))
+                    .font(.system(size: 32, design: .rounded).weight(.light))
                     .foregroundColor(color.opacity(0.3))
                     .blur(radius: 8)
                 
                 Text(value)
-                    .font(.custom("Outfit", size: 32).weight(.light))
+                    .font(.system(size: 32, design: .rounded).weight(.light))
                     .foregroundColor(color)
                     .shadow(color: color.opacity(0.5), radius: 10)
             }
@@ -1760,14 +1760,14 @@ private struct FinalCTAContent: View {
         VStack(spacing: 24) {
             if text1Phase > 0 {
                 Text("One decision.")
-                    .font(.custom("Outfit", size: 28).weight(.ultraLight))
+                    .font(.system(size: 28, design: .rounded).weight(.ultraLight))
                     .foregroundColor(pureWhite.opacity(0.9))
                     .opacity(text1Phase)
             }
             
             if text2Phase > 0 {
                 Text("Infinite possibility.")
-                    .font(.custom("Outfit", size: 34).weight(.light))
+                    .font(.system(size: 34, design: .rounded).weight(.light))
                     .foregroundStyle(LinearGradient(colors: [signalGold, pureWhite], startPoint: .leading, endPoint: .trailing))
                     .opacity(text2Phase)
             }
@@ -1780,7 +1780,7 @@ private struct FinalCTAContent: View {
                     .padding(.vertical, 8)
                 
                 Text("Where will you lead?")
-                    .font(.custom("Outfit", size: 18).weight(.light))
+                    .font(.system(size: 18, design: .rounded).weight(.light))
                     .foregroundColor(pureWhite.opacity(0.6))
                     .opacity(questionPhase)
             }
@@ -1810,7 +1810,7 @@ private struct FinalCTAContent: View {
                 .foregroundColor(pureWhite.opacity(0.8))
             
             Text("EXPERIENCE")
-                .font(.custom("Outfit", size: 10).weight(.medium))
+                .font(.system(size: 10, design: .rounded).weight(.medium))
                 .tracking(4)
                 .foregroundColor(pureWhite.opacity(0.5))
         }
@@ -1833,7 +1833,7 @@ private struct FinalCTAContent: View {
                 }
                 
                 Text("DEMO")
-                    .font(.custom("Outfit", size: 10).weight(.medium))
+                    .font(.system(size: 10, design: .rounded).weight(.medium))
                     .tracking(4)
                     .foregroundColor(signalGold.opacity(0.8))
             }
@@ -2105,10 +2105,10 @@ struct AutomationAnywhereRevealAnimation: View {
                     // Fallback text logo
                     VStack(spacing: 6) {
                         Text("AUTOMATION")
-                            .font(.custom("Outfit", size: 38).weight(.light))
+                            .font(.system(size: 38, design: .rounded).weight(.light))
                             .tracking(6)
                         Text("ANYWHERE")
-                            .font(.custom("Outfit", size: 38).weight(.semibold))
+                            .font(.system(size: 38, design: .rounded).weight(.semibold))
                             .tracking(6)
                     }
                     .foregroundStyle(
@@ -2124,19 +2124,19 @@ struct AutomationAnywhereRevealAnimation: View {
                 // Tagline - "Elevating Human Potential" with a and i highlighted in orange (lowercase)
                 HStack(spacing: 0) {
                     Text("Elevating Hum")
-                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .font(.system(size: 32, design: .rounded).weight(.medium))
                         .foregroundColor(.white)
                     Text("a")
-                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .font(.system(size: 32, design: .rounded).weight(.medium))
                         .foregroundColor(brandOrange)
                     Text("n Potent")
-                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .font(.system(size: 32, design: .rounded).weight(.medium))
                         .foregroundColor(.white)
                     Text("i")
-                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .font(.system(size: 32, design: .rounded).weight(.medium))
                         .foregroundColor(brandOrange)
                     Text("al")
-                        .font(.custom("Outfit", size: 32).weight(.medium))
+                        .font(.system(size: 32, design: .rounded).weight(.medium))
                         .foregroundColor(.white)
                 }
                 .opacity(textOpacity * exitFade)
@@ -2250,12 +2250,12 @@ struct IndustrySelectionView: View {
     private var titleView: some View {
         VStack(spacing: 16) {
             Text("THE INVISIBLE COST")
-                .font(.custom("Outfit", size: 14).weight(.medium))
+                .font(.system(size: 14, design: .rounded).weight(.medium))
                 .tracking(8)
                 .foregroundColor(.white.opacity(0.4))
 
             Text("Choose Your Industry")
-                .font(.custom("Outfit", size: 42).weight(.ultraLight))
+                .font(.system(size: 42, design: .rounded).weight(.ultraLight))
                 .foregroundColor(.white)
         }
     }
@@ -2264,7 +2264,7 @@ struct IndustrySelectionView: View {
 
     private var instructionText: some View {
         Text("Tap to see your invisible cost")
-            .font(.custom("Outfit", size: 16).weight(.light))
+            .font(.system(size: 16, design: .rounded).weight(.light))
             .foregroundColor(.white.opacity(0.4))
             .padding(.top, 20)
     }
@@ -2400,7 +2400,7 @@ struct IndustryCardView: View {
 
                 // Industry name
                 Text(industry.displayName)
-                    .font(.custom("Outfit", size: 16).weight(.medium))
+                    .font(.system(size: 16, design: .rounded).weight(.medium))
                     .tracking(4)
                     .foregroundStyle(
                         LinearGradient(
@@ -2569,12 +2569,12 @@ struct SuckerPunchRevealView: View {
 
         return VStack(spacing: 8) {
             Text("YOUR \(industry.displayName)'S")
-                .font(.custom("Outfit", size: 12).weight(.medium))
+                .font(.system(size: 12, design: .rounded).weight(.medium))
                 .tracking(6)
                 .foregroundColor(theme.accent.opacity(0.7))
 
             Text("INVISIBLE COST")
-                .font(.custom("Outfit", size: 16).weight(.light))
+                .font(.system(size: 16, design: .rounded).weight(.light))
                 .tracking(4)
                 .foregroundColor(.white.opacity(0.6))
         }
@@ -2592,7 +2592,7 @@ struct SuckerPunchRevealView: View {
             // Outer glow layer (pulses when complete)
             if numberGlowIntensity > 0 {
                 Text(formattedValue)
-                    .font(.custom("Outfit", size: 120).weight(.light))
+                    .font(.system(size: 120, design: .rounded).weight(.light))
                     .foregroundColor(theme.primary.opacity(0.3))
                     .blur(radius: 40 * numberGlowIntensity)
             }
@@ -2600,7 +2600,7 @@ struct SuckerPunchRevealView: View {
             // Middle glow layer
             if numberGlowIntensity > 0.3 {
                 Text(formattedValue)
-                    .font(.custom("Outfit", size: 120).weight(.light))
+                    .font(.system(size: 120, design: .rounded).weight(.light))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [theme.accent.opacity(0.4), Color.red.opacity(0.3)],
@@ -2613,7 +2613,7 @@ struct SuckerPunchRevealView: View {
 
             // Main number with gradient
             Text(formattedValue)
-                .font(.custom("Outfit", size: 120).weight(.light))
+                .font(.system(size: 120, design: .rounded).weight(.light))
                 .foregroundStyle(
                     LinearGradient(
                         colors: countingComplete
@@ -2634,15 +2634,15 @@ struct SuckerPunchRevealView: View {
     private var taglineView: some View {
         HStack(spacing: 20) {
             Text("EVERY.")
-                .font(.custom("Outfit", size: 32).weight(.medium))
+                .font(.system(size: 32, design: .rounded).weight(.medium))
                 .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.3))
 
             Text("SINGLE.")
-                .font(.custom("Outfit", size: 32).weight(.medium))
+                .font(.system(size: 32, design: .rounded).weight(.medium))
                 .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.3))
 
             Text("YEAR.")
-                .font(.custom("Outfit", size: 32).weight(.medium))
+                .font(.system(size: 32, design: .rounded).weight(.medium))
                 .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.3))
         }
         .shadow(color: Color.red.opacity(0.5), radius: 15)
@@ -2657,7 +2657,7 @@ struct SuckerPunchRevealView: View {
                 .foregroundColor(.white.opacity(0.4))
 
             Text("Tap to continue")
-                .font(.custom("Outfit", size: 14).weight(.light))
+                .font(.system(size: 14, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.3))
         }
         .padding(.bottom, 60)
@@ -2806,7 +2806,7 @@ struct ComparisonCarouselView: View {
 
         return VStack(spacing: 8) {
             Text(data.formattedAmount)
-                .font(.custom("Outfit", size: 48).weight(.light))
+                .font(.system(size: 48, design: .rounded).weight(.light))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [theme.accent, .white],
@@ -2817,7 +2817,7 @@ struct ComparisonCarouselView: View {
                 .shadow(color: theme.primary.opacity(0.5), radius: 10)
 
             Text("That's equivalent to...")
-                .font(.custom("Outfit", size: 16).weight(.light))
+                .font(.system(size: 16, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.5))
         }
         .padding(.top, 60)
@@ -2839,7 +2839,7 @@ struct ComparisonCarouselView: View {
                 .scaleEffect(1.0 + CGFloat(sin(time * 2)) * 0.05)
 
             Text("Ready to change this?")
-                .font(.custom("Outfit", size: 28).weight(.light))
+                .font(.system(size: 28, design: .rounded).weight(.light))
                 .foregroundColor(.white)
         }
         .padding(40)
@@ -2880,7 +2880,7 @@ struct ComparisonCarouselView: View {
                 .foregroundColor(.white.opacity(0.4))
 
             Text(currentCardIndex >= comparisons.count ? "Tap to see the solution" : "Tap for next")
-                .font(.custom("Outfit", size: 13).weight(.light))
+                .font(.system(size: 13, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.3))
         }
         .padding(.bottom, 40)
@@ -2937,17 +2937,17 @@ struct ComparisonCardView: View {
 
             // Number (large)
             Text(card.number)
-                .font(.custom("Outfit", size: 56).weight(.light))
+                .font(.system(size: 56, design: .rounded).weight(.light))
                 .foregroundColor(.white)
 
             // Unit
             Text(card.unit)
-                .font(.custom("Outfit", size: 20).weight(.light))
+                .font(.system(size: 20, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.6))
 
             // Emphasis
             Text(card.emphasis)
-                .font(.custom("Outfit", size: 24).weight(.medium))
+                .font(.system(size: 24, design: .rounded).weight(.medium))
                 .foregroundColor(Color(red: 1.0, green: 0.4, blue: 0.35))
                 .shadow(color: Color.red.opacity(0.4), radius: 8)
         }

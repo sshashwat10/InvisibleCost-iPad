@@ -44,12 +44,12 @@ struct NarrativeView: View {
     private var startScreen: some View {
         VStack {
             Text("The Invisible Cost")
-                .font(.custom("Outfit", size: 48).weight(.ultraLight))
+                .font(.system(size: 48, design: .rounded).weight(.ultraLight))
                 .foregroundColor(.white)
                 .padding(.bottom, 20)
 
             Text("An interactive experience")
-                .font(.custom("Outfit", size: 18).weight(.light))
+                .font(.system(size: 18, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.5))
                 .padding(.bottom, 40)
 
@@ -57,7 +57,7 @@ struct NarrativeView: View {
                 viewModel.startExperience()
             }) {
                 Text("Begin Experience")
-                    .font(.custom("Outfit", size: 17).weight(.medium))
+                    .font(.system(size: 17, design: .rounded).weight(.medium))
                     .foregroundColor(.black)
                     .padding(.horizontal, 40)
                     .padding(.vertical, 20)
@@ -303,14 +303,14 @@ struct PatternBreakEnhancedView: View {
             VStack(spacing: 20) {
                 // "But what if..."
                 Text("But what if...")
-                    .font(.custom("Outfit", size: 44).weight(.ultraLight))
+                    .font(.system(size: 44, design: .rounded).weight(.ultraLight))
                     .foregroundColor(.black)
                     .opacity(showText1 ? 1 : 0)
                     .offset(y: showText1 ? 0 : 25)
 
                 // "...you could see the real number?"
                 Text("you could see the real number?")
-                    .font(.custom("Outfit", size: 44).weight(.light))
+                    .font(.system(size: 44, design: .rounded).weight(.light))
                     .foregroundColor(.black)
                     .opacity(showText2 ? 1 : 0)
                     .offset(y: showText2 ? 0 : 25)
@@ -325,7 +325,7 @@ struct PatternBreakEnhancedView: View {
                         .foregroundColor(.black.opacity(0.3))
 
                     Text("Tap to reveal")
-                        .font(.custom("Outfit", size: 14).weight(.light))
+                        .font(.system(size: 14, design: .rounded).weight(.light))
                         .foregroundColor(.black.opacity(0.3))
                 }
                 .opacity(showTapIndicator ? 1 : 0)
@@ -410,14 +410,14 @@ struct BuildingTensionView: View {
                 VStack(spacing: 30) {
                     // Line 1
                     Text(content.line1)
-                        .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                        .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                         .foregroundColor(.white)
                         .opacity(progress > 0.1 ? 1 : 0)
                         .offset(y: progress > 0.1 ? 0 : 20)
 
                     // Line 2
                     Text(content.line2)
-                        .font(.custom("Outfit", size: 32).weight(.light))
+                        .font(.system(size: 32, design: .rounded).weight(.light))
                         .foregroundColor(.white.opacity(0.9))
                         .opacity(progress > 0.35 ? 1 : 0)
                         .offset(y: progress > 0.35 ? 0 : 20)
@@ -425,7 +425,7 @@ struct BuildingTensionView: View {
                     // Teaser metric
                     if progress > 0.65 {
                         Text(content.teaser)
-                            .font(.custom("Outfit", size: 20).weight(.light))
+                            .font(.system(size: 20, design: .rounded).weight(.light))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [theme.accent, .white],
@@ -523,14 +523,14 @@ struct IndustryVignetteView: View {
 
                     // Title
                     Text(data.title)
-                        .font(.custom("Outfit", size: 18).weight(.medium))
+                        .font(.system(size: 18, design: .rounded).weight(.medium))
                         .tracking(16)
                         .foregroundColor(theme.accent)
                         .opacity(progress > 0.15 ? 1.0 : 0.0)
 
                     // Subtitle
                     Text(data.subtitle)
-                        .font(.custom("Outfit", size: 32).weight(.ultraLight))
+                        .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                         .italic()
                         .foregroundColor(.white)
                         .opacity(progress > 0.25 ? 1.0 : 0.0)
@@ -540,10 +540,10 @@ struct IndustryVignetteView: View {
                         ForEach(Array(data.metrics.enumerated()), id: \.offset) { index, metric in
                             VStack(spacing: 6) {
                                 Text(metric.value)
-                                    .font(.custom("Outfit", size: 24).weight(.light))
+                                    .font(.system(size: 24, design: .rounded).weight(.light))
                                     .foregroundColor(theme.accent)
                                 Text(metric.label)
-                                    .font(.custom("Outfit", size: 11).weight(.light))
+                                    .font(.system(size: 11, design: .rounded).weight(.light))
                                     .foregroundColor(.white.opacity(0.55))
                             }
                             .padding(.horizontal, 16)
