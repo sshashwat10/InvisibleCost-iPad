@@ -122,6 +122,27 @@ class ExperienceViewModel {
     var lostHoursPerWeek: Double = 20
     var hourlyRate: Double = 150
 
+    /// Display name for company - returns entered name or fallback
+    /// Used for personalized messaging throughout the experience
+    var displayCompanyName: String {
+        let trimmed = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "Your Organization" : trimmed
+    }
+
+    /// Short version for tight spaces - truncates if too long
+    var shortCompanyName: String {
+        let name = displayCompanyName
+        if name.count > 20 {
+            return String(name.prefix(17)) + "..."
+        }
+        return name
+    }
+
+    /// Whether user entered a custom company name
+    var hasCustomCompanyName: Bool {
+        !companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     /// Calculated annual cost based on user input: teamSize * lostHoursPerWeek * 52 weeks * hourlyRate
     var calculatedAnnualCost: Double {
         return teamSize * lostHoursPerWeek * 52.0 * hourlyRate

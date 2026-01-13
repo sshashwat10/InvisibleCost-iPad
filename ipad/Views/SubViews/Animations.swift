@@ -2457,6 +2457,7 @@ import SwiftUI
 
 struct SuckerPunchRevealView: View {
     let industry: Industry
+    let companyName: String
     let progress: Double
     let onContinue: () -> Void
 
@@ -2467,8 +2468,9 @@ struct SuckerPunchRevealView: View {
 
     private let suckerPunchData: SuckerPunchData
 
-    init(industry: Industry, progress: Double, onContinue: @escaping () -> Void) {
+    init(industry: Industry, companyName: String = "Your Organization", progress: Double, onContinue: @escaping () -> Void) {
         self.industry = industry
+        self.companyName = companyName
         self.progress = progress
         self.onContinue = onContinue
         self.suckerPunchData = IndustryContent.suckerPunchData(for: industry)
@@ -2562,16 +2564,24 @@ struct SuckerPunchRevealView: View {
         }
     }
 
-    // MARK: - Industry Label
+    // MARK: - Company Label (Personalized)
 
     private var industryLabel: some View {
         let theme = industry.theme
 
         return VStack(spacing: 8) {
-            Text("YOUR \(industry.displayName)'S")
-                .font(.system(size: 12, design: .rounded).weight(.medium))
-                .tracking(6)
-                .foregroundColor(theme.accent.opacity(0.7))
+            // Company name prominently displayed - this is THEIR number
+            Text(companyName.uppercased() + "'S")
+                .font(.system(size: 14, design: .rounded).weight(.semibold))
+                .tracking(4)
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [theme.accent, .white],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .shadow(color: theme.accent.opacity(0.5), radius: 8)
 
             Text("INVISIBLE COST")
                 .font(.system(size: 16, design: .rounded).weight(.light))

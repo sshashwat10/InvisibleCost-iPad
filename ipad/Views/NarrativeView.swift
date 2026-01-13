@@ -132,6 +132,7 @@ struct NarrativeView: View {
             if let industry = viewModel.selectedIndustry {
                 SuckerPunchRevealView(
                     industry: industry,
+                    companyName: viewModel.displayCompanyName,
                     progress: viewModel.phaseProgress,
                     onContinue: {
                         viewModel.advanceToNextPhase()
@@ -171,6 +172,7 @@ struct NarrativeView: View {
         case .callToAction:
             FinalCTAEnhancedView(
                 industry: viewModel.selectedIndustry,
+                companyName: viewModel.displayCompanyName,
                 progress: viewModel.phaseProgress,
                 narrationFinished: narrationFinished,
                 onComplete: {
@@ -690,8 +692,10 @@ struct HumanReturnEnhancedView: View {
 
 /// Enhanced Final CTA with proper narration sync
 /// FIXED: Removed EXPERIENCE button, fixed overlapping buttons
+/// Now personalized with company name for emotional closing
 struct FinalCTAEnhancedView: View {
     let industry: Industry?
+    let companyName: String
     let progress: Double
     let narrationFinished: Bool
     let onComplete: () -> Void
@@ -842,7 +846,8 @@ struct FinalCTAEnhancedView: View {
                     .opacity(questionPhase)
                     .padding(.vertical, 8)
 
-                Text("Where will you lead?")
+                // Personalized closing question with company name
+                Text("Where will \(companyName) lead?")
                     .font(.system(size: 18, design: .rounded).weight(.light))
                     .foregroundColor(pureWhite.opacity(0.6))
                     .opacity(questionPhase)
