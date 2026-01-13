@@ -139,13 +139,9 @@ class AudioManager {
     func playNarration(for key: String, completion: (() -> Void)? = nil) {
         currentNarrationKey = key
 
-        // Try enhanced audio files first (in enhanced folder)
-        if playPreRecordedNarration(for: key, folder: "enhanced", completion: completion) {
-            return
-        }
-
-        // Try standard audio files
-        if playPreRecordedNarration(for: key, folder: nil, completion: completion) {
+        // Try to find and play pre-recorded narration
+        // Priority: 1) exact key match, 2) key with _enhanced suffix removed
+        if playPreRecordedNarration(for: key, completion: completion) {
             return
         }
 
@@ -159,52 +155,49 @@ class AudioManager {
         speakNarration(text, completion: completion)
     }
 
-    private func playPreRecordedNarration(for key: String, folder: String?, completion: (() -> Void)?) -> Bool {
+    private func playPreRecordedNarration(for key: String, completion: (() -> Void)?) -> Bool {
         let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
-        let filename = "narration_\(key)"
 
-        for format in formats {
-            var url: URL?
+        // Build list of filenames to try in priority order
+        // 1. Exact match: narration_<key>
+        // 2. If key ends with _enhanced, also try without the suffix
+        var filenamesToTry = ["narration_\(key)"]
+        if key.hasSuffix("_enhanced") {
+            let baseKey = String(key.dropLast("_enhanced".count))
+            filenamesToTry.append("narration_\(baseKey)")
+        }
 
-            if let folder = folder {
-                // Check in subfolder
-                if let bundlePath = Bundle.main.path(forResource: filename, ofType: format, inDirectory: "Audio/\(folder)") {
-                    url = URL(fileURLWithPath: bundlePath)
-                }
-            }
+        for filename in filenamesToTry {
+            for format in formats {
+                if let url = Bundle.main.url(forResource: filename, withExtension: format) {
+                    do {
+                        narrationPlayer?.stop()
+                        narrationPlayer = try AVAudioPlayer(contentsOf: url)
+                        narrationPlayer?.volume = narrationVolume
+                        narrationPlayer?.prepareToPlay()
 
-            // Check in main Audio folder
-            if url == nil {
-                url = Bundle.main.url(forResource: filename, withExtension: format)
-            }
+                        isNarrationPlaying = true
+                        narrationPlayer?.play()
 
-            if let audioURL = url {
-                do {
-                    narrationPlayer?.stop()
-                    narrationPlayer = try AVAudioPlayer(contentsOf: audioURL)
-                    narrationPlayer?.volume = narrationVolume
-                    narrationPlayer?.prepareToPlay()
+                        print("[Audio] Playing: \(filename).\(format)")
 
-                    isNarrationPlaying = true
-                    narrationPlayer?.play()
+                        // Schedule completion
+                        let duration = narrationPlayer?.duration ?? 2.0
+                        DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) { [weak self] in
+                            self?.isNarrationPlaying = false
+                            self?.currentNarrationKey = nil
+                            completion?()
+                        }
 
-                    print("[Audio] Playing: \(filename).\(format)")
-
-                    // Schedule completion
-                    let duration = narrationPlayer?.duration ?? 2.0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) { [weak self] in
-                        self?.isNarrationPlaying = false
-                        self?.currentNarrationKey = nil
-                        completion?()
+                        return true
+                    } catch {
+                        print("[Audio] Failed to play \(filename).\(format): \(error)")
                     }
-
-                    return true
-                } catch {
-                    print("[Audio] Failed to play \(filename).\(format): \(error)")
                 }
             }
         }
 
+        print("[Audio] No audio file found for key: \(key)")
         return false
     }
 

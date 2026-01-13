@@ -52,6 +52,33 @@
 		46B760C82F02506700F1A587 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BC2F02506700F1A587 /* Animations.swift */; };
 		46B760CA2F02563000F1A587 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760C92F02563000F1A587 /* MotionManager.swift */; };
 		46D4D48D2F0C21D2008930C9 /* narration_aa_reveal.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 46D4D48C2F0C21D2008930C9 /* narration_aa_reveal.mp3 */; };
+		0A45AA069FFF624E229721BD /* narration_aa_reveal_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DF51FC5754FACFC7F56B3022 /* narration_aa_reveal_enhanced.mp3 */; };
+		C87F02E97B27851EBF87C5FF /* narration_agentic_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9989EE4544F418F631832D4F /* narration_agentic_enhanced.mp3 */; };
+		B40CA1EA7D184C466DE61CFB /* narration_breathe.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A42C9FF5A875AB6034771A46 /* narration_breathe.mp3 */; };
+		F47B3CCD2E4D8FA2E7A1B8D3 /* narration_building_finance.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2D4F7DF688CD7A2F9BE03740 /* narration_building_finance.mp3 */; };
+		3057A18A016CB653B1C36BC6 /* narration_building_health.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0555E1A317C81E9818E48A71 /* narration_building_health.mp3 */; };
+		9F33495C9AEB27F014C14A60 /* narration_building_supply.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 28E537B953F0432D15622288 /* narration_building_supply.mp3 */; };
+		66CC1F02906B20ECD35C1146 /* narration_choose_industry.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D0101AC5D42549D4A8C55239 /* narration_choose_industry.mp3 */; };
+		C175AC5EA791CBCAF2D6B169 /* narration_comparison_finance_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 53695804C5F46C5348BFE38E /* narration_comparison_finance_1.mp3 */; };
+		3E975655512D7F6D5A97F61D /* narration_comparison_finance_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C8507875BBD0146ABE6CB4D0 /* narration_comparison_finance_2.mp3 */; };
+		97305058C3F8187B954DD4AD /* narration_comparison_finance_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DA54BDA876368DEE6ECC0BB1 /* narration_comparison_finance_3.mp3 */; };
+		8930930CC28C7378B5441077 /* narration_comparison_health_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E054D0D7AFCF59244AF51D02 /* narration_comparison_health_1.mp3 */; };
+		9F4299231C786A3C95E9E535 /* narration_comparison_health_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 14B1C75191D5BA6EEECADB51 /* narration_comparison_health_2.mp3 */; };
+		445BCFB19BD5CF49C19B294C /* narration_comparison_health_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = F11032A2B1E7DCDD3EE0A97C /* narration_comparison_health_3.mp3 */; };
+		3DD9B8E9EAE8BBDC542DCAA2 /* narration_comparison_supply_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B2F5CF3A28E9E0C58058ED56 /* narration_comparison_supply_1.mp3 */; };
+		2DB3BE1AFF7C4FE80815DCCB /* narration_comparison_supply_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9B701C5FEE66F774D32EF29B /* narration_comparison_supply_2.mp3 */; };
+		0A7DC298BE10275E124A39F9 /* narration_comparison_supply_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4150893DC61580ED81527131 /* narration_comparison_supply_3.mp3 */; };
+		F8E4F1596BA2CE6F33D2A08E /* narration_final_cta_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 571340A9B554410F91DF52AF /* narration_final_cta_enhanced.mp3 */; };
+		04F18C6FA73BADAB1A782265 /* narration_pattern_break_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9A5873E424F1870858AE3692 /* narration_pattern_break_enhanced.mp3 */; };
+		FBAF920B02A405E8017D871E /* narration_purpose.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D3C54B5CC457C77CC893770F /* narration_purpose.mp3 */; };
+		E0EF01E440C830454F7AF5BE /* narration_ready_change.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4C7824A89A76474B623ADB57 /* narration_ready_change.mp3 */; };
+		7AC93C6E49D8E13DA2421585 /* narration_restoration_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 33A7E1F00E3493479D1D8CC3 /* narration_restoration_enhanced.mp3 */; };
+		C850EEEB4B9CA92771A75754 /* narration_sucker_punch_finance.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C9EEC1026D7C4A56DA0B9913 /* narration_sucker_punch_finance.mp3 */; };
+		CCD0CD3FCD33AE488644820A /* narration_sucker_punch_health.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 83325D1DEF08484735AB3431 /* narration_sucker_punch_health.mp3 */; };
+		524DF496123522045FCBE4F7 /* narration_sucker_punch_supply.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7C843BCA7598E71177ECEB31 /* narration_sucker_punch_supply.mp3 */; };
+		CFCA2510404A16892D403B8C /* narration_vignette_finance_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B5E280D383954258029AE7C2 /* narration_vignette_finance_enhanced.mp3 */; };
+		7251412B8A6C83F1E1C66DB3 /* narration_vignette_health_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */; };
+		841837911EE0023A61391A90 /* narration_vignette_supply_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -102,6 +129,33 @@
 		46B760C12F02506700F1A587 /* Tier1App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1App.swift; sourceTree = "<group>"; };
 		46B760C92F02563000F1A587 /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
 		46D4D48C2F0C21D2008930C9 /* narration_aa_reveal.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_reveal.mp3; sourceTree = "<group>"; };
+		DF51FC5754FACFC7F56B3022 /* narration_aa_reveal_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_reveal_enhanced.mp3; sourceTree = "<group>"; };
+		9989EE4544F418F631832D4F /* narration_agentic_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_agentic_enhanced.mp3; sourceTree = "<group>"; };
+		A42C9FF5A875AB6034771A46 /* narration_breathe.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_breathe.mp3; sourceTree = "<group>"; };
+		2D4F7DF688CD7A2F9BE03740 /* narration_building_finance.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_finance.mp3; sourceTree = "<group>"; };
+		0555E1A317C81E9818E48A71 /* narration_building_health.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_health.mp3; sourceTree = "<group>"; };
+		28E537B953F0432D15622288 /* narration_building_supply.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_supply.mp3; sourceTree = "<group>"; };
+		D0101AC5D42549D4A8C55239 /* narration_choose_industry.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_choose_industry.mp3; sourceTree = "<group>"; };
+		53695804C5F46C5348BFE38E /* narration_comparison_finance_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_finance_1.mp3; sourceTree = "<group>"; };
+		C8507875BBD0146ABE6CB4D0 /* narration_comparison_finance_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_finance_2.mp3; sourceTree = "<group>"; };
+		DA54BDA876368DEE6ECC0BB1 /* narration_comparison_finance_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_finance_3.mp3; sourceTree = "<group>"; };
+		E054D0D7AFCF59244AF51D02 /* narration_comparison_health_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_health_1.mp3; sourceTree = "<group>"; };
+		14B1C75191D5BA6EEECADB51 /* narration_comparison_health_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_health_2.mp3; sourceTree = "<group>"; };
+		F11032A2B1E7DCDD3EE0A97C /* narration_comparison_health_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_health_3.mp3; sourceTree = "<group>"; };
+		B2F5CF3A28E9E0C58058ED56 /* narration_comparison_supply_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_supply_1.mp3; sourceTree = "<group>"; };
+		9B701C5FEE66F774D32EF29B /* narration_comparison_supply_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_supply_2.mp3; sourceTree = "<group>"; };
+		4150893DC61580ED81527131 /* narration_comparison_supply_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_supply_3.mp3; sourceTree = "<group>"; };
+		571340A9B554410F91DF52AF /* narration_final_cta_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_final_cta_enhanced.mp3; sourceTree = "<group>"; };
+		9A5873E424F1870858AE3692 /* narration_pattern_break_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_pattern_break_enhanced.mp3; sourceTree = "<group>"; };
+		D3C54B5CC457C77CC893770F /* narration_purpose.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_purpose.mp3; sourceTree = "<group>"; };
+		4C7824A89A76474B623ADB57 /* narration_ready_change.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_ready_change.mp3; sourceTree = "<group>"; };
+		33A7E1F00E3493479D1D8CC3 /* narration_restoration_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_restoration_enhanced.mp3; sourceTree = "<group>"; };
+		C9EEC1026D7C4A56DA0B9913 /* narration_sucker_punch_finance.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_sucker_punch_finance.mp3; sourceTree = "<group>"; };
+		83325D1DEF08484735AB3431 /* narration_sucker_punch_health.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_sucker_punch_health.mp3; sourceTree = "<group>"; };
+		7C843BCA7598E71177ECEB31 /* narration_sucker_punch_supply.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_sucker_punch_supply.mp3; sourceTree = "<group>"; };
+		B5E280D383954258029AE7C2 /* narration_vignette_finance_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_finance_enhanced.mp3; sourceTree = "<group>"; };
+		57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_health_enhanced.mp3; sourceTree = "<group>"; };
+		1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_supply_enhanced.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +211,33 @@
 		469C33ED2F07DD48002E908D /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				DF51FC5754FACFC7F56B3022 /* narration_aa_reveal_enhanced.mp3 */,
+				9989EE4544F418F631832D4F /* narration_agentic_enhanced.mp3 */,
+				A42C9FF5A875AB6034771A46 /* narration_breathe.mp3 */,
+				2D4F7DF688CD7A2F9BE03740 /* narration_building_finance.mp3 */,
+				0555E1A317C81E9818E48A71 /* narration_building_health.mp3 */,
+				28E537B953F0432D15622288 /* narration_building_supply.mp3 */,
+				D0101AC5D42549D4A8C55239 /* narration_choose_industry.mp3 */,
+				53695804C5F46C5348BFE38E /* narration_comparison_finance_1.mp3 */,
+				C8507875BBD0146ABE6CB4D0 /* narration_comparison_finance_2.mp3 */,
+				DA54BDA876368DEE6ECC0BB1 /* narration_comparison_finance_3.mp3 */,
+				E054D0D7AFCF59244AF51D02 /* narration_comparison_health_1.mp3 */,
+				14B1C75191D5BA6EEECADB51 /* narration_comparison_health_2.mp3 */,
+				F11032A2B1E7DCDD3EE0A97C /* narration_comparison_health_3.mp3 */,
+				B2F5CF3A28E9E0C58058ED56 /* narration_comparison_supply_1.mp3 */,
+				9B701C5FEE66F774D32EF29B /* narration_comparison_supply_2.mp3 */,
+				4150893DC61580ED81527131 /* narration_comparison_supply_3.mp3 */,
+				571340A9B554410F91DF52AF /* narration_final_cta_enhanced.mp3 */,
+				9A5873E424F1870858AE3692 /* narration_pattern_break_enhanced.mp3 */,
+				D3C54B5CC457C77CC893770F /* narration_purpose.mp3 */,
+				4C7824A89A76474B623ADB57 /* narration_ready_change.mp3 */,
+				33A7E1F00E3493479D1D8CC3 /* narration_restoration_enhanced.mp3 */,
+				C9EEC1026D7C4A56DA0B9913 /* narration_sucker_punch_finance.mp3 */,
+				83325D1DEF08484735AB3431 /* narration_sucker_punch_health.mp3 */,
+				7C843BCA7598E71177ECEB31 /* narration_sucker_punch_supply.mp3 */,
+				B5E280D383954258029AE7C2 /* narration_vignette_finance_enhanced.mp3 */,
+				57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */,
+				1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */,
 				46D4D48C2F0C21D2008930C9 /* narration_aa_reveal.mp3 */,
 				467A667B2F09935200A4E98D /* narration_final_cta.mp3 */,
 				467A667C2F09935200A4E98D /* narration_potential.mp3 */,
@@ -331,6 +412,33 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A45AA069FFF624E229721BD /* narration_aa_reveal_enhanced.mp3 in Resources */,
+				C87F02E97B27851EBF87C5FF /* narration_agentic_enhanced.mp3 in Resources */,
+				B40CA1EA7D184C466DE61CFB /* narration_breathe.mp3 in Resources */,
+				F47B3CCD2E4D8FA2E7A1B8D3 /* narration_building_finance.mp3 in Resources */,
+				3057A18A016CB653B1C36BC6 /* narration_building_health.mp3 in Resources */,
+				9F33495C9AEB27F014C14A60 /* narration_building_supply.mp3 in Resources */,
+				66CC1F02906B20ECD35C1146 /* narration_choose_industry.mp3 in Resources */,
+				C175AC5EA791CBCAF2D6B169 /* narration_comparison_finance_1.mp3 in Resources */,
+				3E975655512D7F6D5A97F61D /* narration_comparison_finance_2.mp3 in Resources */,
+				97305058C3F8187B954DD4AD /* narration_comparison_finance_3.mp3 in Resources */,
+				8930930CC28C7378B5441077 /* narration_comparison_health_1.mp3 in Resources */,
+				9F4299231C786A3C95E9E535 /* narration_comparison_health_2.mp3 in Resources */,
+				445BCFB19BD5CF49C19B294C /* narration_comparison_health_3.mp3 in Resources */,
+				3DD9B8E9EAE8BBDC542DCAA2 /* narration_comparison_supply_1.mp3 in Resources */,
+				2DB3BE1AFF7C4FE80815DCCB /* narration_comparison_supply_2.mp3 in Resources */,
+				0A7DC298BE10275E124A39F9 /* narration_comparison_supply_3.mp3 in Resources */,
+				F8E4F1596BA2CE6F33D2A08E /* narration_final_cta_enhanced.mp3 in Resources */,
+				04F18C6FA73BADAB1A782265 /* narration_pattern_break_enhanced.mp3 in Resources */,
+				FBAF920B02A405E8017D871E /* narration_purpose.mp3 in Resources */,
+				E0EF01E440C830454F7AF5BE /* narration_ready_change.mp3 in Resources */,
+				7AC93C6E49D8E13DA2421585 /* narration_restoration_enhanced.mp3 in Resources */,
+				C850EEEB4B9CA92771A75754 /* narration_sucker_punch_finance.mp3 in Resources */,
+				CCD0CD3FCD33AE488644820A /* narration_sucker_punch_health.mp3 in Resources */,
+				524DF496123522045FCBE4F7 /* narration_sucker_punch_supply.mp3 in Resources */,
+				CFCA2510404A16892D403B8C /* narration_vignette_finance_enhanced.mp3 in Resources */,
+				7251412B8A6C83F1E1C66DB3 /* narration_vignette_health_enhanced.mp3 in Resources */,
+				841837911EE0023A61391A90 /* narration_vignette_supply_enhanced.mp3 in Resources */,
 				469C33EE2F07DD48002E908D /* narration_agentic.mp3 in Resources */,
 				469C33EF2F07DD48002E908D /* narration_closing.mp3 in Resources */,
 				469C33F02F07DD48002E908D /* narration_restoration.mp3 in Resources */,
