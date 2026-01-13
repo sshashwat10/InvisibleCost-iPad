@@ -2398,10 +2398,13 @@ struct IndustryCardView: View {
                 }
                 .scaleEffect(1.0 + CGFloat(sin(time * 1.5)) * 0.03)
 
-                // Industry name
+                // Industry name - centered with proper alignment for longer names like "SUPPLY CHAIN"
                 Text(industry.displayName)
                     .font(.system(size: 16, design: .rounded).weight(.medium))
                     .tracking(4)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
                     .foregroundStyle(
                         LinearGradient(
                             colors: [theme.accent, .white],
@@ -2409,7 +2412,9 @@ struct IndustryCardView: View {
                             endPoint: .trailing
                         )
                     )
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
+            .frame(maxWidth: .infinity)
             .padding(40)
         }
         .frame(width: 220, height: 240)
@@ -2459,6 +2464,7 @@ struct SuckerPunchRevealView: View {
     let industry: Industry
     let companyName: String
     let progress: Double
+    let narrationFinished: Bool
     let onContinue: () -> Void
 
     @State private var displayValue: Int = 0
@@ -2468,10 +2474,11 @@ struct SuckerPunchRevealView: View {
 
     private let suckerPunchData: SuckerPunchData
 
-    init(industry: Industry, companyName: String = "Your Organization", progress: Double, onContinue: @escaping () -> Void) {
+    init(industry: Industry, companyName: String = "Your Organization", progress: Double, narrationFinished: Bool = false, onContinue: @escaping () -> Void) {
         self.industry = industry
         self.companyName = companyName
         self.progress = progress
+        self.narrationFinished = narrationFinished
         self.onContinue = onContinue
         self.suckerPunchData = IndustryContent.suckerPunchData(for: industry)
     }
@@ -2505,9 +2512,9 @@ struct SuckerPunchRevealView: View {
 
                     Spacer()
 
-                    // Continue prompt
+                    // Continue prompt - only show after narration finishes
                     continuePrompt
-                        .opacity(countingComplete && progress > 0.7 ? 1 : 0)
+                        .opacity(countingComplete && narrationFinished ? 1 : 0)
                 }
                 .padding(.horizontal, 60)
             }
@@ -2515,7 +2522,8 @@ struct SuckerPunchRevealView: View {
                 startCountingAnimation()
             }
             .onTapGesture {
-                if countingComplete {
+                // Only allow tap after narration completes
+                if countingComplete && narrationFinished {
                     onContinue()
                 }
             }
@@ -2732,6 +2740,7 @@ struct ComparisonCarouselView: View {
     @State private var cardsShown = false
     @State private var hasPlayedFirstCard = false
     @State private var viewHasAppeared = false
+    @State private var cardNarrationFinished = false  // Track when current card's narration completes
 
     private let comparisons: [ComparisonCard]
     private let theme: IndustryTheme
@@ -2804,7 +2813,10 @@ struct ComparisonCarouselView: View {
                 .padding(.horizontal, 60)
             }
             .onTapGesture {
-                advanceCard()
+                // Only allow tap after narration completes
+                if cardNarrationFinished {
+                    advanceCard()
+                }
             }
         }
         .onAppear {
@@ -2821,9 +2833,12 @@ struct ComparisonCarouselView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 if !hasPlayedFirstCard && currentCardIndex < comparisons.count {
                     hasPlayedFirstCard = true
+                    cardNarrationFinished = false  // Reset for new card
                     let audioKey = comparisons[currentCardIndex].audioKey
                     print("[ComparisonCarousel] Playing first card audio: \(audioKey)")
-                    audioManager.playNarration(for: audioKey, completion: nil)
+                    audioManager.playNarration(for: audioKey) { [self] in
+                        cardNarrationFinished = true
+                    }
                     onCardChange?(audioKey)
                 }
             }
@@ -2915,6 +2930,8 @@ struct ComparisonCarouselView: View {
                 .foregroundColor(.white.opacity(0.3))
         }
         .padding(.bottom, 40)
+        .opacity(cardNarrationFinished ? 1 : 0)  // Only show after narration completes
+        .animation(.easeOut(duration: 0.3), value: cardNarrationFinished)
     }
 
     // MARK: - Actions
@@ -2927,6 +2944,9 @@ struct ComparisonCarouselView: View {
         if currentCardIndex >= comparisons.count {
             onComplete()
         } else {
+            // Reset narration state for next card
+            cardNarrationFinished = false
+
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 currentCardIndex += 1
             }
@@ -2936,11 +2956,15 @@ struct ComparisonCarouselView: View {
                 if currentCardIndex < comparisons.count {
                     // Play comparison card audio
                     let audioKey = comparisons[currentCardIndex].audioKey
-                    audioManager.playNarration(for: audioKey, completion: nil)
+                    audioManager.playNarration(for: audioKey) { [self] in
+                        cardNarrationFinished = true
+                    }
                     onCardChange?(audioKey)
                 } else {
                     // Play "ready to change" audio for final card
-                    audioManager.playNarration(for: "ready_change", completion: nil)
+                    audioManager.playNarration(for: "ready_change") { [self] in
+                        cardNarrationFinished = true
+                    }
                     onCardChange?("ready_change")
                 }
             }

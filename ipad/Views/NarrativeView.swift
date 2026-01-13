@@ -134,6 +134,7 @@ struct NarrativeView: View {
                     industry: industry,
                     companyName: viewModel.displayCompanyName,
                     progress: viewModel.phaseProgress,
+                    narrationFinished: narrationFinished,
                     onContinue: {
                         viewModel.advanceToNextPhase()
                     }
@@ -1056,7 +1057,7 @@ struct PersonalizationInputView: View {
                 Text("COMPANY NAME (OPTIONAL)")
                     .font(.system(size: 11, design: .rounded).weight(.medium))
                     .tracking(3)
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(.white.opacity(narrationFinished ? 0.4 : 0.2))
 
                 TextField("", text: $companyName, prompt: Text("Your Company").foregroundColor(.white.opacity(0.3)))
                     .font(.system(size: 18, design: .rounded).weight(.light))
@@ -1065,20 +1066,23 @@ struct PersonalizationInputView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white.opacity(0.05))
+                            .fill(Color.white.opacity(narrationFinished ? 0.05 : 0.02))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                    .stroke(Color.white.opacity(narrationFinished ? 0.1 : 0.05), lineWidth: 1)
                             )
                     )
+                    .disabled(!narrationFinished)
             }
+            .opacity(narrationFinished ? 1.0 : 0.5)
+            .animation(.easeOut(duration: 0.3), value: narrationFinished)
 
             // Team size presets
             VStack(alignment: .leading, spacing: 12) {
                 Text("TEAM SIZE")
                     .font(.system(size: 11, design: .rounded).weight(.medium))
                     .tracking(3)
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(.white.opacity(narrationFinished ? 0.4 : 0.2))
 
                 HStack(spacing: 12) {
                     ForEach(teamSizePresets, id: \.self) { size in
@@ -1087,9 +1091,12 @@ struct PersonalizationInputView: View {
                             isSelected: teamSize == size,
                             action: { teamSize = size }
                         )
+                        .disabled(!narrationFinished)
                     }
                 }
             }
+            .opacity(narrationFinished ? 1.0 : 0.5)
+            .animation(.easeOut(duration: 0.3), value: narrationFinished)
 
             // Hours lost slider
             VStack(alignment: .leading, spacing: 12) {
@@ -1097,13 +1104,13 @@ struct PersonalizationInputView: View {
                     Text("HOURS LOST PER WEEK")
                         .font(.system(size: 11, design: .rounded).weight(.medium))
                         .tracking(3)
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(.white.opacity(narrationFinished ? 0.4 : 0.2))
 
                     Spacer()
 
                     Text("\(Int(lostHoursPerWeek)) hours")
                         .font(.system(size: 16, design: .rounded).weight(.light))
-                        .foregroundColor(accentBlue)
+                        .foregroundColor(narrationFinished ? accentBlue : accentBlue.opacity(0.5))
                 }
 
                 CustomSlider(
@@ -1111,14 +1118,17 @@ struct PersonalizationInputView: View {
                     range: 5...40,
                     accentColor: accentBlue
                 )
+                .disabled(!narrationFinished)
             }
+            .opacity(narrationFinished ? 1.0 : 0.5)
+            .animation(.easeOut(duration: 0.3), value: narrationFinished)
 
             // Hourly rate presets
             VStack(alignment: .leading, spacing: 12) {
                 Text("AVERAGE HOURLY RATE")
                     .font(.system(size: 11, design: .rounded).weight(.medium))
                     .tracking(3)
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(.white.opacity(narrationFinished ? 0.4 : 0.2))
 
                 HStack(spacing: 12) {
                     ForEach(hourlyRatePresets, id: \.self) { rate in
@@ -1127,9 +1137,12 @@ struct PersonalizationInputView: View {
                             isSelected: hourlyRate == rate,
                             action: { hourlyRate = rate }
                         )
+                        .disabled(!narrationFinished)
                     }
                 }
             }
+            .opacity(narrationFinished ? 1.0 : 0.5)
+            .animation(.easeOut(duration: 0.3), value: narrationFinished)
 
             // Divider
             Rectangle()
