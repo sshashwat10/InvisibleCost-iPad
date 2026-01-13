@@ -4,6 +4,7 @@ import Combine
 // MARK: - Enhanced Narrative View
 /// Main orchestrator for the enhanced Invisible Cost experience
 /// Implements Neeti's feedback: agency, personalization, sucker punch moment
+/// NOW WITH PROPER AUDIO SYNC - Phases wait for narration to complete
 
 struct NarrativeView: View {
     @State private var viewModel = ExperienceViewModel()
@@ -11,6 +12,10 @@ struct NarrativeView: View {
     @State private var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     @State private var lastPhase: Tier1Phase = .waiting
     @State private var audioTriggered: Set<String> = []
+
+    // Track narration state for UI elements
+    @State private var narrationFinished: Bool = false
+    @State private var humanReturnNarrationIndex: Int = 0
 
     private let audioManager = AudioManager.shared
 
@@ -104,6 +109,7 @@ struct NarrativeView: View {
         case .patternBreak:
             PatternBreakEnhancedView(
                 progress: viewModel.phaseProgress,
+                narrationFinished: narrationFinished,
                 onContinue: {
                     viewModel.advanceToNextPhase()
                 }
@@ -150,8 +156,13 @@ struct NarrativeView: View {
             FinalCTAEnhancedView(
                 industry: viewModel.selectedIndustry,
                 progress: viewModel.phaseProgress,
+                narrationFinished: narrationFinished,
                 onComplete: {
                     viewModel.endExperience()
+                },
+                onRestart: {
+                    viewModel.reset()
+                    viewModel.startExperience()
                 }
             )
         }
@@ -166,8 +177,10 @@ struct NarrativeView: View {
             // Play phase-specific audio
             audioManager.playAudioForPhase(viewModel.currentPhase, industry: viewModel.selectedIndustry)
 
-            // Reset triggers
+            // Reset triggers and state
             audioTriggered.removeAll()
+            narrationFinished = false
+            humanReturnNarrationIndex = 0
             lastPhase = viewModel.currentPhase
 
             print("[Narrative] Phase: \(viewModel.currentPhase.displayName)")
@@ -183,14 +196,20 @@ struct NarrativeView: View {
         switch phase {
         case .industrySelection:
             triggerOnce("choose_industry") {
-                audioManager.playNarration(for: "choose_industry")
+                audioManager.playNarration(for: "choose_industry") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
             }
 
         case .buildingTension:
             if let industry = viewModel.selectedIndustry {
                 let key = "building_\(industry.rawValue)"
                 triggerAtProgress(key, threshold: 0.05, progress: progress) {
-                    audioManager.playNarration(for: key)
+                    audioManager.playNarration(for: key) { [self] in
+                        narrationFinished = true
+                        viewModel.onNarrationComplete()
+                    }
                 }
             }
 
@@ -198,21 +217,30 @@ struct NarrativeView: View {
             if let industry = viewModel.selectedIndustry {
                 let key = "vignette_\(industry.rawValue)_enhanced"
                 triggerAtProgress(key, threshold: 0.1, progress: progress) {
-                    audioManager.playNarration(for: key)
+                    audioManager.playNarration(for: key) { [self] in
+                        narrationFinished = true
+                        viewModel.onNarrationComplete()
+                    }
                 }
             }
 
         case .patternBreak:
-            triggerAtProgress("pattern_break_enhanced", threshold: 0.3, progress: progress) {
-                audioManager.playNarration(for: "pattern_break_enhanced")
+            triggerAtProgress("pattern_break_enhanced", threshold: 0.1, progress: progress) {
+                audioManager.playNarration(for: "pattern_break_enhanced") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
             }
 
         case .suckerPunchReveal:
-            // Audio handled by SuckerPunchRevealView for precise sync
+            // Audio handled by SuckerPunchRevealView for precise sync with counter animation
             if let industry = viewModel.selectedIndustry {
                 let key = "sucker_punch_\(industry.rawValue)"
-                triggerAtProgress(key, threshold: 0.5, progress: progress) {
-                    audioManager.playNarration(for: key)
+                triggerAtProgress(key, threshold: 0.3, progress: progress) {
+                    audioManager.playNarration(for: key) { [self] in
+                        narrationFinished = true
+                        viewModel.onNarrationComplete()
+                    }
                 }
             }
 
@@ -220,32 +248,34 @@ struct NarrativeView: View {
             triggerOnce("music_transition") {
                 audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.5)
             }
-            triggerAtProgress("agentic_enhanced", threshold: 0.65, progress: progress) {
-                audioManager.playNarration(for: "agentic_enhanced")
+            triggerAtProgress("agentic_enhanced", threshold: 0.55, progress: progress) {
+                audioManager.playNarration(for: "agentic_enhanced") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
             }
 
         case .automationAnywhereReveal:
-            triggerAtProgress("aa_reveal_enhanced", threshold: 0.10, progress: progress) {
-                audioManager.playNarration(for: "aa_reveal_enhanced")
+            triggerAtProgress("aa_reveal_enhanced", threshold: 0.15, progress: progress) {
+                audioManager.playNarration(for: "aa_reveal_enhanced") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
             }
 
         case .humanReturn:
-            triggerAtProgress("restoration_enhanced", threshold: 0.10, progress: progress) {
-                audioManager.playNarration(for: "restoration_enhanced")
-            }
-            triggerAtProgress("breathe", threshold: 0.35, progress: progress) {
-                audioManager.playNarration(for: "breathe")
-            }
-            triggerAtProgress("purpose", threshold: 0.60, progress: progress) {
-                audioManager.playNarration(for: "purpose")
-            }
+            // Sequential narrations for human return phase
+            handleHumanReturnNarrations(progress: progress)
 
         case .callToAction:
             triggerOnce("completion") {
                 audioManager.playCompletion()
             }
-            triggerAtProgress("final_cta_enhanced", threshold: 0.05, progress: progress) {
-                audioManager.playNarration(for: "final_cta_enhanced")
+            triggerAtProgress("final_cta_enhanced", threshold: 0.08, progress: progress) {
+                audioManager.playNarration(for: "final_cta_enhanced") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
             }
             triggerAtProgress("music_fadeout", threshold: 0.60, progress: progress) {
                 audioManager.fadeOutMusic(duration: 8.0)
@@ -253,6 +283,32 @@ struct NarrativeView: View {
 
         default:
             break
+        }
+    }
+
+    // MARK: - Human Return Narration Sequence
+
+    private func handleHumanReturnNarrations(progress: Double) {
+        // Three sequential narrations: restoration, breathe, purpose
+        // Each one waits for the previous to finish
+
+        let narrations = ["restoration_enhanced", "breathe", "purpose"]
+        let thresholds = [0.08, 0.35, 0.60]
+
+        for (index, key) in narrations.enumerated() {
+            if humanReturnNarrationIndex == index {
+                triggerAtProgress(key, threshold: thresholds[index], progress: progress) {
+                    audioManager.playNarration(for: key) { [self] in
+                        humanReturnNarrationIndex = index + 1
+                        if index == narrations.count - 1 {
+                            // Last narration finished
+                            narrationFinished = true
+                            viewModel.onNarrationComplete()
+                        }
+                    }
+                }
+                break // Only trigger one at a time
+            }
         }
     }
 
@@ -268,11 +324,15 @@ struct NarrativeView: View {
         guard !audioTriggered.contains(key) else { return }
         if progress >= threshold {
             audioTriggered.insert(key)
+            // Only play if no other narration is currently playing
             if !audioManager.isNarrationPlaying {
                 action()
             } else {
+                // Queue it for when current narration finishes
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    action()
+                    if !audioManager.isNarrationPlaying {
+                        action()
+                    }
                 }
             }
         }
@@ -281,9 +341,10 @@ struct NarrativeView: View {
 
 // MARK: - Supporting Enhanced Views
 
-/// Enhanced Pattern Break with tap-to-continue
+/// Enhanced Pattern Break with tap-to-continue that waits for narration
 struct PatternBreakEnhancedView: View {
     let progress: Double
+    let narrationFinished: Bool
     let onContinue: () -> Void
 
     @State private var showText1 = false
@@ -316,7 +377,7 @@ struct PatternBreakEnhancedView: View {
                     .offset(y: showText2 ? 0 : 25)
             }
 
-            // Tap indicator
+            // Tap indicator - only show after narration finishes
             VStack {
                 Spacer()
                 VStack(spacing: 12) {
@@ -328,30 +389,32 @@ struct PatternBreakEnhancedView: View {
                         .font(.system(size: 14, design: .rounded).weight(.light))
                         .foregroundColor(.black.opacity(0.3))
                 }
-                .opacity(showTapIndicator ? 1 : 0)
+                .opacity(showTapIndicator && narrationFinished ? 1 : 0)
                 .padding(.bottom, 60)
             }
         }
         .onTapGesture {
-            if showTapIndicator {
+            // Only allow tap after narration completes
+            if showTapIndicator && narrationFinished {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
                 onContinue()
             }
         }
         .onAppear {
-            // Animate text appearance
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            // Animate text appearance synced with narration
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 withAnimation(.easeOut(duration: 0.8)) {
                     showText1 = true
                 }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 withAnimation(.easeOut(duration: 0.8)) {
                     showText2 = true
                 }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
+            // Show tap indicator after text animation, but it won't be tappable until narration finishes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                 withAnimation(.easeOut(duration: 0.5)) {
                     showTapIndicator = true
                 }
@@ -591,17 +654,93 @@ struct HumanReturnEnhancedView: View {
     }
 }
 
-/// Enhanced Final CTA
+/// Enhanced Final CTA with proper narration sync
 struct FinalCTAEnhancedView: View {
     let industry: Industry?
     let progress: Double
+    let narrationFinished: Bool
     let onComplete: () -> Void
+    let onRestart: () -> Void
+
+    @State private var showContent = false
+    @State private var showCTA = false
 
     var body: some View {
-        FinalCTAView(progress: progress, isComplete: false)
-            .onTapGesture {
-                onComplete()
+        ZStack {
+            // Use FinalCTAView as the base
+            FinalCTAView(progress: progress, isComplete: false)
+
+            // Overlay with restart option that appears after narration
+            if showCTA && narrationFinished {
+                VStack {
+                    Spacer()
+
+                    HStack(spacing: 30) {
+                        // Experience Vision Pro
+                        Button(action: {
+                            onComplete()
+                        }) {
+                            VStack(spacing: 10) {
+                                Image(systemName: "visionpro")
+                                    .font(.system(size: 28, weight: .ultraLight))
+                                    .foregroundColor(.white.opacity(0.8))
+
+                                Text("EXPERIENCE")
+                                    .font(.system(size: 10, design: .rounded).weight(.medium))
+                                    .tracking(4)
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                            .padding(.vertical, 18)
+                            .padding(.horizontal, 25)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        // Restart Experience
+                        Button(action: {
+                            onRestart()
+                        }) {
+                            VStack(spacing: 10) {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.system(size: 28, weight: .ultraLight))
+                                    .foregroundColor(Color(red: 0.95, green: 0.8, blue: 0.4).opacity(0.8))
+
+                                Text("RESTART")
+                                    .font(.system(size: 10, design: .rounded).weight(.medium))
+                                    .tracking(4)
+                                    .foregroundColor(Color(red: 0.95, green: 0.8, blue: 0.4).opacity(0.7))
+                            }
+                            .padding(.vertical, 18)
+                            .padding(.horizontal, 25)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color(red: 0.95, green: 0.8, blue: 0.4).opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.bottom, 80)
+                    .transition(.opacity.combined(with: .offset(y: 20)))
+                }
             }
+        }
+        .onAppear {
+            // Show content after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeOut(duration: 0.6)) {
+                    showContent = true
+                }
+            }
+            // Show CTA buttons after progress reaches a point
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    showCTA = true
+                }
+            }
+        }
     }
 }
 

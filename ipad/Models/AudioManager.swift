@@ -6,9 +6,10 @@ import UIKit
 // MARK: - Enhanced Audio Manager
 /// Comprehensive audio management for the enhanced Invisible Cost experience
 /// Handles narration, ambient sounds, transition effects, and precise sync points
+/// NOW WITH PROPER COMPLETION CALLBACKS FOR PHASE SYNCHRONIZATION
 
 @Observable
-class AudioManager {
+class AudioManager: NSObject, AVAudioPlayerDelegate {
     static let shared = AudioManager()
 
     // MARK: - Audio Engine
@@ -37,14 +38,71 @@ class AudioManager {
     // MARK: - Audio Format
     private var audioFormat: AVAudioFormat!
 
-    // MARK: - Callbacks for sync
-    var onNarrationComplete: (() -> Void)?
+    // MARK: - Completion Callbacks
+    private var narrationCompletionHandler: (() -> Void)?
+    private var narrationCompletionTimer: Timer?
+
+    // MARK: - Audio Duration Cache
+    /// Cached durations for all narration files (key: filename, value: duration in seconds)
+    private var audioDurationCache: [String: TimeInterval] = [:]
+
+    // MARK: - Actual Narration Durations (measured from audio files)
+    /// These are the actual durations of the narration audio files in seconds
+    /// Updated based on afinfo measurements of the MP3 files
+    static let estimatedDurations: [String: TimeInterval] = [
+        // Industry Selection
+        "choose_industry": 8.0,  // narration_choose_industry.mp3: 7.967s
+
+        // Building Tension (per industry)
+        "building_finance": 15.4,  // narration_building_finance.mp3: 15.360s
+        "building_supply": 15.0,   // narration_building_supply.mp3: 14.994s
+        "building_health": 13.0,   // narration_building_health.mp3: 12.904s
+
+        // Industry Vignettes
+        "vignette_finance_enhanced": 5.6,  // narration_vignette_finance_enhanced.mp3: ~5.5s
+        "vignette_supply_enhanced": 3.7,   // narration_vignette_supply_enhanced.mp3: ~3.6s
+        "vignette_health_enhanced": 4.0,   // narration_vignette_health_enhanced.mp3: ~3.9s
+
+        // Pattern Break
+        "pattern_break_enhanced": 6.0,  // narration_pattern_break_enhanced.mp3: 5.851s
+
+        // Sucker Punch (per industry)
+        "sucker_punch_finance": 15.3,  // narration_sucker_punch_finance.mp3: 15.229s
+        "sucker_punch_supply": 11.2,   // narration_sucker_punch_supply.mp3: 11.128s
+        "sucker_punch_health": 13.7,   // narration_sucker_punch_health.mp3: 13.609s
+
+        // Comparisons (per industry, 3 each)
+        "comparison_finance_1": 5.8,   // narration_comparison_finance_1.mp3: 5.799s
+        "comparison_finance_2": 3.5,   // narration_comparison_finance_2.mp3: 3.474s
+        "comparison_finance_3": 4.4,   // narration_comparison_finance_3.mp3: 4.362s
+        "comparison_supply_1": 3.0,    // narration_comparison_supply_1.mp3: 2.925s
+        "comparison_supply_2": 3.4,    // narration_comparison_supply_2.mp3: 3.369s
+        "comparison_supply_3": 4.4,    // narration_comparison_supply_3.mp3: 4.310s
+        "comparison_health_1": 5.0,    // narration_comparison_health_1.mp3: 4.963s
+        "comparison_health_2": 3.9,    // narration_comparison_health_2.mp3: 3.840s
+        "comparison_health_3": 2.9,    // narration_comparison_health_3.mp3: 2.873s
+
+        // Solution
+        "agentic_enhanced": 12.6,      // narration_agentic_enhanced.mp3: 12.564s
+        "aa_reveal_enhanced": 5.4,     // narration_aa_reveal_enhanced.mp3: 5.328s
+
+        // Human Return
+        "restoration_enhanced": 3.0,   // narration_restoration_enhanced.mp3: 2.925s
+        "breathe": 2.5,                // narration_breathe.mp3: 2.403s
+        "purpose": 7.4,                // narration_purpose.mp3: 7.340s
+
+        // Final CTA
+        "final_cta_enhanced": 10.2,    // narration_final_cta_enhanced.mp3: 10.109s
+        "ready_change": 2.7            // narration_ready_change.mp3: ~2.6s
+    ]
 
     // MARK: - Initialization
 
-    private init() {
+    override private init() {
+        super.init()
         setupAudioSession()
         setupAudioEngine()
+        cacheAllAudioDurations()
     }
 
     private func setupAudioSession() {
@@ -79,6 +137,76 @@ class AudioManager {
         } catch {
             print("[Audio] Engine start failed: \(error)")
         }
+    }
+
+    // MARK: - Audio Duration Caching
+
+    private func cacheAllAudioDurations() {
+        let narrationKeys = [
+            "choose_industry",
+            "building_finance", "building_supply", "building_health",
+            "vignette_finance_enhanced", "vignette_supply_enhanced", "vignette_health_enhanced",
+            "pattern_break_enhanced",
+            "sucker_punch_finance", "sucker_punch_supply", "sucker_punch_health",
+            "comparison_finance_1", "comparison_finance_2", "comparison_finance_3",
+            "comparison_supply_1", "comparison_supply_2", "comparison_supply_3",
+            "comparison_health_1", "comparison_health_2", "comparison_health_3",
+            "agentic_enhanced", "aa_reveal_enhanced",
+            "restoration_enhanced", "breathe", "purpose",
+            "final_cta_enhanced", "ready_change"
+        ]
+
+        for key in narrationKeys {
+            if let duration = getAudioFileDuration(for: key) {
+                audioDurationCache[key] = duration
+                print("[Audio] Cached duration for \(key): \(String(format: "%.1f", duration))s")
+            }
+        }
+    }
+
+    private func getAudioFileDuration(for key: String) -> TimeInterval? {
+        let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
+        var filenamesToTry = ["narration_\(key)"]
+        if key.hasSuffix("_enhanced") {
+            let baseKey = String(key.dropLast("_enhanced".count))
+            filenamesToTry.append("narration_\(baseKey)")
+        }
+
+        for filename in filenamesToTry {
+            for format in formats {
+                if let url = Bundle.main.url(forResource: filename, withExtension: format) {
+                    do {
+                        let player = try AVAudioPlayer(contentsOf: url)
+                        return player.duration
+                    } catch {
+                        continue
+                    }
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Get the duration for a narration key (from cache, file, or estimate)
+    func getNarrationDuration(for key: String) -> TimeInterval {
+        // First check cache
+        if let cached = audioDurationCache[key] {
+            return cached
+        }
+
+        // Try to get from file
+        if let fileDuration = getAudioFileDuration(for: key) {
+            audioDurationCache[key] = fileDuration
+            return fileDuration
+        }
+
+        // Fall back to estimates
+        if let estimate = AudioManager.estimatedDurations[key] {
+            return estimate
+        }
+
+        // Default fallback
+        return 5.0
     }
 
     // MARK: - Narration Playback
@@ -136,31 +264,34 @@ class AudioManager {
     ]
 
     /// Play narration with completion callback for sync
+    /// The completion handler is called when the audio finishes playing
     func playNarration(for key: String, completion: (() -> Void)? = nil) {
+        // Cancel any existing completion timer
+        narrationCompletionTimer?.invalidate()
+        narrationCompletionTimer = nil
+
         currentNarrationKey = key
+        narrationCompletionHandler = completion
 
         // Try to find and play pre-recorded narration
-        // Priority: 1) exact key match, 2) key with _enhanced suffix removed
-        if playPreRecordedNarration(for: key, completion: completion) {
+        if playPreRecordedNarration(for: key) {
             return
         }
 
         // Fallback to TTS
         guard let text = narratorLines[key] else {
             print("[Audio] No narration found for key: \(key)")
+            isNarrationPlaying = false
             completion?()
             return
         }
 
-        speakNarration(text, completion: completion)
+        speakNarration(text)
     }
 
-    private func playPreRecordedNarration(for key: String, completion: (() -> Void)?) -> Bool {
+    private func playPreRecordedNarration(for key: String) -> Bool {
         let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
 
-        // Build list of filenames to try in priority order
-        // 1. Exact match: narration_<key>
-        // 2. If key ends with _enhanced, also try without the suffix
         var filenamesToTry = ["narration_\(key)"]
         if key.hasSuffix("_enhanced") {
             let baseKey = String(key.dropLast("_enhanced".count))
@@ -174,19 +305,19 @@ class AudioManager {
                         narrationPlayer?.stop()
                         narrationPlayer = try AVAudioPlayer(contentsOf: url)
                         narrationPlayer?.volume = narrationVolume
+                        narrationPlayer?.delegate = self
                         narrationPlayer?.prepareToPlay()
 
                         isNarrationPlaying = true
                         narrationPlayer?.play()
 
-                        print("[Audio] Playing: \(filename).\(format)")
-
-                        // Schedule completion
                         let duration = narrationPlayer?.duration ?? 2.0
-                        DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) { [weak self] in
-                            self?.isNarrationPlaying = false
-                            self?.currentNarrationKey = nil
-                            completion?()
+                        print("[Audio] Playing: \(filename).\(format) (duration: \(String(format: "%.1f", duration))s)")
+
+                        // Set up a backup timer in case delegate doesn't fire
+                        // Add a small buffer for safety
+                        narrationCompletionTimer = Timer.scheduledTimer(withTimeInterval: duration + 0.3, repeats: false) { [weak self] _ in
+                            self?.handleNarrationCompletion()
                         }
 
                         return true
@@ -201,7 +332,33 @@ class AudioManager {
         return false
     }
 
-    private func speakNarration(_ text: String, completion: (() -> Void)?) {
+    // MARK: - AVAudioPlayerDelegate
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        if player === narrationPlayer {
+            handleNarrationCompletion()
+        }
+    }
+
+    private func handleNarrationCompletion() {
+        // Cancel the backup timer
+        narrationCompletionTimer?.invalidate()
+        narrationCompletionTimer = nil
+
+        isNarrationPlaying = false
+        let key = currentNarrationKey ?? "unknown"
+        currentNarrationKey = nil
+
+        print("[Audio] Narration completed: \(key)")
+
+        // Call completion handler on main thread
+        DispatchQueue.main.async { [weak self] in
+            self?.narrationCompletionHandler?()
+            self?.narrationCompletionHandler = nil
+        }
+    }
+
+    private func speakNarration(_ text: String) {
         let synthesizer = AVSpeechSynthesizer()
 
         let utterance = AVSpeechUtterance(string: text)
@@ -218,74 +375,70 @@ class AudioManager {
         let wordCount = text.components(separatedBy: " ").count
         let estimatedDuration = Double(wordCount) * 0.45 + 0.8
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + estimatedDuration) { [weak self] in
-            self?.isNarrationPlaying = false
-            completion?()
+        narrationCompletionTimer = Timer.scheduledTimer(withTimeInterval: estimatedDuration, repeats: false) { [weak self] _ in
+            self?.handleNarrationCompletion()
         }
     }
 
     func stopNarration() {
         narrationPlayer?.stop()
+        narrationCompletionTimer?.invalidate()
+        narrationCompletionTimer = nil
         isNarrationPlaying = false
         currentNarrationKey = nil
+        narrationCompletionHandler = nil
+    }
+
+    /// Check if a specific narration is currently playing
+    func isPlaying(narration key: String) -> Bool {
+        return isNarrationPlaying && currentNarrationKey == key
     }
 
     // MARK: - Sound Effects
 
-    /// Play selection confirmation sound
     func playSelectionSound() {
         playEffect("sfx_selection", fallback: self.generateSelectionBuffer(), name: "Selection")
         triggerHaptic(.medium)
     }
 
-    /// Play sucker punch impact sound
     func playSuckerPunchImpact() {
         playEffect("sfx_impact_boom", fallback: self.generateImpactBuffer(), name: "Impact")
         triggerHaptic(.heavy)
     }
 
-    /// Play counter tick sound (rapid during counting)
     func playCounterTick() {
         playEffect("sfx_counting_tick", fallback: self.generateTickBuffer(), name: "Tick")
     }
 
-    /// Play card whoosh for comparison carousel
     func playCardWhoosh() {
         playEffect("sfx_card_whoosh", fallback: self.generateWhooshBuffer(), name: "Whoosh")
         triggerHaptic(.light)
     }
 
-    /// Play transition sound
     func playTransition() {
         playEffect("sfx_transition", fallback: self.generateTransitionBuffer(), name: "Transition")
     }
 
-    /// Play reveal sound
     func playReveal() {
         playEffect("sfx_reveal", fallback: self.generateRevealBuffer(), name: "Reveal")
     }
 
-    /// Play completion chime
     func playCompletion() {
         playEffect("sfx_completion", fallback: self.generateCompletionBuffer(), name: "Completion")
     }
 
-    /// Play UI feedback
     func playUIFeedback() {
         AudioServicesPlaySystemSound(1104)
     }
 
-    /// Play tension tone (for pattern break)
     func playTensionTone() {
         playEffect("sfx_tension_tone", fallback: self.generateTensionBuffer(), name: "Tension")
     }
 
-    /// Play ready chime (tap to continue indicator)
     func playReadyChime() {
         playEffect("sfx_ready_chime", fallback: self.generateReadyBuffer(), name: "Ready")
     }
 
-    /// Play glow pulse sound (for sucker punch number pulse)
     func playGlowPulse() {
         playEffect("sfx_glow_pulse", fallback: self.generatePulseBuffer(), name: "Pulse")
     }
@@ -327,7 +480,6 @@ class AudioManager {
     func playAmbientMusic() {
         guard !isAmbientPlaying else { return }
 
-        // Preload upbeat for later transition
         preloadUpbeatMusic()
 
         let formats = ["mp3", "m4a", "wav"]
@@ -335,7 +487,7 @@ class AudioManager {
             if let url = Bundle.main.url(forResource: "ambient_music", withExtension: format) {
                 do {
                     ambientMusicPlayer = try AVAudioPlayer(contentsOf: url)
-                    ambientMusicPlayer?.numberOfLoops = -1  // Loop
+                    ambientMusicPlayer?.numberOfLoops = -1
                     ambientMusicPlayer?.volume = ambientVolume
                     ambientMusicPlayer?.prepareToPlay()
                     ambientMusicPlayer?.play()
@@ -348,7 +500,6 @@ class AudioManager {
             }
         }
 
-        // Fallback to synthesized ambient
         playGeneratedAmbient()
     }
 
@@ -533,11 +684,8 @@ class AudioManager {
 
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            // Low impact thud
             let lowFreq = sin(2.0 * .pi * 60.0 * t) * exp(-t * 5) * 0.5
-            // Mid punch
             let midFreq = sin(2.0 * .pi * 120.0 * t) * exp(-t * 8) * 0.3
-            // High attack
             let highFreq = sin(2.0 * .pi * 400.0 * t) * exp(-t * 20) * 0.2
 
             let sample = Float(lowFreq + midFreq + highFreq)
@@ -661,7 +809,6 @@ class AudioManager {
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
             let progress = t / duration
-            // Deep drone that builds
             let freq = 55.0 + 20.0 * progress
             let envelope = (1.0 - progress) * 0.2
             let sample = Float(sin(2.0 * .pi * freq * t) * envelope)
@@ -684,7 +831,6 @@ class AudioManager {
 
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            // Two-note chime
             let note1 = sin(2.0 * .pi * 880.0 * t) * exp(-t * 5)
             let note2 = (t > 0.15) ? sin(2.0 * .pi * 1320.0 * (t - 0.15)) * exp(-(t - 0.15) * 6) : 0
 
@@ -751,6 +897,56 @@ extension AudioManager {
             playReveal()
         case .callToAction:
             playCompletion()
+        }
+    }
+
+    /// Calculate the minimum duration needed for a phase based on its narrations
+    func getMinimumPhaseDuration(for phase: Tier1Phase, industry: Industry?) -> TimeInterval {
+        let buffer: TimeInterval = 2.0 // Breathing room after narration
+
+        switch phase {
+        case .waiting, .complete:
+            return 0
+
+        case .industrySelection:
+            return getNarrationDuration(for: "choose_industry") + buffer
+
+        case .buildingTension:
+            guard let industry = industry else { return 12.0 }
+            let key = "building_\(industry.rawValue)"
+            return getNarrationDuration(for: key) + buffer + 2.0 // Extra time for visual buildup
+
+        case .industryVignette:
+            guard let industry = industry else { return 15.0 }
+            let key = "vignette_\(industry.rawValue)_enhanced"
+            return getNarrationDuration(for: key) + buffer + 6.0 // Time for metrics to appear
+
+        case .patternBreak:
+            return 0 // User-controlled
+
+        case .suckerPunchReveal:
+            return 0 // User-controlled
+
+        case .comparisonCarousel:
+            return 0 // User-controlled
+
+        case .agenticOrchestration:
+            let narrationDuration = getNarrationDuration(for: "agentic_enhanced")
+            return max(20.0, narrationDuration + buffer + 10.0) // Animation needs time
+
+        case .automationAnywhereReveal:
+            let narrationDuration = getNarrationDuration(for: "aa_reveal_enhanced")
+            return max(10.0, narrationDuration + buffer + 3.0)
+
+        case .humanReturn:
+            // Multiple narrations in sequence
+            let restoration = getNarrationDuration(for: "restoration_enhanced")
+            let breathe = getNarrationDuration(for: "breathe")
+            let purpose = getNarrationDuration(for: "purpose")
+            return restoration + breathe + purpose + buffer * 3 + 3.0
+
+        case .callToAction:
+            return 0 // User-controlled, but should wait for narration
         }
     }
 }

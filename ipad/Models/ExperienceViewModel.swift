@@ -5,6 +5,7 @@ import Observation
 /// The Invisible Cost - Enhanced Narrative Phases
 /// TOTAL RUNTIME: ~180 seconds (3:00) - User-controlled pacing
 /// Implements Neeti's feedback: agency, personalization, sucker punch moment
+/// NOW WITH PROPER AUDIO-SYNCED DURATIONS
 
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
@@ -20,19 +21,21 @@ enum Tier1Phase: Int, CaseIterable {
     case callToAction            // Final CTA
     case complete
 
-    /// Phase duration (some are user-controlled)
-    var duration: TimeInterval {
+    /// Base phase duration - UPDATED based on actual audio file lengths + visual animation time
+    /// These ensure animations complete AND narration finishes without rushing
+    /// Formula: max(audioLength, animationNeed) + 2s buffer
+    var baseDuration: TimeInterval {
         switch self {
         case .waiting: return 0
         case .industrySelection: return 0     // User-controlled
-        case .buildingTension: return 12      // Timed
-        case .industryVignette: return 15     // Timed
+        case .buildingTension: return 20      // ~15s audio + 5s visual buildup buffer
+        case .industryVignette: return 12     // ~5.6s audio + 6s for metrics animation
         case .patternBreak: return 0          // User-controlled (tap to continue)
         case .suckerPunchReveal: return 0     // User-controlled
         case .comparisonCarousel: return 0    // User-controlled
-        case .agenticOrchestration: return 20 // Timed
-        case .automationAnywhereReveal: return 10 // Timed
-        case .humanReturn: return 15          // Timed
+        case .agenticOrchestration: return 20 // ~12.6s audio + animation time
+        case .automationAnywhereReveal: return 10 // ~5.4s audio + logo reveal animation
+        case .humanReturn: return 18          // ~13s total for 3 narrations (3+2.5+7.4) + buffer
         case .callToAction: return 0          // User-controlled
         case .complete: return 0
         }
@@ -86,6 +89,14 @@ class ExperienceViewModel {
     var phaseElapsedTime: TimeInterval = 0
     var totalElapsedTime: TimeInterval = 0
 
+    // MARK: - Audio Sync State
+    /// Tracks whether narration for current phase has completed
+    var narrationComplete: Bool = false
+    /// Tracks whether we're waiting for narration to complete before advancing
+    var waitingForNarration: Bool = false
+    /// The calculated duration for the current phase (based on audio)
+    private var currentPhaseDuration: TimeInterval = 0
+
     // MARK: - Industry Selection (NEW)
     var selectedIndustry: Industry?
 
@@ -121,6 +132,11 @@ class ExperienceViewModel {
         phaseProgress = 0
         selectedIndustry = nil
         currentComparisonIndex = 0
+        narrationComplete = false
+        waitingForNarration = false
+
+        // Calculate initial phase duration
+        updatePhaseDuration()
 
         print("[Experience] Started - Phase: \(currentPhase.displayName)")
     }
@@ -141,8 +157,13 @@ class ExperienceViewModel {
             currentPhase = next
             phaseElapsedTime = 0
             phaseProgress = 0
+            narrationComplete = false
+            waitingForNarration = false
 
-            print("[Experience] Phase transition: \(previousPhase.displayName) -> \(currentPhase.displayName)")
+            // Update duration for new phase
+            updatePhaseDuration()
+
+            print("[Experience] Phase transition: \(previousPhase.displayName) -> \(currentPhase.displayName) (duration: \(String(format: "%.1f", currentPhaseDuration))s)")
 
             // Reset comparison index when entering carousel
             if currentPhase == .comparisonCarousel {
@@ -150,6 +171,20 @@ class ExperienceViewModel {
             }
         } else {
             endExperience()
+        }
+    }
+
+    /// Called by NarrativeView when a narration completes
+    func onNarrationComplete() {
+        narrationComplete = true
+        print("[Experience] Narration completed for phase: \(currentPhase.displayName)")
+
+        // If we were waiting for narration to advance, do it now (with a small delay for breathing room)
+        if waitingForNarration && !currentPhase.isUserControlled {
+            waitingForNarration = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.advanceToNextPhase()
+            }
         }
     }
 
@@ -181,7 +216,29 @@ class ExperienceViewModel {
         phaseProgress = 0
         selectedIndustry = nil
         currentComparisonIndex = 0
+        narrationComplete = false
+        waitingForNarration = false
         print("[Experience] Reset")
+    }
+
+    // MARK: - Phase Duration Calculation
+
+    private func updatePhaseDuration() {
+        // Get the audio-based minimum duration
+        let audioDuration = AudioManager.shared.getMinimumPhaseDuration(for: currentPhase, industry: selectedIndustry)
+
+        // Use the maximum of base duration and audio-calculated duration
+        currentPhaseDuration = max(currentPhase.baseDuration, audioDuration)
+
+        // For user-controlled phases, duration is 0 (infinite until user action)
+        if currentPhase.isUserControlled {
+            currentPhaseDuration = 0
+        }
+    }
+
+    /// Get the effective duration for the current phase
+    var effectivePhaseDuration: TimeInterval {
+        return currentPhaseDuration
     }
 
     // MARK: - Update Logic (Called from timer)
@@ -194,14 +251,26 @@ class ExperienceViewModel {
         phaseElapsedTime += deltaTime
         totalElapsedTime += deltaTime
 
-        let duration = currentPhase.duration
+        let duration = currentPhaseDuration
+
         if duration > 0 {
             phaseProgress = min(1.0, phaseElapsedTime / duration)
 
-            // Auto-advance for timed phases
+            // For timed phases, check if we should advance
             if phaseProgress >= 1.0 && !currentPhase.isUserControlled {
-                advanceToNextPhase()
+                // If narration hasn't completed yet, wait for it
+                if !narrationComplete && AudioManager.shared.isNarrationPlaying {
+                    waitingForNarration = true
+                    // Don't advance yet, wait for narrationComplete callback
+                } else {
+                    // Narration is done or wasn't playing, advance
+                    advanceToNextPhase()
+                }
             }
+        } else {
+            // User-controlled phase - progress is based on elapsed time for animations
+            // but won't auto-advance
+            phaseProgress = min(1.0, phaseElapsedTime / 10.0) // Normalize to 10 seconds for animation purposes
         }
     }
 
@@ -209,7 +278,12 @@ class ExperienceViewModel {
 
     /// Get the appropriate narration key for current state
     func narrationKey(for phase: Tier1Phase, subIndex: Int = 0) -> String? {
-        guard let industry = selectedIndustry else { return nil }
+        guard let industry = selectedIndustry else {
+            if phase == .industrySelection {
+                return "choose_industry"
+            }
+            return nil
+        }
 
         switch phase {
         case .industrySelection:
