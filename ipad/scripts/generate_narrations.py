@@ -53,6 +53,16 @@ NARRATIONS = {
         "and we'll show you something... most leaders never see.",
 
     # =========================================================================
+    # PERSONAL INPUT PHASE (NEW)
+    # On-screen: Team size selector, hours lost slider, hourly rate selector
+    # Live cost preview showing calculated annual cost
+    # =========================================================================
+    "personal_input":
+        "Now... let's make this personal. "
+        "Your team... your numbers... your invisible cost. "
+        "Tell us the scale... and we'll show you the truth.",
+
+    # =========================================================================
     # BUILDING TENSION PHASE - Industry Specific
     # These play as text appears showing daily operations and teaser metrics
     # =========================================================================

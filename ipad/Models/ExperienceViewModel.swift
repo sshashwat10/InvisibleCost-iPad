@@ -10,10 +10,11 @@ import Observation
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
     case industrySelection       // User chooses Finance/Supply Chain/Healthcare
+    case personalInput           // NEW: User enters team size, hours lost, hourly rate
     case buildingTension         // Industry-specific tension building
     case industryVignette        // Deep dive into chosen industry pain
     case patternBreak            // "But what if..."
-    case suckerPunchReveal       // THE MOMENT - massive cost number
+    case suckerPunchReveal       // THE MOMENT - massive cost number (uses personalized data)
     case comparisonCarousel      // Relatable comparisons
     case agenticOrchestration    // Solution visualization
     case automationAnywhereReveal // Brand moment
@@ -28,6 +29,7 @@ enum Tier1Phase: Int, CaseIterable {
         switch self {
         case .waiting: return 0
         case .industrySelection: return 0     // User-controlled
+        case .personalInput: return 0         // User-controlled (continue after narration)
         case .buildingTension: return 20      // ~15s audio + 5s visual buildup buffer
         case .industryVignette: return 12     // ~5.6s audio + 6s for metrics animation
         case .patternBreak: return 0          // User-controlled (tap to continue)
@@ -44,7 +46,7 @@ enum Tier1Phase: Int, CaseIterable {
     /// Whether this phase auto-advances or requires user interaction
     var isUserControlled: Bool {
         switch self {
-        case .industrySelection, .patternBreak, .suckerPunchReveal,
+        case .industrySelection, .personalInput, .patternBreak, .suckerPunchReveal,
              .comparisonCarousel, .callToAction:
             return true
         default:
@@ -64,6 +66,7 @@ enum Tier1Phase: Int, CaseIterable {
         switch self {
         case .waiting: return "Waiting"
         case .industrySelection: return "Industry Selection"
+        case .personalInput: return "Personal Input"
         case .buildingTension: return "Building Tension"
         case .industryVignette: return "Industry Vignette"
         case .patternBreak: return "Pattern Break"
@@ -113,13 +116,30 @@ class ExperienceViewModel {
         return IndustryContent.comparisonCards(for: industry)
     }
 
-    // MARK: - Personalization Data (Preserved from original)
+    // MARK: - Personalization Data (Enhanced for Davos 2026)
+    var companyName: String = ""
+    var teamSize: Double = 100
     var lostHoursPerWeek: Double = 20
     var hourlyRate: Double = 150
-    var teamSize: Double = 100
 
+    /// Calculated annual cost based on user input: teamSize * lostHoursPerWeek * 52 weeks * hourlyRate
+    var calculatedAnnualCost: Double {
+        return teamSize * lostHoursPerWeek * 52.0 * hourlyRate
+    }
+
+    /// Formatted annual cost for display
+    var formattedAnnualCost: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        formatter.maximumFractionDigits = 0
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: NSNumber(value: calculatedAnnualCost)) ?? "$0"
+    }
+
+    /// Legacy computed property for compatibility
     var annualImpact: Double {
-        return lostHoursPerWeek * 50 * teamSize * hourlyRate
+        return calculatedAnnualCost
     }
 
     // MARK: - Lifecycle
@@ -134,6 +154,12 @@ class ExperienceViewModel {
         currentComparisonIndex = 0
         narrationComplete = false
         waitingForNarration = false
+
+        // Reset personalization to defaults
+        companyName = ""
+        teamSize = 100
+        lostHoursPerWeek = 20
+        hourlyRate = 150
 
         // Calculate initial phase duration
         updatePhaseDuration()
@@ -288,6 +314,8 @@ class ExperienceViewModel {
         switch phase {
         case .industrySelection:
             return "choose_industry"
+        case .personalInput:
+            return "personal_input"  // NEW: Narration for personalization
         case .buildingTension:
             return "building_\(industry.rawValue)"
         case .industryVignette:
@@ -328,6 +356,8 @@ extension Tier1Phase {
             return []  // Handled dynamically
         case .industrySelection:
             return ["choose_industry"]
+        case .personalInput:
+            return ["personal_input"]  // NEW
         case .buildingTension:
             return []  // Dynamic based on industry
         case .industryVignette:

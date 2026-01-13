@@ -79,6 +79,7 @@
 		CFCA2510404A16892D403B8C /* narration_vignette_finance_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B5E280D383954258029AE7C2 /* narration_vignette_finance_enhanced.mp3 */; };
 		7251412B8A6C83F1E1C66DB3 /* narration_vignette_health_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */; };
 		841837911EE0023A61391A90 /* narration_vignette_supply_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */; };
+		PERSONAL01INPUT001AUDIOMP3 /* narration_personal_input.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = PERSONAL01INPUT002FILEREF /* narration_personal_input.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -147,6 +148,7 @@
 		4150893DC61580ED81527131 /* narration_comparison_supply_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_supply_3.mp3; sourceTree = "<group>"; };
 		571340A9B554410F91DF52AF /* narration_final_cta_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_final_cta_enhanced.mp3; sourceTree = "<group>"; };
 		9A5873E424F1870858AE3692 /* narration_pattern_break_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_pattern_break_enhanced.mp3; sourceTree = "<group>"; };
+		PERSONAL01INPUT002FILEREF /* narration_personal_input.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_personal_input.mp3; sourceTree = "<group>"; };
 		D3C54B5CC457C77CC893770F /* narration_purpose.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_purpose.mp3; sourceTree = "<group>"; };
 		4C7824A89A76474B623ADB57 /* narration_ready_change.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_ready_change.mp3; sourceTree = "<group>"; };
 		33A7E1F00E3493479D1D8CC3 /* narration_restoration_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_restoration_enhanced.mp3; sourceTree = "<group>"; };
@@ -229,6 +231,7 @@
 				4150893DC61580ED81527131 /* narration_comparison_supply_3.mp3 */,
 				571340A9B554410F91DF52AF /* narration_final_cta_enhanced.mp3 */,
 				9A5873E424F1870858AE3692 /* narration_pattern_break_enhanced.mp3 */,
+				PERSONAL01INPUT002FILEREF /* narration_personal_input.mp3 */,
 				D3C54B5CC457C77CC893770F /* narration_purpose.mp3 */,
 				4C7824A89A76474B623ADB57 /* narration_ready_change.mp3 */,
 				33A7E1F00E3493479D1D8CC3 /* narration_restoration_enhanced.mp3 */,
@@ -430,6 +433,7 @@
 				0A7DC298BE10275E124A39F9 /* narration_comparison_supply_3.mp3 in Resources */,
 				F8E4F1596BA2CE6F33D2A08E /* narration_final_cta_enhanced.mp3 in Resources */,
 				04F18C6FA73BADAB1A782265 /* narration_pattern_break_enhanced.mp3 in Resources */,
+				PERSONAL01INPUT001AUDIOMP3 /* narration_personal_input.mp3 in Resources */,
 				FBAF920B02A405E8017D871E /* narration_purpose.mp3 in Resources */,
 				E0EF01E440C830454F7AF5BE /* narration_ready_change.mp3 in Resources */,
 				7AC93C6E49D8E13DA2421585 /* narration_restoration_enhanced.mp3 in Resources */,

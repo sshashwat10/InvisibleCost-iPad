@@ -88,6 +88,19 @@ struct NarrativeView: View {
                 }
             )
 
+        case .personalInput:
+            PersonalizationInputView(
+                companyName: $viewModel.companyName,
+                teamSize: $viewModel.teamSize,
+                lostHoursPerWeek: $viewModel.lostHoursPerWeek,
+                hourlyRate: $viewModel.hourlyRate,
+                calculatedAnnualCost: viewModel.calculatedAnnualCost,
+                narrationFinished: narrationFinished,
+                onContinue: {
+                    viewModel.advanceToNextPhase()
+                }
+            )
+
         case .buildingTension:
             if let industry = viewModel.selectedIndustry {
                 BuildingTensionView(
@@ -200,6 +213,14 @@ struct NarrativeView: View {
         case .industrySelection:
             triggerOnce("choose_industry") {
                 audioManager.playNarration(for: "choose_industry") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
+            }
+
+        case .personalInput:
+            triggerOnce("personal_input") {
+                audioManager.playNarration(for: "personal_input") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
                 }
@@ -744,6 +765,345 @@ struct FinalCTAEnhancedView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Personalization Input View (NEW for Davos 2026)
+/// User inputs team size, hours lost, and hourly rate to see THEIR invisible cost
+
+struct PersonalizationInputView: View {
+    @Binding var companyName: String
+    @Binding var teamSize: Double
+    @Binding var lostHoursPerWeek: Double
+    @Binding var hourlyRate: Double
+    let calculatedAnnualCost: Double
+    let narrationFinished: Bool
+    let onContinue: () -> Void
+
+    @State private var showContent = false
+    @State private var showContinueButton = false
+
+    // Team size presets (as Doubles for binding compatibility)
+    private let teamSizePresets: [Double] = [50, 100, 250, 500, 1000]
+
+    // Hourly rate presets (as Doubles for binding compatibility)
+    private let hourlyRatePresets: [Double] = [75, 100, 150, 200]
+
+    // Colors
+    private let accentBlue = Color(red: 0.3, green: 0.5, blue: 1.0)
+    private let glowBlue = Color(red: 0.4, green: 0.6, blue: 1.0)
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+
+            ZStack {
+                // Background
+                backgroundView(time: time)
+
+                // Content
+                VStack(spacing: 35) {
+                    // Title
+                    titleSection
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+
+                    // Main input card
+                    inputCard(time: time)
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 30)
+
+                    // Continue button (only after narration)
+                    if showContinueButton && narrationFinished {
+                        continueButton
+                            .transition(.opacity.combined(with: .offset(y: 20)))
+                    }
+                }
+                .padding(.horizontal, 60)
+            }
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.8)) {
+                    showContent = true
+                }
+                // Show continue button after a delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation(.easeOut(duration: 0.5)) {
+                        showContinueButton = true
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Background
+
+    private func backgroundView(time: Double) -> some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            // Animated gradient orbs
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [accentBlue.opacity(0.25), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 350
+                    )
+                )
+                .frame(width: 700, height: 700)
+                .offset(x: sin(time * 0.2) * 80, y: cos(time * 0.15) * 40 - 50)
+                .blur(radius: 80)
+
+            // Floating particles
+            Canvas { context, size in
+                for i in 0..<40 {
+                    let seed = Double(i) * 1.618
+                    let x = (sin(time * 0.15 + seed * 2) * 0.5 + 0.5) * size.width
+                    let y = (cos(time * 0.1 + seed * 1.5) * 0.5 + 0.5) * size.height
+                    let pulse = sin(time * 1.5 + seed) * 0.5 + 0.5
+                    let particleSize: CGFloat = 1.5 + CGFloat(pulse) * 2
+
+                    context.fill(
+                        Circle().path(in: CGRect(x: x, y: y, width: particleSize, height: particleSize)),
+                        with: .color(accentBlue.opacity(0.06 + pulse * 0.06))
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - Title Section
+
+    private var titleSection: some View {
+        VStack(spacing: 12) {
+            Text("YOUR INVISIBLE COST")
+                .font(.system(size: 14, design: .rounded).weight(.medium))
+                .tracking(8)
+                .foregroundColor(accentBlue)
+
+            Text("Let's calculate your number")
+                .font(.system(size: 32, design: .rounded).weight(.ultraLight))
+                .foregroundColor(.white)
+        }
+    }
+
+    // MARK: - Input Card
+
+    private func inputCard(time: Double) -> some View {
+        VStack(spacing: 30) {
+            // Optional company name
+            VStack(alignment: .leading, spacing: 8) {
+                Text("COMPANY NAME (OPTIONAL)")
+                    .font(.system(size: 11, design: .rounded).weight(.medium))
+                    .tracking(3)
+                    .foregroundColor(.white.opacity(0.4))
+
+                TextField("", text: $companyName, prompt: Text("Your Company").foregroundColor(.white.opacity(0.3)))
+                    .font(.system(size: 18, design: .rounded).weight(.light))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white.opacity(0.05))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
+                    )
+            }
+
+            // Team size presets
+            VStack(alignment: .leading, spacing: 12) {
+                Text("TEAM SIZE")
+                    .font(.system(size: 11, design: .rounded).weight(.medium))
+                    .tracking(3)
+                    .foregroundColor(.white.opacity(0.4))
+
+                HStack(spacing: 12) {
+                    ForEach(teamSizePresets, id: \.self) { size in
+                        presetButton(
+                            label: "\(Int(size))",
+                            isSelected: teamSize == size,
+                            action: { teamSize = size }
+                        )
+                    }
+                }
+            }
+
+            // Hours lost slider
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("HOURS LOST PER WEEK")
+                        .font(.system(size: 11, design: .rounded).weight(.medium))
+                        .tracking(3)
+                        .foregroundColor(.white.opacity(0.4))
+
+                    Spacer()
+
+                    Text("\(Int(lostHoursPerWeek)) hours")
+                        .font(.system(size: 16, design: .rounded).weight(.light))
+                        .foregroundColor(accentBlue)
+                }
+
+                CustomSlider(
+                    value: $lostHoursPerWeek,
+                    range: 5...40,
+                    accentColor: accentBlue
+                )
+            }
+
+            // Hourly rate presets
+            VStack(alignment: .leading, spacing: 12) {
+                Text("AVERAGE HOURLY RATE")
+                    .font(.system(size: 11, design: .rounded).weight(.medium))
+                    .tracking(3)
+                    .foregroundColor(.white.opacity(0.4))
+
+                HStack(spacing: 12) {
+                    ForEach(hourlyRatePresets, id: \.self) { rate in
+                        presetButton(
+                            label: "$\(Int(rate))",
+                            isSelected: hourlyRate == rate,
+                            action: { hourlyRate = rate }
+                        )
+                    }
+                }
+            }
+
+            // Divider
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.clear, accentBlue.opacity(0.3), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+
+            // Live cost preview
+            VStack(spacing: 8) {
+                Text("YOUR ESTIMATED ANNUAL COST")
+                    .font(.system(size: 11, design: .rounded).weight(.medium))
+                    .tracking(3)
+                    .foregroundColor(.white.opacity(0.4))
+
+                ZStack {
+                    // Glow
+                    Text(formatCurrency(calculatedAnnualCost))
+                        .font(.system(size: 48, design: .rounded).weight(.light))
+                        .foregroundColor(accentBlue.opacity(0.3))
+                        .blur(radius: 15)
+
+                    // Main number
+                    Text(formatCurrency(calculatedAnnualCost))
+                        .font(.system(size: 48, design: .rounded).weight(.light))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [glowBlue, accentBlue, Color(red: 1.0, green: 0.4, blue: 0.3)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .shadow(color: accentBlue.opacity(0.5), radius: 15)
+                        .contentTransition(.numericText())
+                }
+                .scaleEffect(1.0 + CGFloat(sin(time * 2)) * 0.02)
+            }
+        }
+        .padding(40)
+        .background(
+            RoundedRectangle(cornerRadius: 28)
+                .fill(.ultraThinMaterial.opacity(0.3))
+                .background(
+                    RoundedRectangle(cornerRadius: 28)
+                        .fill(Color.white.opacity(0.02))
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 28)
+                .stroke(
+                    LinearGradient(
+                        colors: [accentBlue.opacity(0.3), .white.opacity(0.1), accentBlue.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
+        )
+        .frame(maxWidth: 600)
+    }
+
+    // MARK: - Preset Button
+
+    private func presetButton(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+            action()
+        }) {
+            Text(label)
+                .font(.system(size: 15, design: .rounded).weight(isSelected ? .medium : .light))
+                .foregroundColor(isSelected ? .black : .white.opacity(0.7))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isSelected ? accentBlue : Color.white.opacity(0.05))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(isSelected ? accentBlue : Color.white.opacity(0.15), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Continue Button
+
+    private var continueButton: some View {
+        Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            onContinue()
+        }) {
+            HStack(spacing: 12) {
+                Text("See Your Impact")
+                    .font(.system(size: 17, design: .rounded).weight(.medium))
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 15, weight: .medium))
+            }
+            .foregroundColor(.black)
+            .padding(.horizontal, 40)
+            .padding(.vertical, 18)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [glowBlue, accentBlue],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            )
+            .shadow(color: accentBlue.opacity(0.4), radius: 15)
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 20)
+    }
+
+    // MARK: - Helpers
+
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        formatter.maximumFractionDigits = 0
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: NSNumber(value: value)) ?? "$0"
     }
 }
 

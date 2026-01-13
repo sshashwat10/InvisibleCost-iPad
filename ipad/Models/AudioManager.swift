@@ -53,6 +53,9 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         // Industry Selection
         "choose_industry": 8.0,  // narration_choose_industry.mp3: 7.967s
 
+        // Personalization Input
+        "personal_input": 9.0,   // narration_personal_input.mp3: 8.96s
+
         // Building Tension (per industry)
         "building_finance": 15.4,  // narration_building_finance.mp3: 15.360s
         "building_supply": 15.0,   // narration_building_supply.mp3: 14.994s
@@ -144,6 +147,7 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     private func cacheAllAudioDurations() {
         let narrationKeys = [
             "choose_industry",
+            "personal_input",  // NEW
             "building_finance", "building_supply", "building_health",
             "vignette_finance_enhanced", "vignette_supply_enhanced", "vignette_health_enhanced",
             "pattern_break_enhanced",
@@ -215,6 +219,9 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     private let narratorLines: [String: String] = [
         // Industry Selection
         "choose_industry": "Choose your industry. See your invisible cost.",
+
+        // Personalization Input
+        "personal_input": "Now let's see YOUR invisible cost. How many people on your team? How many hours each week lost to work that doesn't need humans?",
 
         // Building Tension
         "building_finance": "Every report. Every reconciliation. Every manual entry that keeps your team from the work that matters.",
@@ -877,6 +884,8 @@ extension AudioManager {
             break
         case .industrySelection:
             playAmbientMusic()
+        case .personalInput:
+            playTransition()  // Subtle transition sound
         case .buildingTension:
             playTransition()
         case .industryVignette:
@@ -910,6 +919,9 @@ extension AudioManager {
 
         case .industrySelection:
             return getNarrationDuration(for: "choose_industry") + buffer
+
+        case .personalInput:
+            return getNarrationDuration(for: "personal_input") + buffer
 
         case .buildingTension:
             guard let industry = industry else { return 12.0 }
