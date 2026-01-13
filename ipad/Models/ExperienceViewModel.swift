@@ -36,7 +36,7 @@ enum Tier1Phase: Int, CaseIterable {
         case .suckerPunchReveal: return 0     // User-controlled
         case .comparisonCarousel: return 0    // User-controlled
         case .agenticOrchestration: return 20 // ~12.6s audio + animation time
-        case .automationAnywhereReveal: return 12 // ~5.4s audio + logo reveal animation + buffer for tagline
+        case .automationAnywhereReveal: return 15 // ~5.3s audio + logo reveal + tagline display + buffer to prevent cutoff
         case .humanReturn: return 18          // ~13s total for 3 narrations (3+2.5+7.4) + buffer
         case .callToAction: return 0          // User-controlled
         case .complete: return 0

@@ -2052,26 +2052,28 @@ struct AutomationAnywhereRevealAnimation: View {
         return clamped * clamped * (3 - 2 * clamped)
     }
 
-    // Logo fades in cleanly from 5% to 25%
+    // Logo fades in cleanly from 5% to 20%
     private var logoOpacity: Double {
-        smoothstep(min(1.0, max(0, (progress - 0.05) / 0.20)))
+        smoothstep(min(1.0, max(0, (progress - 0.05) / 0.15)))
     }
 
     // Subtle background halo - fades with logo
     private var haloOpacity: Double {
-        let fadeIn = smoothstep(min(1.0, max(0, (progress - 0.05) / 0.25)))
-        let fadeOut = progress > 0.75 ? smoothstep(1.0 - (progress - 0.75) / 0.25) : 1.0
+        let fadeIn = smoothstep(min(1.0, max(0, (progress - 0.05) / 0.20)))
+        let fadeOut = progress > 0.85 ? smoothstep(1.0 - (progress - 0.85) / 0.15) : 1.0
         return fadeIn * fadeOut * 0.3
     }
 
-    // Tagline fades in smoothly from 50% to 65%
+    // Tagline fades in earlier (35% to 45%) to sync with narration
+    // Narration mentions "Elevating Human Potential" around 3-4s mark
     private var textOpacity: Double {
-        smoothstep(min(1.0, max(0, (progress - 0.50) / 0.15)))
+        smoothstep(min(1.0, max(0, (progress - 0.35) / 0.10)))
     }
 
-    // Exit fade over last 10% - delayed to hold longer on screen
+    // Exit fade over last 5% only - content persists much longer on screen
+    // This ensures narration completes before any fade begins
     private var exitFade: Double {
-        progress > 0.90 ? smoothstep(1.0 - (progress - 0.90) / 0.10) : 1.0
+        progress > 0.95 ? smoothstep(1.0 - (progress - 0.95) / 0.05) : 1.0
     }
 
     var body: some View {

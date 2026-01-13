@@ -281,7 +281,10 @@ struct NarrativeView: View {
             triggerOnce("music_transition") {
                 audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.5)
             }
-            triggerAtProgress("agentic_enhanced", threshold: 0.55, progress: progress) {
+            // FIXED: Changed threshold from 0.55 to 0.05 so 12.6s narration completes within 20s phase
+            // Previous: 20s * 0.55 = 11s start + 12.6s audio = 23.6s end (exceeded 20s phase!)
+            // Now: 20s * 0.05 = 1s start + 12.6s audio = 13.6s end (well within 20s phase)
+            triggerAtProgress("agentic_enhanced", threshold: 0.05, progress: progress) {
                 audioManager.playNarration(for: "agentic_enhanced") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
