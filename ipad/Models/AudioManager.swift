@@ -946,8 +946,9 @@ extension AudioManager {
     }
 
     /// Calculate the minimum duration needed for a phase based on its narrations
+    /// TIGHTENED - reduced buffers to eliminate dead space
     func getMinimumPhaseDuration(for phase: Tier1Phase, industry: Industry?) -> TimeInterval {
-        let buffer: TimeInterval = 2.0 // Breathing room after narration
+        let buffer: TimeInterval = 1.5 // Tighter breathing room (was 2.0)
 
         switch phase {
         case .waiting, .complete:
@@ -962,12 +963,12 @@ extension AudioManager {
         case .buildingTension:
             guard let industry = industry else { return 12.0 }
             let key = "building_\(industry.rawValue)"
-            return getNarrationDuration(for: key) + buffer + 2.0 // Extra time for visual buildup
+            return getNarrationDuration(for: key) + buffer + 1.0 // Reduced from +2.0
 
         case .industryVignette:
-            guard let industry = industry else { return 15.0 }
+            guard let industry = industry else { return 8.0 }
             let key = "vignette_\(industry.rawValue)_enhanced"
-            return getNarrationDuration(for: key) + buffer + 6.0 // Time for metrics to appear
+            return getNarrationDuration(for: key) + buffer + 2.0 // Reduced from +6.0
 
         case .patternBreak:
             return 0 // User-controlled
@@ -980,18 +981,18 @@ extension AudioManager {
 
         case .agenticOrchestration:
             let narrationDuration = getNarrationDuration(for: "agentic_enhanced")
-            return max(20.0, narrationDuration + buffer + 10.0) // Animation needs time
+            return max(15.0, narrationDuration + buffer + 2.0) // Reduced from +10.0
 
         case .automationAnywhereReveal:
             let narrationDuration = getNarrationDuration(for: "aa_reveal_enhanced")
-            return max(10.0, narrationDuration + buffer + 3.0)
+            return max(8.0, narrationDuration + buffer + 1.0) // Reduced from +3.0
 
         case .humanReturn:
-            // Multiple narrations in sequence
+            // Multiple narrations in sequence - tighter spacing
             let restoration = getNarrationDuration(for: "restoration_enhanced")
             let breathe = getNarrationDuration(for: "breathe")
             let purpose = getNarrationDuration(for: "purpose")
-            return restoration + breathe + purpose + buffer * 3 + 3.0
+            return restoration + breathe + purpose + buffer * 2 + 1.5 // Reduced from buffer*3 + 3.0
 
         case .callToAction:
             return 0 // User-controlled, but should wait for narration

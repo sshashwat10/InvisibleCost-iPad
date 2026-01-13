@@ -22,22 +22,21 @@ enum Tier1Phase: Int, CaseIterable {
     case callToAction            // Final CTA
     case complete
 
-    /// Base phase duration - UPDATED based on actual audio file lengths + visual animation time
-    /// These ensure animations complete AND narration finishes without rushing
-    /// Formula: max(audioLength, animationNeed) + 2s buffer
+    /// Base phase duration - TIGHTENED to eliminate dead space
+    /// Formula: audioLength + 2s buffer (snappy, not sluggish)
     var baseDuration: TimeInterval {
         switch self {
         case .waiting: return 0
         case .industrySelection: return 0     // User-controlled
         case .personalInput: return 0         // User-controlled (continue after narration)
-        case .buildingTension: return 20      // ~15s audio + 5s visual buildup buffer
-        case .industryVignette: return 12     // ~5.6s audio + 6s for metrics animation
+        case .buildingTension: return 17      // ~15s audio + 2s buffer (was 20)
+        case .industryVignette: return 8      // ~5.6s audio + 2.5s for metrics (was 12)
         case .patternBreak: return 0          // User-controlled (tap to continue)
         case .suckerPunchReveal: return 0     // User-controlled
         case .comparisonCarousel: return 0    // User-controlled
-        case .agenticOrchestration: return 20 // ~12.6s audio + animation time
-        case .automationAnywhereReveal: return 15 // ~5.3s audio + logo reveal + tagline display + buffer to prevent cutoff
-        case .humanReturn: return 18          // ~13s total for 3 narrations (3+2.5+7.4) + buffer
+        case .agenticOrchestration: return 15 // ~12.6s audio + 2.5s (was 20)
+        case .automationAnywhereReveal: return 8 // ~5.3s audio + 2.5s buffer (was 15)
+        case .humanReturn: return 15          // ~13s total for 3 narrations + 2s buffer (was 18)
         case .callToAction: return 0          // User-controlled
         case .complete: return 0
         }
@@ -226,10 +225,10 @@ class ExperienceViewModel {
         narrationComplete = true
         print("[Experience] Narration completed for phase: \(currentPhase.displayName)")
 
-        // If we were waiting for narration to advance, do it now (with a small delay for breathing room)
+        // If we were waiting for narration to advance, do it now (minimal delay for snappy transitions)
         if waitingForNarration && !currentPhase.isUserControlled {
             waitingForNarration = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.advanceToNextPhase()
             }
         }

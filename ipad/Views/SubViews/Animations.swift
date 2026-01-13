@@ -987,17 +987,17 @@ struct AgenticOrchestrationAnimation: View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
-            // Animation phases with smoother easing
-            let pointsAppear = min(1.0, progress / 0.25)        // 0-25%: points appear
-            let connectPhase = min(1.0, max(0, (progress - 0.20) / 0.25)) // 20-45%: connections
-            let pulsePhase = min(1.0, max(0, (progress - 0.40) / 0.20))   // 40-60%: pulse
-            
-            // Smoother shrink: longer duration with easeInOut curve
-            let shrinkRaw = min(1.0, max(0, (progress - 0.50) / 0.25))  // 50-75%: shrink (longer)
+            // Animation phases - TIGHTENED for snappier visuals
+            let pointsAppear = min(1.0, progress / 0.18)        // 0-18%: points appear (was 25%)
+            let connectPhase = min(1.0, max(0, (progress - 0.12) / 0.20)) // 12-32%: connections (was 20-45%)
+            let pulsePhase = min(1.0, max(0, (progress - 0.28) / 0.15))   // 28-43%: pulse (was 40-60%)
+
+            // Tighter shrink timing
+            let shrinkRaw = min(1.0, max(0, (progress - 0.40) / 0.20))  // 40-60%: shrink (was 50-75%)
             let shrinkPhase = shrinkRaw * shrinkRaw * (3 - 2 * shrinkRaw) // smoothstep easing
             
             // Text appears after shrink is well underway
-            let textRaw = min(1.0, max(0, (progress - 0.65) / 0.20))    // 65-85%: text (delayed)
+            let textRaw = min(1.0, max(0, (progress - 0.50) / 0.18))    // 50-68%: text (was 65-85%)
             let textPhase = textRaw * textRaw * (3 - 2 * textRaw) // smoothstep easing
             
             // Sphere scale with gentler curve - shrinks to 65% (was 50%)
@@ -1397,19 +1397,19 @@ private struct HumanReturnContent: View {
             return clamped * clamped * (3 - 2 * clamped)
         }
         
-        // Image fades in gradually starting at 15% progress
-        let imageRaw = min(1.0, max(0, (progress - 0.15) / 0.35))  // 15-50%: image fades in
+        // Image fades in immediately - TIGHTENED timing
+        let imageRaw = min(1.0, max(0, (progress - 0.03) / 0.25))  // 3-28%: image fades in (was 15-50%)
         let imageOpacity = smoothstep(imageRaw)
         let imageScale = 0.85 + imageOpacity * 0.15  // Subtle scale from 0.85 to 1.0
-        
-        // Text fades in after image
-        let labelRaw = min(1.0, max(0, (progress - 0.25) / 0.25))  // 25-50%: label
+
+        // Text fades in quickly after image starts
+        let labelRaw = min(1.0, max(0, (progress - 0.10) / 0.18))  // 10-28%: label (was 25-50%)
         let labelOpacity = smoothstep(labelRaw)
-        
-        let titleRaw = min(1.0, max(0, (progress - 0.35) / 0.25))  // 35-60%: title
+
+        let titleRaw = min(1.0, max(0, (progress - 0.18) / 0.18))  // 18-36%: title (was 35-60%)
         let titleOpacity = smoothstep(titleRaw)
-        
-        let subtitleRaw = min(1.0, max(0, (progress - 0.55) / 0.25))  // 55-80%: subtitle
+
+        let subtitleRaw = min(1.0, max(0, (progress - 0.32) / 0.18))  // 32-50%: subtitle (was 55-80%)
         let subtitleOpacity = smoothstep(subtitleRaw)
         
         return VStack(spacing: 0) {
@@ -2052,28 +2052,26 @@ struct AutomationAnywhereRevealAnimation: View {
         return clamped * clamped * (3 - 2 * clamped)
     }
 
-    // Logo fades in cleanly from 5% to 20%
+    // Logo fades in immediately - TIGHTENED
     private var logoOpacity: Double {
-        smoothstep(min(1.0, max(0, (progress - 0.05) / 0.15)))
+        smoothstep(min(1.0, max(0, (progress - 0.02) / 0.12)))  // 2-14% (was 5-20%)
     }
 
     // Subtle background halo - fades with logo
     private var haloOpacity: Double {
-        let fadeIn = smoothstep(min(1.0, max(0, (progress - 0.05) / 0.20)))
-        let fadeOut = progress > 0.85 ? smoothstep(1.0 - (progress - 0.85) / 0.15) : 1.0
+        let fadeIn = smoothstep(min(1.0, max(0, (progress - 0.02) / 0.15)))
+        let fadeOut = progress > 0.90 ? smoothstep(1.0 - (progress - 0.90) / 0.10) : 1.0
         return fadeIn * fadeOut * 0.3
     }
 
-    // Tagline fades in earlier (35% to 45%) to sync with narration
-    // Narration mentions "Elevating Human Potential" around 3-4s mark
+    // Tagline fades in earlier to sync with narration - TIGHTENED
     private var textOpacity: Double {
-        smoothstep(min(1.0, max(0, (progress - 0.35) / 0.10)))
+        smoothstep(min(1.0, max(0, (progress - 0.20) / 0.12)))  // 20-32% (was 35-45%)
     }
 
-    // Exit fade over last 5% only - content persists much longer on screen
-    // This ensures narration completes before any fade begins
+    // Exit fade - tightened timing
     private var exitFade: Double {
-        progress > 0.95 ? smoothstep(1.0 - (progress - 0.95) / 0.05) : 1.0
+        progress > 0.92 ? smoothstep(1.0 - (progress - 0.92) / 0.08) : 1.0
     }
 
     var body: some View {

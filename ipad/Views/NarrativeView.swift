@@ -23,9 +23,9 @@ struct NarrativeView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            // Phase-specific content
+            // Phase-specific content - snappy transitions
             phaseContent
-                .transition(.opacity.animation(.easeInOut(duration: 1.5)))
+                .transition(.opacity.animation(.easeInOut(duration: 0.6)))
 
             // Start button overlay
             if viewModel.currentPhase == .waiting {
@@ -238,7 +238,7 @@ struct NarrativeView: View {
         case .buildingTension:
             if let industry = viewModel.selectedIndustry {
                 let key = "building_\(industry.rawValue)"
-                triggerAtProgress(key, threshold: 0.05, progress: progress) {
+                triggerAtProgress(key, threshold: 0.02, progress: progress) {
                     audioManager.playNarration(for: key) { [self] in
                         narrationFinished = true
                         viewModel.onNarrationComplete()
@@ -249,7 +249,7 @@ struct NarrativeView: View {
         case .industryVignette:
             if let industry = viewModel.selectedIndustry {
                 let key = "vignette_\(industry.rawValue)_enhanced"
-                triggerAtProgress(key, threshold: 0.1, progress: progress) {
+                triggerAtProgress(key, threshold: 0.03, progress: progress) {
                     audioManager.playNarration(for: key) { [self] in
                         narrationFinished = true
                         viewModel.onNarrationComplete()
@@ -258,7 +258,7 @@ struct NarrativeView: View {
             }
 
         case .patternBreak:
-            triggerAtProgress("pattern_break_enhanced", threshold: 0.1, progress: progress) {
+            triggerAtProgress("pattern_break_enhanced", threshold: 0.03, progress: progress) {
                 audioManager.playNarration(for: "pattern_break_enhanced") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
@@ -266,10 +266,10 @@ struct NarrativeView: View {
             }
 
         case .suckerPunchReveal:
-            // Audio handled by SuckerPunchRevealView for precise sync with counter animation
+            // Audio triggered early for immediate impact
             if let industry = viewModel.selectedIndustry {
                 let key = "sucker_punch_\(industry.rawValue)"
-                triggerAtProgress(key, threshold: 0.3, progress: progress) {
+                triggerAtProgress(key, threshold: 0.05, progress: progress) {
                     audioManager.playNarration(for: key) { [self] in
                         narrationFinished = true
                         viewModel.onNarrationComplete()
@@ -279,12 +279,10 @@ struct NarrativeView: View {
 
         case .agenticOrchestration:
             triggerOnce("music_transition") {
-                audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.5)
+                audioManager.transitionToUpbeatMusic(crossfadeDuration: 1.0)
             }
-            // FIXED: Changed threshold from 0.55 to 0.05 so 12.6s narration completes within 20s phase
-            // Previous: 20s * 0.55 = 11s start + 12.6s audio = 23.6s end (exceeded 20s phase!)
-            // Now: 20s * 0.05 = 1s start + 12.6s audio = 13.6s end (well within 20s phase)
-            triggerAtProgress("agentic_enhanced", threshold: 0.05, progress: progress) {
+            // Start narration immediately for snappy experience
+            triggerAtProgress("agentic_enhanced", threshold: 0.02, progress: progress) {
                 audioManager.playNarration(for: "agentic_enhanced") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
@@ -292,9 +290,8 @@ struct NarrativeView: View {
             }
 
         case .automationAnywhereReveal:
-            // Trigger audio earlier (at 0.05) to ensure it plays
-            // The animation starts fading in logo at 0.05, so sync audio with that
-            triggerAtProgress("aa_reveal_enhanced", threshold: 0.05, progress: progress) {
+            // Start audio immediately - no dead time at phase start
+            triggerAtProgress("aa_reveal_enhanced", threshold: 0.02, progress: progress) {
                 print("[Narrative] Playing AA reveal audio at progress: \(progress)")
                 audioManager.playNarration(for: "aa_reveal_enhanced") { [self] in
                     narrationFinished = true
@@ -310,14 +307,14 @@ struct NarrativeView: View {
             triggerOnce("completion") {
                 audioManager.playCompletion()
             }
-            triggerAtProgress("final_cta_enhanced", threshold: 0.08, progress: progress) {
+            triggerAtProgress("final_cta_enhanced", threshold: 0.03, progress: progress) {
                 audioManager.playNarration(for: "final_cta_enhanced") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
                 }
             }
-            triggerAtProgress("music_fadeout", threshold: 0.60, progress: progress) {
-                audioManager.fadeOutMusic(duration: 8.0)
+            triggerAtProgress("music_fadeout", threshold: 0.50, progress: progress) {
+                audioManager.fadeOutMusic(duration: 6.0)
             }
 
         default:
@@ -329,10 +326,10 @@ struct NarrativeView: View {
 
     private func handleHumanReturnNarrations(progress: Double) {
         // Three sequential narrations: restoration, breathe, purpose
-        // Each one waits for the previous to finish
+        // Tightened thresholds for snappy sequence with minimal gaps
 
         let narrations = ["restoration_enhanced", "breathe", "purpose"]
-        let thresholds = [0.08, 0.35, 0.60]
+        let thresholds = [0.02, 0.22, 0.42] // Tightened from [0.08, 0.35, 0.60]
 
         for (index, key) in narrations.enumerated() {
             if humanReturnNarrationIndex == index {
@@ -441,20 +438,20 @@ struct PatternBreakEnhancedView: View {
             }
         }
         .onAppear {
-            // Animate text appearance synced with narration
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeOut(duration: 0.8)) {
+            // Tightened text appearance - starts immediately
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(.easeOut(duration: 0.5)) {
                     showText1 = true
                 }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation(.easeOut(duration: 0.8)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation(.easeOut(duration: 0.5)) {
                     showText2 = true
                 }
             }
-            // Show tap indicator after text animation, but it won't be tappable until narration finishes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-                withAnimation(.easeOut(duration: 0.5)) {
+            // Show tap indicator sooner
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                withAnimation(.easeOut(duration: 0.4)) {
                     showTapIndicator = true
                 }
             }
@@ -508,24 +505,24 @@ struct BuildingTensionView: View {
                     endRadius: 500
                 )
 
-                // Text content
+                // Text content - TIGHTENED thresholds for snappier feel
                 VStack(spacing: 30) {
-                    // Line 1
+                    // Line 1 - appears immediately
                     Text(content.line1)
                         .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                         .foregroundColor(.white)
-                        .opacity(progress > 0.1 ? 1 : 0)
-                        .offset(y: progress > 0.1 ? 0 : 20)
+                        .opacity(progress > 0.03 ? 1 : 0)
+                        .offset(y: progress > 0.03 ? 0 : 20)
 
-                    // Line 2
+                    // Line 2 - appears at 25% (was 35%)
                     Text(content.line2)
                         .font(.system(size: 32, design: .rounded).weight(.light))
                         .foregroundColor(.white.opacity(0.9))
-                        .opacity(progress > 0.35 ? 1 : 0)
-                        .offset(y: progress > 0.35 ? 0 : 20)
+                        .opacity(progress > 0.25 ? 1 : 0)
+                        .offset(y: progress > 0.25 ? 0 : 20)
 
-                    // Teaser metric
-                    if progress > 0.65 {
+                    // Teaser metric - appears at 50% (was 65%)
+                    if progress > 0.50 {
                         Text(content.teaser)
                             .font(.system(size: 20, design: .rounded).weight(.light))
                             .foregroundStyle(
@@ -535,7 +532,7 @@ struct BuildingTensionView: View {
                                     endPoint: .trailing
                                 )
                             )
-                            .opacity(progress > 0.65 ? 1 : 0)
+                            .opacity(progress > 0.50 ? 1 : 0)
                             .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     }
                 }
@@ -592,9 +589,9 @@ struct IndustryVignetteView: View {
                     }
                 }
 
-                // Content
+                // Content - TIGHTENED thresholds
                 VStack(spacing: 32) {
-                    // Icon
+                    // Icon - appears immediately
                     ZStack {
                         Circle()
                             .fill(
@@ -619,25 +616,25 @@ struct IndustryVignetteView: View {
                                 )
                             )
                             .shadow(color: theme.accent.opacity(0.8), radius: 15)
-                            .scaleEffect(progress > 0.1 ? 1.0 : 0.4)
-                            .opacity(progress > 0.05 ? 1.0 : 0.0)
+                            .scaleEffect(progress > 0.03 ? 1.0 : 0.4)
+                            .opacity(progress > 0.02 ? 1.0 : 0.0)
                     }
 
-                    // Title
+                    // Title - appears at 8% (was 15%)
                     Text(data.title)
                         .font(.system(size: 18, design: .rounded).weight(.medium))
                         .tracking(16)
                         .foregroundColor(theme.accent)
-                        .opacity(progress > 0.15 ? 1.0 : 0.0)
+                        .opacity(progress > 0.08 ? 1.0 : 0.0)
 
-                    // Subtitle
+                    // Subtitle - appears at 15% (was 25%)
                     Text(data.subtitle)
                         .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                         .italic()
                         .foregroundColor(.white)
-                        .opacity(progress > 0.25 ? 1.0 : 0.0)
+                        .opacity(progress > 0.15 ? 1.0 : 0.0)
 
-                    // Metrics
+                    // Metrics - appear at 25%, 30%, 35% (was 35%, 45%, 55%)
                     HStack(spacing: 20) {
                         ForEach(Array(data.metrics.enumerated()), id: \.offset) { index, metric in
                             VStack(spacing: 6) {
@@ -658,8 +655,8 @@ struct IndustryVignetteView: View {
                                             .stroke(theme.primary.opacity(0.35), lineWidth: 1.5)
                                     )
                             )
-                            .opacity(progress > (0.35 + Double(index) * 0.1) ? 1.0 : 0.0)
-                            .offset(y: progress > (0.35 + Double(index) * 0.1) ? 0 : 20)
+                            .opacity(progress > (0.25 + Double(index) * 0.05) ? 1.0 : 0.0)
+                            .offset(y: progress > (0.25 + Double(index) * 0.05) ? 0 : 20)
                         }
                     }
                     .padding(.top, 12)
@@ -712,12 +709,12 @@ struct FinalCTAEnhancedView: View {
     private let pureWhite = Color.white
     private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)
 
-    // Computed phases (matching FinalCTAView timing)
-    private var pulsePhase: Double { min(1.0, progress / 0.20) }
-    private var text1Phase: Double { min(1.0, max(0, (progress - 0.15) / 0.20)) }
-    private var text2Phase: Double { min(1.0, max(0, (progress - 0.30) / 0.20)) }
-    private var questionPhase: Double { min(1.0, max(0, (progress - 0.45) / 0.20)) }
-    private var ctaPhase: Double { min(1.0, max(0, (progress - 0.60) / 0.25)) }
+    // Computed phases - TIGHTENED for snappier reveal
+    private var pulsePhase: Double { min(1.0, progress / 0.12) }
+    private var text1Phase: Double { min(1.0, max(0, (progress - 0.08) / 0.15)) }
+    private var text2Phase: Double { min(1.0, max(0, (progress - 0.18) / 0.15)) }
+    private var questionPhase: Double { min(1.0, max(0, (progress - 0.28) / 0.15)) }
+    private var ctaPhase: Double { min(1.0, max(0, (progress - 0.40) / 0.20)) }
 
     var body: some View {
         TimelineView(.animation) { timeline in
@@ -759,15 +756,15 @@ struct FinalCTAEnhancedView: View {
             .drawingGroup()
         }
         .onAppear {
-            // Show content after a brief delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeOut(duration: 0.6)) {
+            // Show content immediately - tightened timing
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.easeOut(duration: 0.4)) {
                     showContent = true
                 }
             }
-            // Show CTA buttons after progress reaches a point
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                withAnimation(.easeOut(duration: 0.5)) {
+            // Show CTA buttons sooner
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                withAnimation(.easeOut(duration: 0.4)) {
                     showCTA = true
                 }
             }
