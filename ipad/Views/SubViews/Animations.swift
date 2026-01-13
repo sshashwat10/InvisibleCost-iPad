@@ -2721,6 +2721,7 @@ struct ComparisonCarouselView: View {
     @State private var currentCardIndex = 0
     @State private var cardsShown = false
     @State private var hasPlayedFirstCard = false
+    @State private var viewHasAppeared = false
 
     private let comparisons: [ComparisonCard]
     private let theme: IndustryTheme
@@ -2792,20 +2793,29 @@ struct ComparisonCarouselView: View {
                 }
                 .padding(.horizontal, 60)
             }
-            .onAppear {
-                withAnimation(.easeOut(duration: 0.5)) {
-                    cardsShown = true
-                }
-                // Play first card's narration
+            .onTapGesture {
+                advanceCard()
+            }
+        }
+        .onAppear {
+            // Only trigger once when view first appears
+            guard !viewHasAppeared else { return }
+            viewHasAppeared = true
+
+            withAnimation(.easeOut(duration: 0.5)) {
+                cardsShown = true
+            }
+
+            // Play first card's narration with a small delay to ensure view is ready
+            // This fixes the bug where first card audio wasn't playing
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 if !hasPlayedFirstCard && currentCardIndex < comparisons.count {
                     hasPlayedFirstCard = true
                     let audioKey = comparisons[currentCardIndex].audioKey
+                    print("[ComparisonCarousel] Playing first card audio: \(audioKey)")
                     audioManager.playNarration(for: audioKey, completion: nil)
                     onCardChange?(audioKey)
                 }
-            }
-            .onTapGesture {
-                advanceCard()
             }
         }
     }

@@ -177,6 +177,13 @@ struct NarrativeView: View {
                     viewModel.endExperience()
                 },
                 onRestart: {
+                    // FIXED: Reset all audio before restarting experience
+                    // This ensures BGM and narration start fresh
+                    audioManager.resetForRestart()
+                    audioTriggered.removeAll()
+                    narrationFinished = false
+                    humanReturnNarrationIndex = 0
+
                     viewModel.reset()
                     viewModel.startExperience()
                 }
@@ -280,7 +287,10 @@ struct NarrativeView: View {
             }
 
         case .automationAnywhereReveal:
-            triggerAtProgress("aa_reveal_enhanced", threshold: 0.15, progress: progress) {
+            // Trigger audio earlier (at 0.05) to ensure it plays
+            // The animation starts fading in logo at 0.05, so sync audio with that
+            triggerAtProgress("aa_reveal_enhanced", threshold: 0.05, progress: progress) {
+                print("[Narrative] Playing AA reveal audio at progress: \(progress)")
                 audioManager.playNarration(for: "aa_reveal_enhanced") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
@@ -679,6 +689,7 @@ struct HumanReturnEnhancedView: View {
 }
 
 /// Enhanced Final CTA with proper narration sync
+/// FIXED: Removed EXPERIENCE button, fixed overlapping buttons
 struct FinalCTAEnhancedView: View {
     let industry: Industry?
     let progress: Double
@@ -689,67 +700,56 @@ struct FinalCTAEnhancedView: View {
     @State private var showContent = false
     @State private var showCTA = false
 
+    // Colors matching FinalCTAView
+    private let signalGold = Color(red: 0.95, green: 0.8, blue: 0.4)
+    private let pureWhite = Color.white
+    private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)
+
+    // Computed phases (matching FinalCTAView timing)
+    private var pulsePhase: Double { min(1.0, progress / 0.20) }
+    private var text1Phase: Double { min(1.0, max(0, (progress - 0.15) / 0.20)) }
+    private var text2Phase: Double { min(1.0, max(0, (progress - 0.30) / 0.20)) }
+    private var questionPhase: Double { min(1.0, max(0, (progress - 0.45) / 0.20)) }
+    private var ctaPhase: Double { min(1.0, max(0, (progress - 0.60) / 0.25)) }
+
     var body: some View {
-        ZStack {
-            // Use FinalCTAView as the base
-            FinalCTAView(progress: progress, isComplete: false)
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
 
-            // Overlay with restart option that appears after narration
-            if showCTA && narrationFinished {
-                VStack {
-                    Spacer()
+            GeometryReader { geo in
+                let centerX = geo.size.width / 2
+                let centerY = geo.size.height * 0.35
 
-                    HStack(spacing: 30) {
-                        // Experience Vision Pro
-                        Button(action: {
-                            onComplete()
-                        }) {
-                            VStack(spacing: 10) {
-                                Image(systemName: "visionpro")
-                                    .font(.system(size: 28, weight: .ultraLight))
-                                    .foregroundColor(.white.opacity(0.8))
+                ZStack {
+                    // Background
+                    voidBlack.ignoresSafeArea()
 
-                                Text("EXPERIENCE")
-                                    .font(.system(size: 10, design: .rounded).weight(.medium))
-                                    .tracking(4)
-                                    .foregroundColor(.white.opacity(0.5))
-                            }
-                            .padding(.vertical, 18)
-                            .padding(.horizontal, 25)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
+                    // Signal pulses (same as FinalCTAView)
+                    signalLayer(centerX: centerX, centerY: centerY, time: time)
+
+                    // Content (text + buttons)
+                    VStack(spacing: 0) {
+                        Spacer().frame(height: geo.size.height * 0.48)
+
+                        // Text section
+                        textSection
+
+                        Spacer().frame(height: 50)
+
+                        // CTA buttons - only show after narration and showCTA
+                        if showCTA && narrationFinished && ctaPhase > 0 {
+                            ctaButtons
+                                .opacity(ctaPhase)
+                                .offset(y: (1 - ctaPhase) * 20)
+                                .transition(.opacity.combined(with: .offset(y: 20)))
                         }
-                        .buttonStyle(.plain)
 
-                        // Restart Experience
-                        Button(action: {
-                            onRestart()
-                        }) {
-                            VStack(spacing: 10) {
-                                Image(systemName: "arrow.counterclockwise")
-                                    .font(.system(size: 28, weight: .ultraLight))
-                                    .foregroundColor(Color(red: 0.95, green: 0.8, blue: 0.4).opacity(0.8))
-
-                                Text("RESTART")
-                                    .font(.system(size: 10, design: .rounded).weight(.medium))
-                                    .tracking(4)
-                                    .foregroundColor(Color(red: 0.95, green: 0.8, blue: 0.4).opacity(0.7))
-                            }
-                            .padding(.vertical, 18)
-                            .padding(.horizontal, 25)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color(red: 0.95, green: 0.8, blue: 0.4).opacity(0.3), lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
+                        Spacer()
                     }
-                    .padding(.bottom, 80)
-                    .transition(.opacity.combined(with: .offset(y: 20)))
+                    .padding(.horizontal, 50)
                 }
             }
+            .drawingGroup()
         }
         .onAppear {
             // Show content after a brief delay
@@ -765,6 +765,160 @@ struct FinalCTAEnhancedView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Signal Layer (matches FinalCTAView)
+
+    private func signalLayer(centerX: CGFloat, centerY: CGFloat, time: Double) -> some View {
+        ZStack {
+            // Pulse rings layer
+            Canvas { context, _ in
+                let center = CGPoint(x: centerX, y: centerY)
+
+                // Pulse rings
+                for ring in 0..<4 {
+                    let ringDelay = Double(ring) * 0.25
+                    let pulseT = fmod(time * 0.4 + ringDelay, 1.0)
+                    let ringRadius = 60 + CGFloat(pulseT) * 200
+                    let ringOpacity = (1 - pulseT) * pulsePhase * 0.3
+
+                    var ringPath = Path()
+                    ringPath.addEllipse(in: CGRect(x: center.x - ringRadius, y: center.y - ringRadius,
+                                                   width: ringRadius * 2, height: ringRadius * 2))
+                    context.stroke(ringPath, with: .color(signalGold.opacity(ringOpacity)), lineWidth: 1.5)
+                }
+
+                // Outer glow
+                context.fill(
+                    Circle().path(in: CGRect(x: center.x - 70, y: center.y - 70, width: 140, height: 140)),
+                    with: .radialGradient(
+                        Gradient(colors: [signalGold.opacity(0.4 * pulsePhase), .clear]),
+                        center: center, startRadius: 50, endRadius: 70
+                    )
+                )
+            }
+
+            // Central solid circle with lighter cream color for AA logo visibility
+            Circle()
+                .fill(Color(red: 1.0, green: 0.97, blue: 0.9).opacity(pulsePhase))
+                .frame(width: 100, height: 100)
+                .position(x: centerX, y: centerY)
+
+            // AA Logo in center - on top of circle
+            if let aaImage = UIImage(named: "aa") ?? loadAAImage() {
+                Image(uiImage: aaImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    .position(x: centerX, y: centerY)
+                    .opacity(pulsePhase)
+            }
+        }
+    }
+
+    // MARK: - Text Section
+
+    @ViewBuilder
+    private var textSection: some View {
+        VStack(spacing: 24) {
+            if text1Phase > 0 {
+                Text("One decision.")
+                    .font(.system(size: 28, design: .rounded).weight(.ultraLight))
+                    .foregroundColor(pureWhite.opacity(0.9))
+                    .opacity(text1Phase)
+            }
+
+            if text2Phase > 0 {
+                Text("Infinite possibility.")
+                    .font(.system(size: 34, design: .rounded).weight(.light))
+                    .foregroundStyle(LinearGradient(colors: [signalGold, pureWhite], startPoint: .leading, endPoint: .trailing))
+                    .opacity(text2Phase)
+            }
+
+            if questionPhase > 0 {
+                Rectangle()
+                    .fill(signalGold.opacity(0.3))
+                    .frame(width: 60, height: 1)
+                    .opacity(questionPhase)
+                    .padding(.vertical, 8)
+
+                Text("Where will you lead?")
+                    .font(.system(size: 18, design: .rounded).weight(.light))
+                    .foregroundColor(pureWhite.opacity(0.6))
+                    .opacity(questionPhase)
+            }
+        }
+        .multilineTextAlignment(.center)
+    }
+
+    // MARK: - CTA Buttons (RESTART and DEMO only - removed EXPERIENCE)
+
+    @ViewBuilder
+    private var ctaButtons: some View {
+        HStack(spacing: 40) {
+            // Restart Experience
+            Button(action: {
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+                onRestart()
+            }) {
+                VStack(spacing: 10) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 28, weight: .ultraLight))
+                        .foregroundColor(signalGold.opacity(0.8))
+
+                    Text("RESTART")
+                        .font(.system(size: 10, design: .rounded).weight(.medium))
+                        .tracking(4)
+                        .foregroundColor(signalGold.opacity(0.7))
+                }
+                .padding(.vertical, 20)
+                .padding(.horizontal, 30)
+                .background(RoundedRectangle(cornerRadius: 16).stroke(signalGold.opacity(0.3), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+
+            // Demo button
+            Button(action: {
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+                print("[CTA] Live Demo requested")
+                onComplete()
+            }) {
+                VStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .stroke(signalGold.opacity(0.5), lineWidth: 1)
+                            .frame(width: 44, height: 44)
+
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(signalGold)
+                    }
+
+                    Text("DEMO")
+                        .font(.system(size: 10, design: .rounded).weight(.medium))
+                        .tracking(4)
+                        .foregroundColor(signalGold.opacity(0.8))
+                }
+                .padding(.vertical, 20)
+                .padding(.horizontal, 30)
+                .background(RoundedRectangle(cornerRadius: 16).stroke(signalGold.opacity(0.3), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // Helper to load AA image from bundle
+    private func loadAAImage() -> UIImage? {
+        let extensions = ["jpg", "jpeg", "png"]
+        for ext in extensions {
+            if let path = Bundle.main.path(forResource: "aa", ofType: ext),
+               let image = UIImage(contentsOfFile: path) {
+                return image
+            }
+        }
+        return nil
     }
 }
 

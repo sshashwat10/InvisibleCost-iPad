@@ -606,6 +606,42 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         effectPlayer?.stop()
     }
 
+    /// Full reset for restart - stops all audio and resets state to initial
+    /// Called when user taps restart to ensure BGM starts fresh
+    func resetForRestart() {
+        print("[Audio] Full reset for restart")
+
+        // Stop all players immediately
+        narrationPlayer?.stop()
+        narrationPlayer = nil
+        ambientMusicPlayer?.stop()
+        ambientMusicPlayer = nil
+        upbeatMusicPlayer?.stop()
+        upbeatMusicPlayer = nil
+        effectPlayer?.stop()
+        effectPlayer = nil
+
+        // Stop engine nodes
+        ambientPlayerNode.stop()
+        effectPlayerNode.stop()
+
+        // Cancel any pending timers
+        narrationCompletionTimer?.invalidate()
+        narrationCompletionTimer = nil
+
+        // Reset all state flags
+        isAmbientPlaying = false
+        isNarrationPlaying = false
+        isUpbeatMode = false
+        currentNarrationKey = nil
+        narrationCompletionHandler = nil
+
+        // Re-preload upbeat music for the new session
+        preloadUpbeatMusic()
+
+        print("[Audio] Reset complete - ready for new experience")
+    }
+
     deinit {
         audioEngine.stop()
     }
