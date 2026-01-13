@@ -9,6 +9,7 @@ import Observation
 
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
+    case emotionalIntro          // 25s emotional grounding before interaction
     case industrySelection       // User chooses Finance/Supply Chain/Healthcare
     case personalInput           // NEW: User enters team size, hours lost, hourly rate
     case buildingTension         // Industry-specific tension building
@@ -27,6 +28,7 @@ enum Tier1Phase: Int, CaseIterable {
     var baseDuration: TimeInterval {
         switch self {
         case .waiting: return 0
+        case .emotionalIntro: return 25.0     // Auto-advance after 25s (with skip option after 10s)
         case .industrySelection: return 0     // User-controlled
         case .personalInput: return 0         // User-controlled (continue after narration)
         case .buildingTension: return 17      // ~15s audio + 2s buffer (was 20)
@@ -48,6 +50,8 @@ enum Tier1Phase: Int, CaseIterable {
         case .industrySelection, .personalInput, .patternBreak, .suckerPunchReveal,
              .comparisonCarousel, .callToAction:
             return true
+        case .emotionalIntro:
+            return false  // Auto-advances (with skip option after 10s)
         default:
             return false
         }
@@ -64,6 +68,7 @@ enum Tier1Phase: Int, CaseIterable {
     var displayName: String {
         switch self {
         case .waiting: return "Waiting"
+        case .emotionalIntro: return "Emotional Intro"
         case .industrySelection: return "Industry Selection"
         case .personalInput: return "Personal Input"
         case .buildingTension: return "Building Tension"
@@ -166,7 +171,7 @@ class ExperienceViewModel {
 
     func startExperience() {
         isExperienceActive = true
-        currentPhase = .industrySelection
+        currentPhase = .emotionalIntro  // Start with emotional grounding
         phaseElapsedTime = 0
         totalElapsedTime = 0
         phaseProgress = 0
@@ -324,6 +329,15 @@ class ExperienceViewModel {
 
     /// Get the appropriate narration key for current state
     func narrationKey(for phase: Tier1Phase, subIndex: Int = 0) -> String? {
+        // Handle phases that don't need industry selection
+        if phase == .emotionalIntro {
+            switch subIndex {
+            case 0: return "opening_1"
+            case 1: return "opening_2"
+            default: return nil
+            }
+        }
+
         guard let industry = selectedIndustry else {
             if phase == .industrySelection {
                 return "choose_industry"
@@ -332,6 +346,12 @@ class ExperienceViewModel {
         }
 
         switch phase {
+        case .emotionalIntro:
+            switch subIndex {
+            case 0: return "opening_1"
+            case 1: return "opening_2"
+            default: return nil
+            }
         case .industrySelection:
             return "choose_industry"
         case .personalInput:
@@ -374,6 +394,8 @@ extension Tier1Phase {
         switch self {
         case .waiting, .complete, .comparisonCarousel:
             return []  // Handled dynamically
+        case .emotionalIntro:
+            return ["opening_1", "opening_2"]  // Emotional grounding narrations
         case .industrySelection:
             return ["choose_industry"]
         case .personalInput:

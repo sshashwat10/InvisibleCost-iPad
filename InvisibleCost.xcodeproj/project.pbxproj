@@ -50,6 +50,7 @@
 		46B760C62F02506700F1A587 /* Tier1App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760C12F02506700F1A587 /* Tier1App.swift */; };
 		46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BE2F02506700F1A587 /* NarrativeView.swift */; };
 		46B760C82F02506700F1A587 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760BC2F02506700F1A587 /* Animations.swift */; };
+		EMOINTRO001BUILDFILE001 /* EmotionalIntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EMOINTRO001FILEREF001 /* EmotionalIntroView.swift */; };
 		46B760CA2F02563000F1A587 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B760C92F02563000F1A587 /* MotionManager.swift */; };
 		46D4D48D2F0C21D2008930C9 /* narration_aa_reveal.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 46D4D48C2F0C21D2008930C9 /* narration_aa_reveal.mp3 */; };
 		0A45AA069FFF624E229721BD /* narration_aa_reveal_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DF51FC5754FACFC7F56B3022 /* narration_aa_reveal_enhanced.mp3 */; };
@@ -125,6 +126,7 @@
 		46B760B82F02506700F1A587 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
 		46B760B92F02506700F1A587 /* ExperienceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceViewModel.swift; sourceTree = "<group>"; };
 		46B760BC2F02506700F1A587 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
+		EMOINTRO001FILEREF001 /* EmotionalIntroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmotionalIntroView.swift; sourceTree = "<group>"; };
 		46B760BE2F02506700F1A587 /* NarrativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeView.swift; sourceTree = "<group>"; };
 		46B760C02F02506700F1A587 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		46B760C12F02506700F1A587 /* Tier1App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tier1App.swift; sourceTree = "<group>"; };
@@ -298,6 +300,7 @@
 			isa = PBXGroup;
 			children = (
 				46B760BC2F02506700F1A587 /* Animations.swift */,
+				EMOINTRO001FILEREF001 /* EmotionalIntroView.swift */,
 			);
 			path = SubViews;
 			sourceTree = "<group>";
@@ -504,6 +507,7 @@
 				46B760C62F02506700F1A587 /* Tier1App.swift in Sources */,
 				46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */,
 				46B760C82F02506700F1A587 /* Animations.swift in Sources */,
+				EMOINTRO001BUILDFILE001 /* EmotionalIntroView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -80,6 +80,15 @@ struct NarrativeView: View {
         case .waiting, .complete:
             Color.black
 
+        case .emotionalIntro:
+            EmotionalIntroView(
+                progress: viewModel.phaseProgress,
+                onSkip: {
+                    viewModel.advanceToNextPhase()
+                }
+            )
+            .environment(motionManager)
+
         case .industrySelection:
             IndustrySelectionView(
                 selectedIndustry: $viewModel.selectedIndustry,
@@ -221,6 +230,29 @@ struct NarrativeView: View {
         let phase = viewModel.currentPhase
 
         switch phase {
+        case .emotionalIntro:
+            // Start ambient music at the very beginning
+            triggerOnce("ambient_music_intro") {
+                audioManager.playAmbientMusic()
+            }
+
+            // First narration at 32% progress (8 seconds)
+            // "Every organization carries a hidden cost."
+            triggerAtProgress("opening_1", threshold: 0.32, progress: progress) {
+                audioManager.playNarration(for: "opening_1") { [self] in
+                    // First narration complete, don't advance - wait for second
+                }
+            }
+
+            // Second narration at 60% progress (15 seconds)
+            // "Most leaders never see it."
+            triggerAtProgress("opening_2", threshold: 0.60, progress: progress) {
+                audioManager.playNarration(for: "opening_2") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
+            }
+
         case .industrySelection:
             triggerOnce("choose_industry") {
                 audioManager.playNarration(for: "choose_industry") { [self] in

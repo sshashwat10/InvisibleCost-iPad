@@ -50,6 +50,10 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     /// These are the actual durations of the narration audio files in seconds
     /// Updated based on afinfo measurements of the MP3 files
     static let estimatedDurations: [String: TimeInterval] = [
+        // Emotional Intro (Opening narrations)
+        "opening_1": 4.0,        // narration_opening_1.mp3: "Every organization carries a hidden cost."
+        "opening_2": 3.5,        // narration_opening_2.mp3: "Most leaders never see it."
+
         // Industry Selection
         "choose_industry": 8.0,  // narration_choose_industry.mp3: 7.967s
 
@@ -146,6 +150,7 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
 
     private func cacheAllAudioDurations() {
         let narrationKeys = [
+            "opening_1", "opening_2",  // Emotional intro
             "choose_industry",
             "personal_input",  // NEW
             "building_finance", "building_supply", "building_health",
@@ -217,6 +222,10 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
 
     /// Enhanced narration scripts for all phases
     private let narratorLines: [String: String] = [
+        // Emotional Intro (Opening narrations)
+        "opening_1": "Every organization carries a hidden cost.",
+        "opening_2": "Most leaders never see it.",
+
         // Industry Selection
         "choose_industry": "Choose your industry. See your invisible cost.",
 
@@ -918,8 +927,14 @@ extension AudioManager {
         switch phase {
         case .waiting, .complete:
             break
-        case .industrySelection:
+        case .emotionalIntro:
+            // Ambient music starts immediately for emotional intro
             playAmbientMusic()
+        case .industrySelection:
+            // Ambient music should already be playing from intro
+            if !isAmbientPlaying {
+                playAmbientMusic()
+            }
         case .personalInput:
             playTransition()  // Subtle transition sound
         case .buildingTension:
@@ -953,6 +968,11 @@ extension AudioManager {
         switch phase {
         case .waiting, .complete:
             return 0
+
+        case .emotionalIntro:
+            // Fixed 25 seconds - timed phase with two narrations
+            // Narrations are triggered at specific progress points, not sequentially
+            return 25.0
 
         case .industrySelection:
             return getNarrationDuration(for: "choose_industry") + buffer
