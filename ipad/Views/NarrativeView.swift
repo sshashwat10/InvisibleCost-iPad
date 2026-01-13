@@ -142,6 +142,17 @@ struct NarrativeView: View {
                     narrationFinished: narrationFinished,
                     onContinue: {
                         viewModel.advanceToNextPhase()
+                    },
+                    onCountingComplete: {
+                        // Play narration AFTER the number is fully displayed on screen
+                        let key = "sucker_punch_\(industry.rawValue)"
+                        if !audioTriggered.contains(key) {
+                            audioTriggered.insert(key)
+                            audioManager.playNarration(for: key) { [self] in
+                                narrationFinished = true
+                                viewModel.onNarrationComplete()
+                            }
+                        }
                     }
                 )
             }
@@ -295,16 +306,10 @@ struct NarrativeView: View {
             }
 
         case .suckerPunchReveal:
-            // Audio triggered early for immediate impact
-            if let industry = viewModel.selectedIndustry {
-                let key = "sucker_punch_\(industry.rawValue)"
-                triggerAtProgress(key, threshold: 0.05, progress: progress) {
-                    audioManager.playNarration(for: key) { [self] in
-                        narrationFinished = true
-                        viewModel.onNarrationComplete()
-                    }
-                }
-            }
+            // Narration is now triggered via onCountingComplete callback in the view
+            // This ensures the "38 million dollars" narration plays AFTER the number
+            // has fully rendered on screen (after the 4-second counting animation)
+            break
 
         case .agenticOrchestration:
             triggerOnce("music_transition") {

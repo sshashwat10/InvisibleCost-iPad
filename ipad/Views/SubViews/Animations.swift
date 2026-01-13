@@ -2479,20 +2479,23 @@ struct SuckerPunchRevealView: View {
     let progress: Double
     let narrationFinished: Bool
     let onContinue: () -> Void
+    let onCountingComplete: (() -> Void)?  // Callback when number counting animation finishes
 
     @State private var displayValue: Int = 0
     @State private var countingComplete = false
     @State private var showTagline = false
     @State private var numberGlowIntensity: CGFloat = 0
+    @State private var hasTriggeredCountingCallback = false  // Ensure callback fires only once
 
     private let suckerPunchData: SuckerPunchData
 
-    init(industry: Industry, companyName: String = "Your Organization", progress: Double, narrationFinished: Bool = false, onContinue: @escaping () -> Void) {
+    init(industry: Industry, companyName: String = "Your Organization", progress: Double, narrationFinished: Bool = false, onContinue: @escaping () -> Void, onCountingComplete: (() -> Void)? = nil) {
         self.industry = industry
         self.companyName = companyName
         self.progress = progress
         self.narrationFinished = narrationFinished
         self.onContinue = onContinue
+        self.onCountingComplete = onCountingComplete
         self.suckerPunchData = IndustryContent.suckerPunchData(for: industry)
     }
 
@@ -2735,6 +2738,13 @@ struct SuckerPunchRevealView: View {
                         withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                             showTagline = true
                         }
+                    }
+
+                    // Trigger callback when counting completes - this is when narration should start
+                    // The number is now fully visible on screen
+                    if !hasTriggeredCountingCallback {
+                        hasTriggeredCountingCallback = true
+                        onCountingComplete?()
                     }
                 }
             }

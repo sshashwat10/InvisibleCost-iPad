@@ -228,7 +228,8 @@ class ExperienceViewModel {
     /// Called by NarrativeView when a narration completes
     func onNarrationComplete() {
         narrationComplete = true
-        print("[Experience] Narration completed for phase: \(currentPhase.displayName)")
+        let completedPhase = currentPhase  // Capture current phase
+        print("[Experience] Narration completed for phase: \(completedPhase.displayName)")
 
         // If we were waiting for narration to advance, do it now (minimal delay for snappy transitions)
         if waitingForNarration && !currentPhase.isUserControlled {
@@ -236,6 +237,31 @@ class ExperienceViewModel {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.advanceToNextPhase()
             }
+            return  // Don't also trigger the below logic
+        }
+
+        // For certain timed phases, advance shortly after narration completes
+        // to eliminate dead space where nothing is happening
+        // Only do this if we've already shown enough content (progress > 30%)
+        if shouldAdvanceOnNarrationComplete(completedPhase) && !completedPhase.isUserControlled && phaseProgress >= 0.30 {
+            // Use a short delay to let animations settle, then advance
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                guard let self = self else { return }
+                // Only advance if we're still in the same phase (not already advanced by progress)
+                if self.currentPhase == completedPhase {
+                    self.advanceToNextPhase()
+                }
+            }
+        }
+    }
+
+    /// Phases that should advance shortly after narration completes (to eliminate dead space)
+    private func shouldAdvanceOnNarrationComplete(_ phase: Tier1Phase) -> Bool {
+        switch phase {
+        case .industryVignette, .buildingTension, .automationAnywhereReveal:
+            return true
+        default:
+            return false
         }
     }
 
