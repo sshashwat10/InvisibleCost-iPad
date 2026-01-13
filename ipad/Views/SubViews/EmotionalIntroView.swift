@@ -13,7 +13,6 @@ import SwiftUI
 
 struct EmotionalIntroView: View {
     let progress: Double
-    let onSkip: () -> Void
     @Environment(MotionManager.self) private var motion
 
     // State for window positions (generated once)
@@ -26,9 +25,6 @@ struct EmotionalIntroView: View {
     private var weightPhase: Double { max(0, min(1.0, (progress - 0.20) / 0.30)) }    // 3-7.5s
     private var recognitionPhase: Double { max(0, min(1.0, (progress - 0.50) / 0.30)) } // 7.5-12s
     private var invitationPhase: Double { max(0, min(1.0, (progress - 0.80) / 0.20)) } // 12-15s
-
-    // Skip button appears after 33% progress (5 seconds)
-    private var canSkip: Bool { progress >= 0.33 }
 
     // Colors
     private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)
@@ -58,9 +54,6 @@ struct EmotionalIntroView: View {
 
                     // Text content
                     textContentLayer(time: time)
-
-                    // Skip button
-                    skipButtonLayer
                 }
             }
         }
@@ -312,44 +305,6 @@ struct EmotionalIntroView: View {
     }
 
     // MARK: - Skip Button Layer
-
-    @ViewBuilder
-    private var skipButtonLayer: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-
-                if canSkip && invitationPhase < 0.8 {
-                    Button(action: {
-                        let generator = UIImpactFeedbackGenerator(style: .light)
-                        generator.impactOccurred()
-                        onSkip()
-                    }) {
-                        HStack(spacing: 6) {
-                            Text("Skip")
-                                .font(.system(size: 14, design: .rounded).weight(.light))
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .light))
-                        }
-                        .foregroundColor(.white.opacity(0.35))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule()
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.3), value: canSkip)
-                }
-            }
-            .padding(.trailing, 40)
-            .padding(.bottom, 40)
-        }
-    }
 
     // MARK: - Initialization
 
@@ -618,6 +573,6 @@ struct WorkWindowContent: View {
 // MARK: - Preview
 
 #Preview {
-    EmotionalIntroView(progress: 0.5, onSkip: {})
+    EmotionalIntroView(progress: 0.5)
         .environment(MotionManager())
 }

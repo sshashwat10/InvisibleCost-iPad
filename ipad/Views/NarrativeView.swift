@@ -81,13 +81,8 @@ struct NarrativeView: View {
             Color.black
 
         case .emotionalIntro:
-            EmotionalIntroView(
-                progress: viewModel.phaseProgress,
-                onSkip: {
-                    viewModel.advanceToNextPhase()
-                }
-            )
-            .environment(motionManager)
+            EmotionalIntroView(progress: viewModel.phaseProgress)
+                .environment(motionManager)
 
         case .industrySelection:
             IndustrySelectionView(
