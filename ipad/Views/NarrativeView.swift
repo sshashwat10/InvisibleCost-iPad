@@ -85,7 +85,8 @@ struct NarrativeView: View {
                 selectedIndustry: $viewModel.selectedIndustry,
                 onSelection: { industry in
                     viewModel.selectIndustry(industry)
-                }
+                },
+                narrationFinished: narrationFinished
             )
 
         case .personalInput:

@@ -2159,6 +2159,7 @@ import SwiftUI
 struct IndustrySelectionView: View {
     @Binding var selectedIndustry: Industry?
     let onSelection: (Industry) -> Void
+    var narrationFinished: Bool = false
 
     @State private var hoveredIndustry: Industry?
     @State private var cardsAppeared = false
@@ -2187,23 +2188,31 @@ struct IndustrySelectionView: View {
                                 isSelected: selectedIndustry == industry,
                                 appearDelay: Double(index) * 0.15,
                                 hasAppeared: cardsAppeared,
-                                time: time
+                                time: time,
+                                isEnabled: narrationFinished
                             )
                             .onTapGesture {
-                                selectIndustry(industry)
+                                // Only allow selection after narration completes
+                                if narrationFinished {
+                                    selectIndustry(industry)
+                                }
                             }
                             .onHover { isHovered in
-                                withAnimation(.easeOut(duration: 0.2)) {
-                                    hoveredIndustry = isHovered ? industry : nil
+                                // Only show hover effect if narration finished
+                                if narrationFinished {
+                                    withAnimation(.easeOut(duration: 0.2)) {
+                                        hoveredIndustry = isHovered ? industry : nil
+                                    }
                                 }
                             }
                         }
                     }
                     .opacity(selectedIndustry == nil ? 1 : 0)
 
-                    // Instruction text
+                    // Instruction text - only show after narration finishes
                     instructionText
-                        .opacity(titleAppeared && selectedIndustry == nil ? 1 : 0)
+                        .opacity(titleAppeared && selectedIndustry == nil && narrationFinished ? 1 : 0)
+                        .animation(.easeOut(duration: 0.5), value: narrationFinished)
                 }
             }
             .onAppear {
@@ -2310,6 +2319,7 @@ struct IndustryCardView: View {
     let appearDelay: Double
     let hasAppeared: Bool
     let time: Double
+    var isEnabled: Bool = true
 
     // Animation state
     @State private var localAppeared = false
@@ -2329,7 +2339,8 @@ struct IndustryCardView: View {
     private var cardOpacity: Double {
         if !localAppeared { return 0 }
         if isSelected { return 1 }
-        return 1
+        // Dim cards when disabled (narration playing)
+        return isEnabled ? 1.0 : 0.5
     }
 
     var body: some View {
@@ -2423,6 +2434,7 @@ struct IndustryCardView: View {
         .offset(y: localAppeared ? 0 : 30)
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isHovered)
         .animation(.spring(response: 0.4, dampingFraction: 0.75), value: isSelected)
+        .animation(.easeOut(duration: 0.5), value: isEnabled)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + appearDelay) {
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -2447,7 +2459,8 @@ struct IndustryCardView: View {
 #Preview {
     IndustrySelectionView(
         selectedIndustry: .constant(nil),
-        onSelection: { _ in }
+        onSelection: { _ in },
+        narrationFinished: true
     )
 }
 
