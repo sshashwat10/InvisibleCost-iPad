@@ -236,17 +236,17 @@ struct NarrativeView: View {
                 audioManager.playAmbientMusic()
             }
 
-            // First narration at 32% progress (8 seconds)
+            // First narration at 20% progress (3 seconds) - SNAPPIER
             // "Every organization carries a hidden cost."
-            triggerAtProgress("opening_1", threshold: 0.32, progress: progress) {
+            triggerAtProgress("opening_1", threshold: 0.20, progress: progress) {
                 audioManager.playNarration(for: "opening_1") { [self] in
                     // First narration complete, don't advance - wait for second
                 }
             }
 
-            // Second narration at 60% progress (15 seconds)
+            // Second narration at 50% progress (7.5 seconds) - SNAPPIER
             // "Most leaders never see it."
-            triggerAtProgress("opening_2", threshold: 0.60, progress: progress) {
+            triggerAtProgress("opening_2", threshold: 0.50, progress: progress) {
                 audioManager.playNarration(for: "opening_2") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()

@@ -1,15 +1,15 @@
 import SwiftUI
 
 // MARK: - Emotional Intro View
-/// 25-second atmospheric intro that establishes emotional context before interaction
-/// Implements the "Weight Before the Choice" concept from EMOTIONAL_INTRO_PLAN.md
+/// 15-second snappy emotional intro that establishes context before interaction
+/// Implements the "Weight Before the Choice" concept - TIGHTENED for impact
 ///
-/// Timeline:
-/// - 0-8%: Particles emerge from darkness
-/// - 8-32%: Work windows float and overwhelm
-/// - 32-60%: First narration plays ("Every organization carries a hidden cost")
-/// - 60-88%: Second narration plays ("Most leaders never see it")
-/// - 88-100%: Warm transition to industry selection
+/// Timeline (15 seconds total):
+/// - 0-5%: Quick fade from darkness
+/// - 5-20%: Work windows appear and overwhelm
+/// - 20-50%: First narration ("Every organization carries a hidden cost")
+/// - 50-80%: Second narration ("Most leaders never see it")
+/// - 80-100%: Quick warm transition to industry selection
 
 struct EmotionalIntroView: View {
     let progress: Double
@@ -20,15 +20,15 @@ struct EmotionalIntroView: View {
     @State private var windowStates: [FloatingWindowState] = []
     @State private var particleSeeds: [Double] = []
 
-    // Animation phase calculations based on progress (0.0 - 1.0)
-    private var darkToPresencePhase: Double { min(1.0, progress / 0.08) }           // 0-2s
-    private var overwhelmPhase: Double { max(0, min(1.0, (progress - 0.08) / 0.24)) } // 2-8s
-    private var weightPhase: Double { max(0, min(1.0, (progress - 0.32) / 0.28)) }    // 8-15s
-    private var recognitionPhase: Double { max(0, min(1.0, (progress - 0.60) / 0.28)) } // 15-22s
-    private var invitationPhase: Double { max(0, min(1.0, (progress - 0.88) / 0.12)) } // 22-25s
+    // Animation phase calculations - TIGHTENED for snappier feel
+    private var darkToPresencePhase: Double { min(1.0, progress / 0.05) }           // 0-0.75s
+    private var overwhelmPhase: Double { max(0, min(1.0, (progress - 0.05) / 0.15)) } // 0.75-3s
+    private var weightPhase: Double { max(0, min(1.0, (progress - 0.20) / 0.30)) }    // 3-7.5s
+    private var recognitionPhase: Double { max(0, min(1.0, (progress - 0.50) / 0.30)) } // 7.5-12s
+    private var invitationPhase: Double { max(0, min(1.0, (progress - 0.80) / 0.20)) } // 12-15s
 
-    // Skip button appears after 40% progress (10 seconds)
-    private var canSkip: Bool { progress >= 0.40 }
+    // Skip button appears after 33% progress (5 seconds)
+    private var canSkip: Bool { progress >= 0.33 }
 
     // Colors
     private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)

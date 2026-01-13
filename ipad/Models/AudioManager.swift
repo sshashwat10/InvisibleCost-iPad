@@ -970,9 +970,9 @@ extension AudioManager {
             return 0
 
         case .emotionalIntro:
-            // Fixed 25 seconds - timed phase with two narrations
+            // Fixed 15 seconds - snappy timed phase with two narrations
             // Narrations are triggered at specific progress points, not sequentially
-            return 25.0
+            return 15.0
 
         case .industrySelection:
             return getNarrationDuration(for: "choose_industry") + buffer

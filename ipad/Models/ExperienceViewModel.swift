@@ -28,7 +28,7 @@ enum Tier1Phase: Int, CaseIterable {
     var baseDuration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .emotionalIntro: return 25.0     // Auto-advance after 25s (with skip option after 10s)
+        case .emotionalIntro: return 15.0     // Auto-advance after 15s (snappy, with skip after 5s)
         case .industrySelection: return 0     // User-controlled
         case .personalInput: return 0         // User-controlled (continue after narration)
         case .buildingTension: return 17      // ~15s audio + 2s buffer (was 20)
