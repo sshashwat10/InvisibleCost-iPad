@@ -1,465 +1,303 @@
 import Foundation
 import AVFoundation
 import AudioToolbox
+import UIKit
 
-/// Comprehensive audio manager for the Invisible Cost iPad experience
-/// Handles narration, ambient sounds, and transition effects
+// MARK: - Enhanced Audio Manager
+/// Comprehensive audio management for the enhanced Invisible Cost experience
+/// Handles narration, ambient sounds, transition effects, and precise sync points
+
 @Observable
 class AudioManager {
     static let shared = AudioManager()
-    
-    // Audio engine
+
+    // MARK: - Audio Engine
     private var audioEngine: AVAudioEngine!
     private var ambientPlayerNode: AVAudioPlayerNode!
     private var effectPlayerNode: AVAudioPlayerNode!
     private var mixerNode: AVAudioMixerNode!
-    
-    // Speech synthesizer for narration
-    private let synthesizer = AVSpeechSynthesizer()
-    
-    // State
+
+    // MARK: - Players
+    private var narrationPlayer: AVAudioPlayer?
+    private var ambientMusicPlayer: AVAudioPlayer?
+    private var upbeatMusicPlayer: AVAudioPlayer?
+    private var effectPlayer: AVAudioPlayer?
+
+    // MARK: - State
     private(set) var isAmbientPlaying = false
     private(set) var isNarrationPlaying = false
-    
-    // Volume controls - balanced mix hierarchy
-    // Ambient is lowest (background bed), effects sit above, narration is clearest
-    var ambientVolume: Float = 0.08      // Very low - fills silence, never competes
-    var narrationVolume: Float = 1.0      // Full volume - always clear
-    var effectsVolume: Float = 0.55       // Raised to ensure subtle sounds cut through ambient
-    
-    // Audio format
+    private var isUpbeatMode = false
+    private var currentNarrationKey: String?
+
+    // MARK: - Volume Controls
+    var ambientVolume: Float = 0.08
+    var narrationVolume: Float = 1.0
+    var effectsVolume: Float = 0.55
+
+    // MARK: - Audio Format
     private var audioFormat: AVAudioFormat!
-    
+
+    // MARK: - Callbacks for sync
+    var onNarrationComplete: (() -> Void)?
+
+    // MARK: - Initialization
+
     private init() {
         setupAudioSession()
         setupAudioEngine()
     }
-    
-    // MARK: - Audio Session Setup
-    
+
     private func setupAudioSession() {
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
-            print("⚠️ Audio session setup failed: \(error)")
+            print("[Audio] Session setup failed: \(error)")
         }
     }
-    
-    // MARK: - Audio Engine Setup
-    
+
     private func setupAudioEngine() {
         audioEngine = AVAudioEngine()
         ambientPlayerNode = AVAudioPlayerNode()
         effectPlayerNode = AVAudioPlayerNode()
         mixerNode = AVAudioMixerNode()
-        
+
         audioEngine.attach(ambientPlayerNode)
         audioEngine.attach(effectPlayerNode)
         audioEngine.attach(mixerNode)
-        
-        // Standard format for generated audio
+
         audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)!
-        
-        // Connect nodes
+
         audioEngine.connect(ambientPlayerNode, to: mixerNode, format: audioFormat)
         audioEngine.connect(effectPlayerNode, to: mixerNode, format: audioFormat)
         audioEngine.connect(mixerNode, to: audioEngine.mainMixerNode, format: audioFormat)
-        
+
         do {
             try audioEngine.start()
-            print("🔊 Audio engine started successfully")
+            print("[Audio] Engine started")
         } catch {
-            print("⚠️ Audio engine start failed: \(error)")
+            print("[Audio] Engine start failed: \(error)")
         }
     }
-    
-    // MARK: - Music System (Ambient → Upbeat Transition)
-    
-    /// Audio player for ambient background music (opening phases)
-    private var ambientMusicPlayer: AVAudioPlayer?
-    /// Audio player for upbeat/EDM music (from agentic orchestration onwards)
-    private var upbeatMusicPlayer: AVAudioPlayer?
-    /// Track which music mode is active
-    private var isUpbeatMode = false
-    
-    /// Play ambient background music (loops until transition)
-    /// 
-    /// Add music files to your project:
-    /// - ambient_music.mp3: Ethereal pads, subtle tension (0:00 - 1:06)
-    /// - upbeat_music.mp3: EDM/upbeat drop, energizing (1:06 - 3:00)
-    /// 
-    /// Transition happens at agenticOrchestration phase
-    ///
-    func playAmbientHum() {
-        guard !isAmbientPlaying else { return }
-        
-        // Preload upbeat music for seamless transition
-        preloadUpbeatMusic()
-        
-        // Try to play ambient music file first
-        if playAmbientMusicFile() {
-            return
-        }
-        
-        // Fallback to synthesized ambient (if no file)
-        isAmbientPlaying = true
-        ambientPlayerNode.volume = ambientVolume
-        
-        let buffer = generateAmbientBuffer(duration: 10.0)
-        ambientPlayerNode.scheduleBuffer(buffer, at: nil, options: .loops) { }
-        ambientPlayerNode.play()
-        print("🔊 Ambient (synthesized) started")
-    }
-    
-    /// Attempts to play an ambient music file
-    private func playAmbientMusicFile() -> Bool {
-        let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
-        
-        for format in formats {
-            if let url = Bundle.main.url(forResource: "ambient_music", withExtension: format) {
-                do {
-                    ambientMusicPlayer = try AVAudioPlayer(contentsOf: url)
-                    ambientMusicPlayer?.numberOfLoops = 0  // No loop - will transition to upbeat
-                    ambientMusicPlayer?.volume = ambientVolume
-                    ambientMusicPlayer?.prepareToPlay()
-                    ambientMusicPlayer?.play()
-                    
-                    isAmbientPlaying = true
-                    print("🎵 Ambient music started: ambient_music.\(format)")
-                    return true
-                } catch {
-                    print("⚠️ Failed to play ambient music: \(error)")
-                }
-            }
-        }
-        
-        print("📝 No ambient_music file found - using synthesized fallback")
-        return false
-    }
-    
-    /// Preload upbeat music for seamless transition
-    private func preloadUpbeatMusic() {
-        let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
-        
-        for format in formats {
-            if let url = Bundle.main.url(forResource: "upbeat_music", withExtension: format) {
-                do {
-                    upbeatMusicPlayer = try AVAudioPlayer(contentsOf: url)
-                    upbeatMusicPlayer?.numberOfLoops = 0  // Play once through
-                    upbeatMusicPlayer?.volume = 0  // Start silent for crossfade
-                    upbeatMusicPlayer?.prepareToPlay()
-                    print("🎵 Upbeat music preloaded: upbeat_music.\(format)")
-                    return
-                } catch {
-                    print("⚠️ Failed to preload upbeat music: \(error)")
-                }
-            }
-        }
-        print("📝 No upbeat_music file found - ambient will continue")
-    }
-    
-    /// Crossfade transition from ambient to upbeat music (EDM drop moment)
-    /// Call this at the start of agenticOrchestration phase
-    func transitionToUpbeatMusic(crossfadeDuration: TimeInterval = 1.5) {
-        guard !isUpbeatMode else { return }
-        guard let upbeat = upbeatMusicPlayer else {
-            print("📝 No upbeat music available - ambient continues")
-            return
-        }
-        
-        isUpbeatMode = true
-        let upbeatVolume: Float = 0.15  // Slightly louder than ambient for energy
-        
-        // Start upbeat music
-        upbeat.volume = 0
-        upbeat.play()
-        print("🎵 EDM DROP! Transitioning to upbeat music...")
-        
-        // Crossfade: fade out ambient, fade in upbeat
-        let fadeSteps = 15
-        let stepDuration = crossfadeDuration / Double(fadeSteps)
-        let ambientStep = ambientVolume / Float(fadeSteps)
-        let upbeatStep = upbeatVolume / Float(fadeSteps)
-        
-        for i in 0..<fadeSteps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
-                guard let self = self else { return }
-                
-                // Fade out ambient
-                let newAmbientVol = max(0, self.ambientVolume - ambientStep * Float(i + 1))
-                self.ambientMusicPlayer?.volume = newAmbientVol
-                self.ambientPlayerNode.volume = newAmbientVol
-                
-                // Fade in upbeat
-                let newUpbeatVol = min(upbeatVolume, upbeatStep * Float(i + 1))
-                self.upbeatMusicPlayer?.volume = newUpbeatVol
-            }
-        }
-        
-        // Stop ambient after crossfade
-        DispatchQueue.main.asyncAfter(deadline: .now() + crossfadeDuration) { [weak self] in
-            self?.ambientMusicPlayer?.stop()
-            self?.ambientPlayerNode.stop()
-            print("🎵 Crossfade complete - upbeat music active")
-        }
-    }
-    
-    /// Fade out upbeat music at the end
-    func fadeOutUpbeatMusic(duration: TimeInterval = 3.0) {
-        guard isUpbeatMode, let upbeat = upbeatMusicPlayer else {
-            fadeOutAmbient(duration: duration)
-            return
-        }
-        
-        let originalVolume = upbeat.volume
-        let fadeSteps = 20
-        let stepDuration = duration / Double(fadeSteps)
-        let volumeStep = originalVolume / Float(fadeSteps)
-        
-        for i in 0..<fadeSteps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
-                let newVolume = max(0, originalVolume - volumeStep * Float(i + 1))
-                self?.upbeatMusicPlayer?.volume = newVolume
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-            self?.upbeatMusicPlayer?.stop()
-            self?.upbeatMusicPlayer = nil
-            self?.isUpbeatMode = false
-            self?.isAmbientPlaying = false
-            print("🎵 Upbeat music faded out")
-        }
-    }
-    
-    private func generateAmbientBuffer(duration: Double) -> AVAudioPCMBuffer {
-        let sampleRate = audioFormat.sampleRate
-        let frameCount = AVAudioFrameCount(duration * sampleRate)
-        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
-        buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
-        // Fallback ambient soundscape
-        for frame in 0..<Int(frameCount) {
-            let t = Double(frame) / sampleRate
-            let sub = sin(2.0 * .pi * 55.0 * t) * 0.06
-            let pad = sin(2.0 * .pi * 110.0 * t) * 0.04
-            let breath = 0.8 + 0.2 * sin(t * 0.15)
-            let sample = Float((sub + pad) * breath)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
-        }
-        
-        return buffer
-    }
-    
-    /// Fade out and stop ambient sounds/music
-    func fadeOutAmbient(duration: TimeInterval = 2.0) {
-        guard isAmbientPlaying else { return }
-        
-        let fadeSteps = 20
-        let stepDuration = duration / Double(fadeSteps)
-        let originalVolume = ambientVolume
-        let volumeStep = originalVolume / Float(fadeSteps)
-        
-        for i in 0..<fadeSteps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
-                let newVolume = originalVolume - volumeStep * Float(i + 1)
-                self?.ambientPlayerNode.volume = newVolume
-                self?.ambientMusicPlayer?.volume = newVolume
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-            self?.stopAmbient()
-            self?.ambientPlayerNode.volume = originalVolume
-        }
-    }
-    
-    func stopAmbient() {
-        ambientPlayerNode.stop()
-        ambientMusicPlayer?.stop()
-        ambientMusicPlayer = nil
-        upbeatMusicPlayer?.stop()
-        upbeatMusicPlayer = nil
-        isAmbientPlaying = false
-        isUpbeatMode = false
-    }
-    
-    // MARK: - Narration
-    
-    // MARK: - Narration Audio
-    
-    /// Audio player for pre-recorded narration
-    private var narrationPlayer: AVAudioPlayer?
-    
-    /// Narrator lines for each phase (used for TTS fallback)
-    /// Audio file naming: narration_{key}.m4a (e.g., narration_opening_1.m4a)
-    /// NOTE: Each line should FLOW into the next - use trailing tone, connecting words
-    /// DAVOS 2026 THEMES (in outro): Cooperation, Innovation, AI Governance, Climate, Economic Growth, People, Planetary Boundaries
+
+    // MARK: - Narration Playback
+
+    /// Enhanced narration scripts for all phases
     private let narratorLines: [String: String] = [
-        // Opening - definitive full stops
-        "opening_1": "There's something your organization doesn't talk about.",
-        "opening_2": "A silent drain on every leader, every team, every single day.",
-        "opening_3": "Imagine being freed from repetitive, mundane tasks.",
-        
-        // Vignettes - definitive endings
-        "vignette_finance": "Hours lost to tasks that machines were made for.",
-        "vignette_supply": "Brilliant minds trapped in busywork.",
-        "vignette_health": "Healers buried under paperwork.",
-        
-        // Pattern break
-        "pattern_break": "But what if tomorrow looked different?",
+        // Industry Selection
+        "choose_industry": "Choose your industry. See your invisible cost.",
 
-        // Agentic - periods create weight
-        "agentic": "This is Agentic Solutions. Intelligence that anticipates. Acts. And frees you to think.",
+        // Building Tension
+        "building_finance": "Every report. Every reconciliation. Every manual entry that keeps your team from the work that matters.",
+        "building_supply": "Every shipment tracked by hand. Every exception managed manually. Every delay cascading through your network.",
+        "building_health": "Every chart note. Every referral fax. Every authorization that keeps healers from healing.",
 
-        // Automation Anywhere reveal
-        "aa_reveal": "From Automation Anywhere. Elevating Human Potential.",
-        
-        // Human return - COMPLEMENTS screen text, doesn't read it
-        "restoration": "The chains dissolve. One by one.",
-        "human_return": "And suddenly you remember what it feels like to breathe.",
-        "potential": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
-        
-        // Closing - COMPLEMENTS screen text
-        "vision": "Picture a world where strategists think bigger. Innovators move faster. Leaders focus on what truly matters.",
-        "closing": "When your people are free, everything changes. Innovation accelerates. Sustainability becomes possible. People thrive.",
-        "proof": "This isn't tomorrow. Organizations are living this today.",
-        "question": "With Automation Anywhere, you have the power to lead in a world that demands more.",
-        "final_cta": "The invisible cost... ends now. The future of work... starts here."
+        // Industry Vignettes (Enhanced)
+        "vignette_finance_enhanced": "Hours lost to tasks that machines were made for.",
+        "vignette_supply_enhanced": "Brilliant minds trapped in busywork.",
+        "vignette_health_enhanced": "Healers buried under paperwork.",
+
+        // Pattern Break
+        "pattern_break_enhanced": "But what if... you could see the real number?",
+
+        // Sucker Punch
+        "sucker_punch_finance": "Forty-seven point five million dollars. Every. Single. Year. Gone. To invisible work.",
+        "sucker_punch_supply": "Thirty-eight point two million dollars. Every. Single. Year. Evaporating. While you watch.",
+        "sucker_punch_health": "Fifty-two point eight million dollars. Every. Single. Year. Stolen. From patient care.",
+
+        // Comparisons - Finance
+        "comparison_finance_1": "That's nine hundred fifty senior analyst salaries. Gone.",
+        "comparison_finance_2": "Fifteen years of your entire IT budget. Vanished.",
+        "comparison_finance_3": "A hundred eighty-nine thousand client meetings. Lost.",
+
+        // Comparisons - Supply Chain
+        "comparison_supply_1": "That's seven hundred sixty-four warehouse workers. Not hired.",
+        "comparison_supply_2": "Twelve thousand seven hundred containers. Delayed.",
+        "comparison_supply_3": "Your margins. Eroded. Daily.",
+
+        // Comparisons - Healthcare
+        "comparison_health_1": "That's over a thousand nurse salaries. Consumed by paperwork.",
+        "comparison_health_2": "Twenty-six thousand patient visits. That didn't happen.",
+        "comparison_health_3": "Your physicians' sanity. Under siege.",
+
+        // Solution
+        "agentic_enhanced": "This is Agentic Solutions. Intelligence that anticipates. Acts. And frees you to think.",
+        "aa_reveal_enhanced": "From Automation Anywhere. Elevating Human Potential.",
+
+        // Human Return
+        "restoration_enhanced": "The chains dissolve. One by one.",
+        "breathe": "And suddenly you remember what it feels like to breathe.",
+        "purpose": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
+
+        // Final CTA
+        "final_cta_enhanced": "The invisible cost... ends now. The future of work... starts here.",
+        "ready_change": "Ready to change this?"
     ]
-    
-    /// Play narration - tries pre-recorded audio first, falls back to TTS
-    /// 
-    /// To use pre-recorded audio:
-    /// 1. Record or generate audio files using ElevenLabs, professional voice-over, etc.
-    /// 2. Name files as: narration_{key}.m4a (e.g., narration_opening_1.m4a)
-    /// 3. Supported formats: .m4a, .mp3, .wav, .aiff
-    /// 4. Add files to your Xcode project (drag into Assets or a Resources folder)
-    /// 5. Make sure "Copy items if needed" and "Add to target" are checked
-    ///
+
+    /// Play narration with completion callback for sync
     func playNarration(for key: String, completion: (() -> Void)? = nil) {
-        // Try pre-recorded audio first
-        if playPreRecordedNarration(for: key, completion: completion) {
+        currentNarrationKey = key
+
+        // Try enhanced audio files first (in enhanced folder)
+        if playPreRecordedNarration(for: key, folder: "enhanced", completion: completion) {
             return
         }
-        
+
+        // Try standard audio files
+        if playPreRecordedNarration(for: key, folder: nil, completion: completion) {
+            return
+        }
+
         // Fallback to TTS
         guard let text = narratorLines[key] else {
-            print("⚠️ No narration found for key: \(key)")
+            print("[Audio] No narration found for key: \(key)")
             completion?()
             return
         }
-        
+
         speakNarration(text, completion: completion)
     }
-    
-    /// Attempts to play a pre-recorded audio file for narration
-    /// Returns true if audio file was found and is playing
-    private func playPreRecordedNarration(for key: String, completion: (() -> Void)?) -> Bool {
-        // Try different audio formats
-        let formats = ["m4a", "mp3", "wav", "aiff", "caf"]
+
+    private func playPreRecordedNarration(for key: String, folder: String?, completion: (() -> Void)?) -> Bool {
+        let formats = ["mp3", "m4a", "wav", "aiff", "caf"]
         let filename = "narration_\(key)"
-        
+
         for format in formats {
-            if let url = Bundle.main.url(forResource: filename, withExtension: format) {
+            var url: URL?
+
+            if let folder = folder {
+                // Check in subfolder
+                if let bundlePath = Bundle.main.path(forResource: filename, ofType: format, inDirectory: "Audio/\(folder)") {
+                    url = URL(fileURLWithPath: bundlePath)
+                }
+            }
+
+            // Check in main Audio folder
+            if url == nil {
+                url = Bundle.main.url(forResource: filename, withExtension: format)
+            }
+
+            if let audioURL = url {
                 do {
                     narrationPlayer?.stop()
-                    narrationPlayer = try AVAudioPlayer(contentsOf: url)
+                    narrationPlayer = try AVAudioPlayer(contentsOf: audioURL)
                     narrationPlayer?.volume = narrationVolume
                     narrationPlayer?.prepareToPlay()
-                    
+
                     isNarrationPlaying = true
                     narrationPlayer?.play()
-                    
-                    print("🎙️ Playing pre-recorded: \(filename).\(format)")
-                    
-                    // Schedule completion after audio ends
+
+                    print("[Audio] Playing: \(filename).\(format)")
+
+                    // Schedule completion
                     let duration = narrationPlayer?.duration ?? 2.0
                     DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) { [weak self] in
                         self?.isNarrationPlaying = false
+                        self?.currentNarrationKey = nil
                         completion?()
                     }
-                    
+
                     return true
                 } catch {
-                    print("⚠️ Failed to play \(filename).\(format): \(error)")
+                    print("[Audio] Failed to play \(filename).\(format): \(error)")
                 }
             }
         }
-        
-        print("📝 No audio file for '\(key)' - using TTS fallback")
+
         return false
     }
-    
-    /// Text-to-speech fallback (used when no pre-recorded audio exists)
+
     private func speakNarration(_ text: String, completion: (() -> Void)?) {
-        synthesizer.stopSpeaking(at: .immediate)
-        
+        let synthesizer = AVSpeechSynthesizer()
+
         let utterance = AVSpeechUtterance(string: text)
-        
-        // Try to use enhanced/premium voice if available
-        // Users can download enhanced voices in Settings > Accessibility > Spoken Content > Voices
-        let preferredVoices = [
-            "com.apple.voice.premium.en-US.Zoe",      // Premium female
-            "com.apple.voice.premium.en-US.Evan",     // Premium male
-            "com.apple.voice.enhanced.en-US.Samantha", // Enhanced female
-            "com.apple.voice.enhanced.en-US.Alex",    // Enhanced male
-            "com.apple.ttsbundle.siri_male_en-US_compact", // Siri male
-            "com.apple.ttsbundle.siri_female_en-US_compact" // Siri female
-        ]
-        
-        var selectedVoice: AVSpeechSynthesisVoice?
-        for voiceId in preferredVoices {
-            if let voice = AVSpeechSynthesisVoice(identifier: voiceId) {
-                selectedVoice = voice
-                break
-            }
-        }
-        
-        // Fallback to default English voice
-        utterance.voice = selectedVoice ?? AVSpeechSynthesisVoice(language: "en-US")
-        
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = 0.48
-        utterance.pitchMultiplier = 0.95  // Slightly lower pitch for gravitas
+        utterance.pitchMultiplier = 0.95
         utterance.volume = narrationVolume
-        utterance.preUtteranceDelay = 0.15
-        utterance.postUtteranceDelay = 0.25
-        
+
         isNarrationPlaying = true
-        print("🎙️ TTS Narrating: \"\(text)\"")
-        
+        print("[Audio] TTS: \"\(text)\"")
+
         synthesizer.speak(utterance)
-        
+
         let wordCount = text.components(separatedBy: " ").count
         let estimatedDuration = Double(wordCount) * 0.45 + 0.8
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + estimatedDuration) { [weak self] in
             self?.isNarrationPlaying = false
             completion?()
         }
     }
-    
+
     func stopNarration() {
         narrationPlayer?.stop()
-        synthesizer.stopSpeaking(at: .immediate)
         isNarrationPlaying = false
+        currentNarrationKey = nil
     }
-    
+
     // MARK: - Sound Effects
-    // Uses pre-recorded audio files (generated via ElevenLabs) with synthesized fallback
-    
-    /// Audio player for sound effects
-    private var effectPlayer: AVAudioPlayer?
-    
-    /// Play a sound effect - tries pre-recorded file first, falls back to synthesized
-    private func playSoundEffect(filename: String, fallbackBuffer: @autoclosure () -> AVAudioPCMBuffer, name: String) {
-        // Try pre-recorded file first
+
+    /// Play selection confirmation sound
+    func playSelectionSound() {
+        playEffect("sfx_selection", fallback: self.generateSelectionBuffer(), name: "Selection")
+        triggerHaptic(.medium)
+    }
+
+    /// Play sucker punch impact sound
+    func playSuckerPunchImpact() {
+        playEffect("sfx_impact_boom", fallback: self.generateImpactBuffer(), name: "Impact")
+        triggerHaptic(.heavy)
+    }
+
+    /// Play counter tick sound (rapid during counting)
+    func playCounterTick() {
+        playEffect("sfx_counting_tick", fallback: self.generateTickBuffer(), name: "Tick")
+    }
+
+    /// Play card whoosh for comparison carousel
+    func playCardWhoosh() {
+        playEffect("sfx_card_whoosh", fallback: self.generateWhooshBuffer(), name: "Whoosh")
+        triggerHaptic(.light)
+    }
+
+    /// Play transition sound
+    func playTransition() {
+        playEffect("sfx_transition", fallback: self.generateTransitionBuffer(), name: "Transition")
+    }
+
+    /// Play reveal sound
+    func playReveal() {
+        playEffect("sfx_reveal", fallback: self.generateRevealBuffer(), name: "Reveal")
+    }
+
+    /// Play completion chime
+    func playCompletion() {
+        playEffect("sfx_completion", fallback: self.generateCompletionBuffer(), name: "Completion")
+    }
+
+    /// Play UI feedback
+    func playUIFeedback() {
+        AudioServicesPlaySystemSound(1104)
+    }
+
+    /// Play tension tone (for pattern break)
+    func playTensionTone() {
+        playEffect("sfx_tension_tone", fallback: self.generateTensionBuffer(), name: "Tension")
+    }
+
+    /// Play ready chime (tap to continue indicator)
+    func playReadyChime() {
+        playEffect("sfx_ready_chime", fallback: self.generateReadyBuffer(), name: "Ready")
+    }
+
+    /// Play glow pulse sound (for sucker punch number pulse)
+    func playGlowPulse() {
+        playEffect("sfx_glow_pulse", fallback: self.generatePulseBuffer(), name: "Pulse")
+    }
+
+    private func playEffect(_ filename: String, fallback: @autoclosure () -> AVAudioPCMBuffer, name: String) {
         let formats = ["mp3", "m4a", "wav"]
         for format in formats {
             if let url = Bundle.main.url(forResource: filename, withExtension: format) {
@@ -469,416 +307,457 @@ class AudioManager {
                     effectPlayer?.volume = effectsVolume
                     effectPlayer?.prepareToPlay()
                     effectPlayer?.play()
-                    print("🔔 \(name) (file)")
                     return
                 } catch {
-                    print("⚠️ Failed to play \(filename).\(format): \(error)")
+                    continue
                 }
             }
         }
-        
+
         // Fallback to synthesized
-        let buffer = fallbackBuffer()
+        let buffer = fallback()
         effectPlayerNode.stop()
         effectPlayerNode.volume = effectsVolume
         effectPlayerNode.scheduleBuffer(buffer, at: nil, options: []) { }
         effectPlayerNode.play()
-        print("🔔 \(name) (synth)")
     }
-    
-    /// Play transition/whoosh sound
-    func playTransition() {
-        playSoundEffect(filename: "sfx_transition", fallbackBuffer: generateTransitionBuffer(), name: "Transition")
+
+    // MARK: - Haptic Feedback
+
+    func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
     }
-    
-    /// Play subtle UI feedback sound
-    func playUIFeedback() {
-        AudioServicesPlaySystemSound(1104) // Subtle tick
-        print("🔔 UI feedback (system)")
+
+    // MARK: - Ambient Music
+
+    func playAmbientMusic() {
+        guard !isAmbientPlaying else { return }
+
+        // Preload upbeat for later transition
+        preloadUpbeatMusic()
+
+        let formats = ["mp3", "m4a", "wav"]
+        for format in formats {
+            if let url = Bundle.main.url(forResource: "ambient_music", withExtension: format) {
+                do {
+                    ambientMusicPlayer = try AVAudioPlayer(contentsOf: url)
+                    ambientMusicPlayer?.numberOfLoops = -1  // Loop
+                    ambientMusicPlayer?.volume = ambientVolume
+                    ambientMusicPlayer?.prepareToPlay()
+                    ambientMusicPlayer?.play()
+                    isAmbientPlaying = true
+                    print("[Audio] Ambient music started")
+                    return
+                } catch {
+                    print("[Audio] Ambient music failed: \(error)")
+                }
+            }
+        }
+
+        // Fallback to synthesized ambient
+        playGeneratedAmbient()
     }
-    
-    /// Play reveal/appearance sound
-    func playReveal() {
-        playSoundEffect(filename: "sfx_reveal", fallbackBuffer: generateRevealBuffer(), name: "Reveal")
+
+    private func preloadUpbeatMusic() {
+        let formats = ["mp3", "m4a", "wav"]
+        for format in formats {
+            if let url = Bundle.main.url(forResource: "upbeat_music", withExtension: format) {
+                do {
+                    upbeatMusicPlayer = try AVAudioPlayer(contentsOf: url)
+                    upbeatMusicPlayer?.numberOfLoops = 0
+                    upbeatMusicPlayer?.volume = 0
+                    upbeatMusicPlayer?.prepareToPlay()
+                    print("[Audio] Upbeat music preloaded")
+                    return
+                } catch { continue }
+            }
+        }
     }
-    
-    /// Play completion/success sound
-    func playCompletion() {
-        playSoundEffect(filename: "sfx_completion", fallbackBuffer: generateCompletionBuffer(), name: "Completion")
+
+    func transitionToUpbeatMusic(crossfadeDuration: TimeInterval = 1.5) {
+        guard !isUpbeatMode, let upbeat = upbeatMusicPlayer else { return }
+
+        isUpbeatMode = true
+        let targetVolume: Float = 0.15
+
+        upbeat.volume = 0
+        upbeat.play()
+        print("[Audio] Transitioning to upbeat")
+
+        let steps = 15
+        let stepDuration = crossfadeDuration / Double(steps)
+        let ambientStep = ambientVolume / Float(steps)
+        let upbeatStep = targetVolume / Float(steps)
+
+        for i in 0..<steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
+                guard let self = self else { return }
+                let newAmbient = max(0, self.ambientVolume - ambientStep * Float(i + 1))
+                self.ambientMusicPlayer?.volume = newAmbient
+                let newUpbeat = min(targetVolume, upbeatStep * Float(i + 1))
+                self.upbeatMusicPlayer?.volume = newUpbeat
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + crossfadeDuration) { [weak self] in
+            self?.ambientMusicPlayer?.stop()
+            print("[Audio] Crossfade complete")
+        }
     }
-    
-    /// Play sphere formation sound (building up)
-    func playSphereForming() {
-        playSoundEffect(filename: "sfx_sphere_forming", fallbackBuffer: generateSphereFormingBuffer(), name: "Sphere forming")
+
+    func fadeOutMusic(duration: TimeInterval = 3.0) {
+        let player = isUpbeatMode ? upbeatMusicPlayer : ambientMusicPlayer
+        guard let currentPlayer = player else { return }
+
+        let originalVolume = currentPlayer.volume
+        let steps = 20
+        let stepDuration = duration / Double(steps)
+        let volumeStep = originalVolume / Float(steps)
+
+        for i in 0..<steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
+                let newVolume = max(0, originalVolume - volumeStep * Float(i + 1))
+                self?.ambientMusicPlayer?.volume = newVolume
+                self?.upbeatMusicPlayer?.volume = newVolume
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+            self?.stopAllMusic()
+        }
     }
-    
-    /// Play connection sound (quick blip)
-    func playConnection() {
-        playSoundEffect(filename: "sfx_connection", fallbackBuffer: generateConnectionBuffer(), name: "Connection")
+
+    func stopAllMusic() {
+        ambientMusicPlayer?.stop()
+        upbeatMusicPlayer?.stop()
+        ambientPlayerNode.stop()
+        isAmbientPlaying = false
+        isUpbeatMode = false
     }
-    
-    /// Play dot appearing sound (soft crystalline ping)
-    func playDotAppear() {
-        playSoundEffect(filename: "sfx_dot_appear", fallbackBuffer: generateDotAppearBuffer(), name: "Dot appear")
+
+    private func playGeneratedAmbient() {
+        isAmbientPlaying = true
+        ambientPlayerNode.volume = ambientVolume
+
+        let buffer = generateAmbientBuffer(duration: 10.0)
+        ambientPlayerNode.scheduleBuffer(buffer, at: nil, options: .loops) { }
+        ambientPlayerNode.play()
+        print("[Audio] Synthesized ambient started")
     }
-    
-    /// Play line forming sound (stretchy connection)
-    func playLineForming() {
-        playSoundEffect(filename: "sfx_line_forming", fallbackBuffer: generateLineFormingBuffer(), name: "Line forming")
+
+    // MARK: - Cleanup
+
+    func stopAll() {
+        stopAllMusic()
+        stopNarration()
+        effectPlayerNode.stop()
+        effectPlayer?.stop()
     }
-    
-    /// Play sphere pulse sound (resonant breath)
-    func playSpherePulse() {
-        playSoundEffect(filename: "sfx_pulse", fallbackBuffer: generateSpherePulseBuffer(), name: "Sphere pulse")
+
+    deinit {
+        audioEngine.stop()
     }
-    
-    /// Play sphere shrink sound (compression descent)
-    func playSphereShrink() {
-        playSoundEffect(filename: "sfx_shrink", fallbackBuffer: generateSphereShrinkBuffer(), name: "Sphere shrink")
+
+    // MARK: - Buffer Generation (Synthesized Fallbacks)
+
+    private func generateAmbientBuffer(duration: Double) -> AVAudioPCMBuffer {
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let sub = sin(2.0 * .pi * 55.0 * t) * 0.06
+            let pad = sin(2.0 * .pi * 110.0 * t) * 0.04
+            let breath = 0.8 + 0.2 * sin(t * 0.15)
+            let sample = Float((sub + pad) * breath)
+            left[frame] = sample
+            right[frame] = sample
+        }
+
+        return buffer
     }
-    
-    // MARK: - MINIMAL Professional Sound Design
-    // Philosophy: Subtle, understated, never distracting. Like Apple keynotes.
-    // These sounds should feel almost subliminal - you notice when they're gone, not when they're there.
-    
-    /// Subtle random variation
-    private func subtleVariation() -> Double { Double.random(in: 0.95...1.05) }
-    private func subtlePan() -> Double { Double.random(in: -0.15...0.15) }
-    
+
     private func generateTransitionBuffer() -> AVAudioPCMBuffer {
-        // Barely-there whoosh - like a gentle breath of air
         let duration = 0.35
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
             let progress = t / duration
-            
-            // Ultra-soft filtered noise - just air movement
             let envelope = sin(progress * .pi) * 0.12
             let noise = Double.random(in: -1...1)
-            
-            // Low-pass feel by averaging
             let sample = Float(noise * envelope)
-            
-            leftChannel[frame] = sample * 0.9
-            rightChannel[frame] = sample * 1.1
+            left[frame] = sample * 0.9
+            right[frame] = sample * 1.1
         }
-        
+
         return buffer
     }
-    
-    private func generateRevealBuffer() -> AVAudioPCMBuffer {
-        // Soft, warm tone - like a gentle notification
-        let duration = 0.8
+
+    private func generateSelectionBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.25
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            let progress = t / duration
-            
-            // Simple warm tone with gentle attack and long decay
-            let freq = 392.0  // G4 - pleasant, not attention-grabbing
-            let attack = min(t / 0.1, 1.0)
-            let decay = exp(-t * 2.5)
-            let envelope = attack * decay * 0.15
-            
-            // Pure tone with subtle warmth
-            let tone = sin(2.0 * .pi * freq * t)
-            let warmth = sin(2.0 * .pi * freq * 0.5 * t) * 0.3
-            
-            let sample = Float((tone + warmth) * envelope)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            let freq = 880.0 + 220.0 * (t / duration)
+            let envelope = exp(-t * 8) * 0.3
+            let sample = Float(sin(2.0 * .pi * freq * t) * envelope)
+            left[frame] = sample
+            right[frame] = sample
         }
-        
+
         return buffer
     }
-    
-    private func generateCompletionBuffer() -> AVAudioPCMBuffer {
-        // Satisfying but subtle resolution - two-note motif
+
+    private func generateImpactBuffer() -> AVAudioPCMBuffer {
         let duration = 1.0
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            
-            // Two notes: G4 then C5 (perfect fourth - pleasing resolution)
+            // Low impact thud
+            let lowFreq = sin(2.0 * .pi * 60.0 * t) * exp(-t * 5) * 0.5
+            // Mid punch
+            let midFreq = sin(2.0 * .pi * 120.0 * t) * exp(-t * 8) * 0.3
+            // High attack
+            let highFreq = sin(2.0 * .pi * 400.0 * t) * exp(-t * 20) * 0.2
+
+            let sample = Float(lowFreq + midFreq + highFreq)
+            left[frame] = sample
+            right[frame] = sample
+        }
+
+        return buffer
+    }
+
+    private func generateTickBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.03
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let envelope = exp(-t * 100) * 0.1
+            let sample = Float(sin(2.0 * .pi * 2000.0 * t) * envelope)
+            left[frame] = sample
+            right[frame] = sample
+        }
+
+        return buffer
+    }
+
+    private func generateWhooshBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.3
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let progress = t / duration
+            let envelope = sin(progress * .pi) * 0.15
+            let freq = 200.0 + 600.0 * progress
+            let noise = Double.random(in: -1...1) * 0.5
+            let tone = sin(2.0 * .pi * freq * t) * 0.5
+
+            let sample = Float((noise + tone) * envelope)
+            left[frame] = sample * Float(1.0 - progress)
+            right[frame] = sample * Float(progress)
+        }
+
+        return buffer
+    }
+
+    private func generateRevealBuffer() -> AVAudioPCMBuffer {
+        let duration = 0.8
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let freq = 392.0
+            let attack = min(t / 0.1, 1.0)
+            let decay = exp(-t * 2.5)
+            let envelope = attack * decay * 0.15
+            let tone = sin(2.0 * .pi * freq * t)
+            let warmth = sin(2.0 * .pi * freq * 0.5 * t) * 0.3
+
+            let sample = Float((tone + warmth) * envelope)
+            left[frame] = sample
+            right[frame] = sample
+        }
+
+        return buffer
+    }
+
+    private func generateCompletionBuffer() -> AVAudioPCMBuffer {
+        let duration = 1.0
+        let sampleRate = audioFormat.sampleRate
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
             let note1Env = exp(-t * 4) * 0.12
             let note2Env = max(0, t - 0.15) < 0.01 ? 0 : exp(-(t - 0.15) * 3) * 0.10
-            
-            let note1 = sin(2.0 * .pi * 392.0 * t) * note1Env  // G4
-            let note2 = sin(2.0 * .pi * 523.25 * t) * note2Env  // C5
-            
+
+            let note1 = sin(2.0 * .pi * 392.0 * t) * note1Env
+            let note2 = sin(2.0 * .pi * 523.25 * t) * note2Env
+
             let sample = Float(note1 + note2)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            left[frame] = sample
+            right[frame] = sample
         }
-        
+
         return buffer
     }
-    
-    private func generateSphereFormingBuffer() -> AVAudioPCMBuffer {
-        // Subtle low hum that builds - almost felt more than heard
-        let duration = 1.5
+
+    private func generateTensionBuffer() -> AVAudioPCMBuffer {
+        let duration = 2.0
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
             let progress = t / duration
-            
-            // Deep, subtle presence that grows
-            let freq = 65.0  // C2 - felt in the chest
-            let intensity = pow(progress, 1.5) * 0.15
-            
-            let sub = sin(2.0 * .pi * freq * t) * intensity
-            let octave = sin(2.0 * .pi * freq * 2 * t) * intensity * 0.3
-            
-            let sample = Float(sub + octave)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            // Deep drone that builds
+            let freq = 55.0 + 20.0 * progress
+            let envelope = (1.0 - progress) * 0.2
+            let sample = Float(sin(2.0 * .pi * freq * t) * envelope)
+            left[frame] = sample
+            right[frame] = sample
         }
-        
+
         return buffer
     }
-    
-    private func generateConnectionBuffer() -> AVAudioPCMBuffer {
-        // Tiny, soft tick - like a gentle tap
-        let duration = 0.06
-        let sampleRate = audioFormat.sampleRate
-        let frameCount = AVAudioFrameCount(duration * sampleRate)
-        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
-        buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
-        let pan = subtlePan()
-        let pitch = 800.0 * subtleVariation()
-        
-        for frame in 0..<Int(frameCount) {
-            let t = Double(frame) / sampleRate
-            
-            // Quick, soft click
-            let envelope = exp(-t * 60) * 0.08
-            let tone = sin(2.0 * .pi * pitch * t)
-            
-            let sample = Float(tone * envelope)
-            leftChannel[frame] = sample * Float(1.0 - pan)
-            rightChannel[frame] = sample * Float(1.0 + pan)
-        }
-        
-        return buffer
-    }
-    
-    private func generateDotAppearBuffer() -> AVAudioPCMBuffer {
-        // Soft, high ping - like a water droplet
-        let duration = 0.12
-        let sampleRate = audioFormat.sampleRate
-        let frameCount = AVAudioFrameCount(duration * sampleRate)
-        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
-        buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
-        let pan = subtlePan()
-        let pitch = 1200.0 * subtleVariation()
-        
-        for frame in 0..<Int(frameCount) {
-            let t = Double(frame) / sampleRate
-            
-            // Gentle, crystalline ping
-            let envelope = exp(-t * 35) * 0.06
-            let tone = sin(2.0 * .pi * pitch * t)
-            
-            let sample = Float(tone * envelope)
-            leftChannel[frame] = sample * Float(1.0 - pan)
-            rightChannel[frame] = sample * Float(1.0 + pan)
-        }
-        
-        return buffer
-    }
-    
-    private func generateLineFormingBuffer() -> AVAudioPCMBuffer {
-        // Soft zip/stretch - like drawing with light
-        let duration = 0.15
-        let sampleRate = audioFormat.sampleRate
-        let frameCount = AVAudioFrameCount(duration * sampleRate)
-        let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
-        buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
-        let startPan = subtlePan()
-        let endPan = subtlePan()
-        
-        for frame in 0..<Int(frameCount) {
-            let t = Double(frame) / sampleRate
-            let progress = t / duration
-            
-            // Subtle rising tone
-            let freq = 400.0 + 200.0 * progress
-            let envelope = sin(progress * .pi) * 0.05
-            let tone = sin(2.0 * .pi * freq * t)
-            
-            let sample = Float(tone * envelope)
-            let pan = startPan + (endPan - startPan) * progress
-            leftChannel[frame] = sample * Float(1.0 - pan)
-            rightChannel[frame] = sample * Float(1.0 + pan)
-        }
-        
-        return buffer
-    }
-    
-    private func generateSpherePulseBuffer() -> AVAudioPCMBuffer {
-        // Deep, warm breath - like a heartbeat
+
+    private func generateReadyBuffer() -> AVAudioPCMBuffer {
         let duration = 0.5
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            let progress = t / duration
-            
-            // Soft, organic pulse
-            let freq = 80.0  // Deep but warm
-            let envelope = sin(progress * .pi) * 0.12
-            
-            let sub = sin(2.0 * .pi * freq * t)
-            let warmth = sin(2.0 * .pi * freq * 2 * t) * 0.2
-            
-            let sample = Float((sub + warmth) * envelope)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            // Two-note chime
+            let note1 = sin(2.0 * .pi * 880.0 * t) * exp(-t * 5)
+            let note2 = (t > 0.15) ? sin(2.0 * .pi * 1320.0 * (t - 0.15)) * exp(-(t - 0.15) * 6) : 0
+
+            let sample = Float((note1 + note2) * 0.1)
+            left[frame] = sample
+            right[frame] = sample
         }
-        
+
         return buffer
     }
-    
-    private func generateSphereShrinkBuffer() -> AVAudioPCMBuffer {
-        // Gentle descending tone - like exhaling
+
+    private func generatePulseBuffer() -> AVAudioPCMBuffer {
         let duration = 0.6
         let sampleRate = audioFormat.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
-        
-        let leftChannel = buffer.floatChannelData![0]
-        let rightChannel = buffer.floatChannelData![1]
-        
+
+        let left = buffer.floatChannelData![0]
+        let right = buffer.floatChannelData![1]
+
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
             let progress = t / duration
-            
-            // Smooth descending tone
-            let freq = 200.0 - 80.0 * progress  // Gentle descent
-            let envelope = (1.0 - pow(progress, 2)) * 0.10
-            
-            let tone = sin(2.0 * .pi * freq * t)
-            let sub = sin(2.0 * .pi * freq * 0.5 * t) * 0.3
-            
-            let sample = Float((tone + sub) * envelope)
-            leftChannel[frame] = sample
-            rightChannel[frame] = sample
+            let freq = 200.0 - 100.0 * progress
+            let envelope = sin(progress * .pi) * 0.15
+
+            let sample = Float(sin(2.0 * .pi * freq * t) * envelope)
+            left[frame] = sample
+            right[frame] = sample
         }
-        
+
         return buffer
-    }
-    
-    // MARK: - Phase-based Audio Control
-    
-    func playAudioForPhase(_ phase: Tier1Phase) {
-        switch phase {
-        case .waiting, .complete:
-            break
-        case .microColdOpen:
-            playAmbientHum()
-        case .narratorFrame:
-            // Handled by NarrativeView progress triggers
-            break
-        case .humanVignettes:
-            playTransition()
-        case .patternBreak:
-            // Keep ambient playing - don't fade out here
-            break
-        case .agenticOrchestration:
-            playReveal()
-        case .automationAnywhereReveal:
-            playReveal()
-        case .humanReturn:
-            playReveal()
-        case .personalization:
-            playUIFeedback()
-        case .stillnessCTA:
-            playCompletion()
-        }
-    }
-    
-    // MARK: - Cleanup
-    
-    func stopAll() {
-        stopAmbient()
-        stopNarration()
-        effectPlayerNode.stop()
-    }
-    
-    deinit {
-        audioEngine.stop()
     }
 }
 
-// MARK: - Tier1Phase Extension for Audio
+// MARK: - Phase Audio Handling Extension
 
-extension Tier1Phase {
-    var narratorKeys: [String] {
-        switch self {
-        case .waiting, .complete, .microColdOpen, .personalization:
-            return []
-        case .narratorFrame:
-            return ["opening_1", "opening_2", "opening_3"]
-        case .humanVignettes:
-            return ["vignette_finance", "vignette_supply", "vignette_health"]
+extension AudioManager {
+    /// Play audio for a specific enhanced phase
+    func playAudioForPhase(_ phase: Tier1Phase, industry: Industry? = nil) {
+        switch phase {
+        case .waiting, .complete:
+            break
+        case .industrySelection:
+            playAmbientMusic()
+        case .buildingTension:
+            playTransition()
+        case .industryVignette:
+            playTransition()
         case .patternBreak:
-            return ["pattern_break"]
+            playTensionTone()
+        case .suckerPunchReveal:
+            // Handled by view with precise timing
+            break
+        case .comparisonCarousel:
+            playCardWhoosh()
         case .agenticOrchestration:
-            return ["agentic"]
+            transitionToUpbeatMusic()
+            playReveal()
         case .automationAnywhereReveal:
-            return ["aa_reveal"]
+            playReveal()
         case .humanReturn:
-            return ["restoration", "human_return"]
-        case .stillnessCTA:
-            return ["closing", "question"]
+            playReveal()
+        case .callToAction:
+            playCompletion()
         }
     }
 }
