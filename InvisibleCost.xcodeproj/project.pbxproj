@@ -141,7 +141,7 @@
 		467A66BD2F0AD19D00A4E98D /* Outfit-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Outfit-Medium.ttf"; sourceTree = "<group>"; };
 		467A66BE2F0AD19D00A4E98D /* Outfit-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Outfit-Regular.ttf"; sourceTree = "<group>"; };
 		467A66BF2F0AD19D00A4E98D /* Outfit-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Outfit-Thin.ttf"; sourceTree = "<group>"; };
-		467A66C92F0AD2AA00A4E98D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Info.plist; path = "InvisibleCost-iPad/Info.plist"; sourceTree = "<group>"; };
+		467A66C92F0AD2AA00A4E98D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Info.plist; path = "ipad/Info.plist"; sourceTree = "<group>"; };
 		467A66CC2F0ADC1F00A4E98D /* leader.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = leader.png; sourceTree = "<group>"; };
 		469C33E12F07DD48002E908D /* narration_agentic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_agentic.mp3; sourceTree = "<group>"; };
 		469C33E22F07DD48002E908D /* narration_closing.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_closing.mp3; sourceTree = "<group>"; };
@@ -768,7 +768,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "InvisibleCost-iPad/Info.plist";
+				INFOPLIST_FILE = "ipad/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -802,7 +802,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "InvisibleCost-iPad/Info.plist";
+				INFOPLIST_FILE = "ipad/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
