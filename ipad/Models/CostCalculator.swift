@@ -1,16 +1,41 @@
 import Foundation
 
 // MARK: - Cost Calculator
-/// Calculates invisible costs based on user input and sourced benchmarks
-/// All calculations use published industry data from APQC, Ardent Partners, HDI, MetricNet, etc.
+/// Calculates process costs (including hidden/invisible components) using Tarani-approved simplified formulas for Davos 2026
+/// Total cost breakdown: Direct Labor (60%) + Overhead (25%) + Invisible (15% - exceptions, rework, opportunity cost)
+/// Formulas: Simple multiplication based on transaction costs and volumes
+/// Sources: Hackett, APQC, Gartner-type benchmarks (directionally consistent)
 
 struct CostCalculator {
 
     let userInput: UserInputData
 
+    // MARK: - Tarani-Approved Cost Constants (Davos 2026)
+
+    /// P2P: $25 per transaction → $1 with automation = $24 savings
+    /// 6-15 transactions per employee per year (use 15)
+    private static let p2pSavingsPerTransaction: Double = 24.0
+    private static let p2pTransactionsPerEmployee: Double = 15.0
+
+    /// O2C: $20 per transaction → $1.50 with automation = $18.50 savings
+    /// 7-15 transactions per employee per year (use 15)
+    private static let o2cSavingsPerTransaction: Double = 18.50
+    private static let o2cTransactionsPerEmployee: Double = 15.0
+
+    /// Customer Support: $15 per triage → $0.50 with automation = $14.50 savings
+    /// 6-10 transactions per employee served (use 10)
+    private static let supportSavingsPerTransaction: Double = 14.50
+    private static let supportTransactionsPerEmployee: Double = 10.0
+
+    /// ITSM/Helpdesk: $40 per ticket → $2 with automation = $38 savings
+    /// 10-15 tickets per employee supported (use 15)
+    private static let itsmSavingsPerTicket: Double = 38.0
+    private static let itsmTicketsPerEmployee: Double = 15.0
+
     // MARK: - Main Calculation
 
-    /// Calculate the invisible cost based on selected department and user inputs
+    /// Calculate the total process cost breakdown based on selected department and user inputs
+    /// Returns: Direct labor (60%), Overhead (25%), and truly invisible costs (15%)
     func calculateInvisibleCost() -> CostBreakdown {
         switch userInput.department {
         case .p2p:
@@ -25,245 +50,133 @@ struct CostCalculator {
     }
 
     // MARK: - P2P Calculation
-    /// Based on Ardent Partners 2024, APQC, Stampli benchmarks
+    /// Formula: $24 savings × employees × 15 transactions/employee
+    /// Example: 1,000 employees → $24 × 1,000 × 15 = $360,000
 
     private func calculateP2PCost() -> CostBreakdown {
-        let input = userInput.p2pData
-        let annualInvoices = input.invoicesPerMonth * 12
+        let employees = Double(userInput.employeeCount)
 
-        // Get cost per invoice for current automation level
-        let costRange = BenchmarkData.P2P.CostPerInvoice.cost(for: input.currentAutomationLevel)
-        let avgCostPerInvoice = (costRange.lowerBound + costRange.upperBound) / 2
+        // Tarani's simplified formula
+        let totalCost = Self.p2pSavingsPerTransaction * employees * Self.p2pTransactionsPerEmployee
 
-        // Calculate hours based on automation level
-        let hoursPerThousand = BenchmarkData.P2P.hoursPerThousandInvoices(for: input.currentAutomationLevel)
-        let annualHours = (Double(annualInvoices) / 1000.0) * hoursPerThousand
+        // Estimate transactions for display
+        let annualTransactions = Int(employees * Self.p2pTransactionsPerEmployee)
 
-        // Direct labor cost
-        let directCost = annualHours * userInput.averageHourlyRate
-
-        // Exception handling costs (exceptions cost ~2x to resolve)
-        let exceptionRate = BenchmarkData.P2P.ExceptionRate.rate(for: input.currentAutomationLevel)
-        let totalProcessingCost = Double(annualInvoices) * avgCostPerInvoice
-        let exceptionCost = totalProcessingCost * exceptionRate * 2.0
-
-        // Indirect/overhead cost
-        let indirectCost = directCost * (userInput.overheadMultiplier - 1.0)
-
-        // Invisible cost = opportunity cost + exception handling + rework
-        let invisibleCost = indirectCost + exceptionCost
-
-        // Total cost
-        let totalCost = directCost + indirectCost + invisibleCost
+        // Estimate hours (rough: 15 min per transaction)
+        let annualHours = Double(annualTransactions) * 0.25
 
         return CostBreakdown(
             annualHours: annualHours,
-            directCost: directCost,
-            indirectCost: indirectCost,
-            invisibleCost: invisibleCost,
+            directCost: totalCost * 0.6,      // 60% direct labor
+            indirectCost: totalCost * 0.25,   // 25% overhead
+            invisibleCost: totalCost * 0.15,  // 15% hidden costs
             totalCost: totalCost,
             department: .p2p,
-            benchmarkSource: BenchmarkData.P2P.source,
+            benchmarkSource: "Hackett, APQC, Gartner",
             keyMetrics: [
-                KeyMetric(label: "Invoices/Year", value: annualInvoices.formattedWithCommas),
-                KeyMetric(label: "Processing Hours", value: Int(annualHours).formattedWithCommas),
-                KeyMetric(label: "Cost per Invoice", value: avgCostPerInvoice.formattedAsCurrency),
-                KeyMetric(label: "Exception Rate", value: "\(Int(exceptionRate * 100))%")
+                KeyMetric(label: "Employees", value: userInput.employeeCount.formattedWithCommas),
+                KeyMetric(label: "Transactions/Year", value: annualTransactions.formattedWithCommas),
+                KeyMetric(label: "Cost/Transaction", value: "$25 → $1"),
+                KeyMetric(label: "Savings/Transaction", value: Self.p2pSavingsPerTransaction.formattedAsCurrency)
             ]
         )
     }
 
     // MARK: - O2C Calculation
-    /// Based on APQC, Hackett Group, Auxis benchmarks
+    /// Formula: $18.50 savings × employees × 15 transactions/employee
+    /// Example: 1,000 employees → $18.50 × 1,000 × 15 = $277,500
 
     private func calculateO2CCost() -> CostBreakdown {
-        let input = userInput.o2cData
-        let annualOrders = input.ordersPerMonth * 12
+        let employees = Double(userInput.employeeCount)
 
-        // Infer automation level from DSO
-        let automationLevel = input.inferredAutomationLevel
+        // Tarani's simplified formula
+        let totalCost = Self.o2cSavingsPerTransaction * employees * Self.o2cTransactionsPerEmployee
 
-        // Get cost per order
-        let costRange = BenchmarkData.O2C.costPerOrder(for: automationLevel)
-        let avgCostPerOrder = (costRange.lowerBound + costRange.upperBound) / 2
+        // Estimate transactions for display
+        let annualTransactions = Int(employees * Self.o2cTransactionsPerEmployee)
 
-        // Direct cost of order processing
-        let directCost = Double(annualOrders) * avgCostPerOrder
-
-        // Calculate cash flow impact from DSO
-        // Assume average order value of $500
-        let avgOrderValue = 500.0
-        let annualRevenue = Double(annualOrders) * avgOrderValue
-        let dailyRevenue = annualRevenue / 365.0
-        let cashTiedUp = dailyRevenue * Double(input.currentDSO)
-
-        // Working capital cost (assume 8% cost of capital)
-        let workingCapitalCost = cashTiedUp * 0.08
-
-        // Error-related costs
-        let errorRate = BenchmarkData.O2C.orderErrorRate(for: automationLevel)
-        let errorCostPerError = 50.0 // $50 per error to investigate and fix
-        let errorCost = Double(annualOrders) * errorRate * errorCostPerError
-
-        // Calculate hours (70% of FTE time on O2C tasks)
-        let annualHours = Double(input.fteCount) * 2080 * 0.7
-
-        // Indirect cost
-        let indirectCost = directCost * (userInput.overheadMultiplier - 1.0)
-
-        // Invisible cost
-        let invisibleCost = workingCapitalCost + errorCost + indirectCost
-
-        // Total cost
-        let totalCost = directCost + invisibleCost
+        // Estimate hours (rough: 20 min per transaction)
+        let annualHours = Double(annualTransactions) * 0.33
 
         return CostBreakdown(
             annualHours: annualHours,
-            directCost: directCost,
-            indirectCost: indirectCost,
-            invisibleCost: invisibleCost,
+            directCost: totalCost * 0.6,
+            indirectCost: totalCost * 0.25,
+            invisibleCost: totalCost * 0.15,
             totalCost: totalCost,
             department: .o2c,
-            benchmarkSource: BenchmarkData.O2C.source,
+            benchmarkSource: "Hackett, APQC, Gartner",
             keyMetrics: [
-                KeyMetric(label: "Orders/Year", value: annualOrders.formattedWithCommas),
-                KeyMetric(label: "Days Sales Outstanding", value: "\(input.currentDSO) days"),
-                KeyMetric(label: "Cash Tied Up", value: cashTiedUp.formattedAsCurrency),
-                KeyMetric(label: "Working Capital Cost", value: workingCapitalCost.formattedAsCurrency)
+                KeyMetric(label: "Employees", value: userInput.employeeCount.formattedWithCommas),
+                KeyMetric(label: "Transactions/Year", value: annualTransactions.formattedWithCommas),
+                KeyMetric(label: "Cost/Transaction", value: "$20 → $1.50"),
+                KeyMetric(label: "Savings/Transaction", value: Self.o2cSavingsPerTransaction.formattedAsCurrency)
             ]
         )
     }
 
     // MARK: - Customer Support Calculation
-    /// FORMULA: Customers Served x Avg Customer Org Size x Cost per Employee
-    /// Based on HDI, ServiceNow, Gartner benchmarks
+    /// Formula: $14.50 savings × customers × avg_org_size × 10 transactions/employee
+    /// Example: 100 customers × 500 employees × 10 = $14.50 × 500,000 = $7,250,000
 
     private func calculateSupportCost() -> CostBreakdown {
-        let input = userInput.customerSupportData
+        let totalEmployees = Double(userInput.totalCustomerEmployees)
 
-        // Core calculation per Neeti's formula
-        let totalEmployeesServed = userInput.totalCustomerEmployees
-        let costPerEmployee = input.costPerEmployeeServed
+        // Tarani's simplified formula
+        let totalCost = Self.supportSavingsPerTransaction * totalEmployees * Self.supportTransactionsPerEmployee
 
-        // Base invisible cost from serving customer employees
-        let baseCost = Double(totalEmployeesServed) * costPerEmployee
+        // Estimate transactions for display
+        let annualTransactions = Int(totalEmployees * Self.supportTransactionsPerEmployee)
 
-        // Get automation level and channel-based costs
-        let automationLevel = input.inferredAutomationLevel
-        let costRange = BenchmarkData.CustomerSupport.CostPerTicket.cost(for: input.currentChannel)
-        let avgCostPerTicket = (costRange.lowerBound + costRange.upperBound) / 2
-
-        // Estimate tickets based on employee base
-        let estimatedAnnualTickets = Double(totalEmployeesServed) * input.ticketsPerEmployeePerYear
-
-        // Calculate handle time and hours
-        let avgHandleTime = BenchmarkData.CustomerSupport.avgHandleTime(for: automationLevel)
-        let annualHours = (estimatedAnnualTickets * avgHandleTime) / 60.0
-
-        // Direct cost
-        let directCost = baseCost
-
-        // Indirect/overhead cost
-        let indirectCost = directCost * (userInput.overheadMultiplier - 1.0)
-
-        // FCR impact - repeat contacts cost 1.5x
-        let fcr = BenchmarkData.CustomerSupport.firstContactResolution(for: automationLevel)
-        let repeatContactCost = estimatedAnnualTickets * (1.0 - fcr) * avgCostPerTicket * 1.5
-
-        // Customer churn impact (conservative estimate)
-        let churnImpact = baseCost * 0.05 // 5% of base cost
-
-        // Invisible cost
-        let invisibleCost = indirectCost + repeatContactCost + churnImpact
-
-        // Total cost
-        let totalCost = directCost + invisibleCost
+        // Estimate hours (rough: 10 min per triage)
+        let annualHours = Double(annualTransactions) * 0.17
 
         return CostBreakdown(
             annualHours: annualHours,
-            directCost: directCost,
-            indirectCost: indirectCost,
-            invisibleCost: invisibleCost,
+            directCost: totalCost * 0.6,
+            indirectCost: totalCost * 0.25,
+            invisibleCost: totalCost * 0.15,
             totalCost: totalCost,
             department: .customerSupport,
-            benchmarkSource: BenchmarkData.CustomerSupport.source,
+            benchmarkSource: "HDI, ServiceNow, Gartner",
             keyMetrics: [
                 KeyMetric(label: "Customers Served", value: userInput.customersServed.formattedWithCommas),
                 KeyMetric(label: "Avg Customer Size", value: userInput.avgCustomerOrgSize.formattedWithCommas),
-                KeyMetric(label: "Total Employees", value: totalEmployeesServed.formattedWithCommas),
-                KeyMetric(label: "Cost/Employee", value: costPerEmployee.formattedAsCurrency)
+                KeyMetric(label: "Total Employees", value: userInput.totalCustomerEmployees.formattedWithCommas),
+                KeyMetric(label: "Savings/Triage", value: Self.supportSavingsPerTransaction.formattedAsCurrency)
             ]
         )
     }
 
     // MARK: - ITSM Calculation
-    /// FORMULA: Customers Served x Avg Customer Org Size x Cost per Employee
-    /// Based on MetricNet, ServiceNow, Forrester benchmarks
+    /// Formula: $38 savings × customers × avg_org_size × 15 tickets/employee
+    /// Example: 100 customers × 500 employees × 15 = $38 × 750,000 = $28,500,000
 
     private func calculateITSMCost() -> CostBreakdown {
-        let input = userInput.itsmData
+        let totalEmployees = Double(userInput.totalCustomerEmployees)
 
-        // Core calculation per Neeti's formula
-        let totalEmployeesSupported = userInput.totalCustomerEmployees
-        let costPerEmployee = input.costPerEmployeeSupported
+        // Tarani's simplified formula
+        let totalCost = Self.itsmSavingsPerTicket * totalEmployees * Self.itsmTicketsPerEmployee
 
-        // Base invisible cost from supporting customer employees
-        let baseCost = Double(totalEmployeesSupported) * costPerEmployee
+        // Estimate tickets for display
+        let annualTickets = Int(totalEmployees * Self.itsmTicketsPerEmployee)
 
-        // Estimate incidents based on employee base
-        let estimatedAnnualIncidents = Double(totalEmployeesSupported) * input.incidentsPerEmployeePerYear
-
-        // Estimate password resets (roughly 10% of employee base per year)
-        let estimatedPasswordResets = Double(totalEmployeesSupported) * 0.10
-
-        // Get automation level
-        let automationLevel = input.inferredAutomationLevel(totalEmployees: totalEmployeesSupported)
-
-        // Resolution time and password reset costs
-        let mttr = BenchmarkData.ITSM.meanTimeToResolve(for: automationLevel)
-        let passwordResetCostPer = BenchmarkData.ITSM.passwordResetCost(for: automationLevel)
-
-        // Password reset total cost (major hidden cost)
-        let passwordTotalCost = estimatedPasswordResets * passwordResetCostPer
-
-        // Calculate hours for incident resolution
-        let annualHours = estimatedAnnualIncidents * mttr
-
-        // Downtime/productivity loss
-        // Average 5 users affected per incident, lose half their hourly rate
-        let avgUsersAffected = 5.0
-        let productivityLoss = estimatedAnnualIncidents * mttr * avgUsersAffected * (userInput.averageHourlyRate / 2)
-
-        // Escalation costs (20% of incidents escalate to Tier-3)
-        let escalationRate = 0.20
-        let tier3Premium = BenchmarkData.ITSM.CostPerTicket.tier3Escalated - BenchmarkData.ITSM.CostPerTicket.tier1
-        let escalationCost = estimatedAnnualIncidents * escalationRate * tier3Premium
-
-        // Direct cost
-        let directCost = baseCost + passwordTotalCost
-
-        // Indirect cost
-        let indirectCost = directCost * (userInput.overheadMultiplier - 1.0)
-
-        // Invisible cost
-        let invisibleCost = productivityLoss + escalationCost + indirectCost
-
-        // Total cost
-        let totalCost = directCost + invisibleCost
+        // Estimate hours (rough: 30 min per ticket)
+        let annualHours = Double(annualTickets) * 0.5
 
         return CostBreakdown(
             annualHours: annualHours,
-            directCost: directCost,
-            indirectCost: indirectCost,
-            invisibleCost: invisibleCost,
+            directCost: totalCost * 0.6,
+            indirectCost: totalCost * 0.25,
+            invisibleCost: totalCost * 0.15,
             totalCost: totalCost,
             department: .itsm,
-            benchmarkSource: BenchmarkData.ITSM.source,
+            benchmarkSource: "MetricNet, ServiceNow",
             keyMetrics: [
                 KeyMetric(label: "Customers Served", value: userInput.customersServed.formattedWithCommas),
                 KeyMetric(label: "Avg Customer Size", value: userInput.avgCustomerOrgSize.formattedWithCommas),
-                KeyMetric(label: "Total Supported", value: totalEmployeesSupported.formattedWithCommas),
-                KeyMetric(label: "Password Reset Cost", value: passwordTotalCost.formattedAsCurrency)
+                KeyMetric(label: "Total Supported", value: userInput.totalCustomerEmployees.formattedWithCommas),
+                KeyMetric(label: "Savings/Ticket", value: Self.itsmSavingsPerTicket.formattedAsCurrency)
             ]
         )
     }

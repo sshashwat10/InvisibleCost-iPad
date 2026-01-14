@@ -174,7 +174,7 @@ struct CostBreakdownView: View {
                 .tracking(8)
                 .foregroundColor(theme.accent)
 
-            Text("Where your invisible cost hides")
+            Text("Where your costs are hiding")
                 .font(.system(size: 32, design: .rounded).weight(.ultraLight))
                 .foregroundColor(.white)
         }
@@ -238,7 +238,7 @@ struct CostBreakdownView: View {
 
     private func totalCostHero(time: Double) -> some View {
         VStack(spacing: 4) {
-            Text("TOTAL INVISIBLE COST")
+            Text("TOTAL PROCESS COST")
                 .font(.system(size: 9, design: .rounded).weight(.medium))
                 .tracking(3)
                 .foregroundColor(.white.opacity(0.4))

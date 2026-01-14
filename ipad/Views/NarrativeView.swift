@@ -195,7 +195,11 @@ struct NarrativeView: View {
                 AAValuePropositionView(
                     savingsProjection: viewModel.savingsProjection,
                     department: department,
-                    onContinue: {
+                    onContinue: { [weak viewModel] in
+                        // Guard: Only advance if we're still in AA Value Proposition phase
+                        // This prevents stale callbacks from advancing wrong phases
+                        guard let viewModel = viewModel,
+                              viewModel.currentPhase == .aaValueProposition else { return }
                         viewModel.advanceToNextPhase()
                     }
                 )
@@ -369,16 +373,10 @@ struct NarrativeView: View {
             }
 
         case .aaValueProposition:
-            // AA Value Proposition - Sourced ROI/savings data
-            if let department = viewModel.selectedDepartment {
-                let key = "aa_value_\(department.rawValue)"
-                triggerOnce(key) {
-                    audioManager.playNarration(for: key) { [self] in
-                        narrationFinished = true
-                        viewModel.onNarrationComplete()
-                    }
-                }
-            }
+            // Audio is handled by AAValuePropositionView itself to sync with animations
+            // The view plays narration and auto-advances after 1.5s delay
+            // No duplicate trigger needed here
+            break
 
         case .humanReturn:
             // Sequential narrations for human return phase
@@ -942,8 +940,8 @@ struct FinalCTAEnhancedView: View {
                     .opacity(questionPhase)
                     .padding(.vertical, 8)
 
-                // Personalized closing question with company name
-                Text("Where will \(companyName) lead?")
+                // Closing question
+                Text("Where will you lead?")
                     .font(.system(size: 18, design: .rounded).weight(.light))
                     .foregroundColor(pureWhite.opacity(0.6))
                     .opacity(questionPhase)
@@ -1024,7 +1022,7 @@ struct FinalCTAEnhancedView: View {
 }
 
 // MARK: - Personalization Input View (NEW for Davos 2026)
-/// User inputs team size, hours lost, and hourly rate to see THEIR invisible cost
+/// User inputs team size, hours lost, and hourly rate to see THEIR process cost
 
 struct PersonalizationInputView: View {
     @Binding var companyName: String
@@ -1132,7 +1130,7 @@ struct PersonalizationInputView: View {
 
     private var titleSection: some View {
         VStack(spacing: 12) {
-            Text("YOUR INVISIBLE COST")
+            Text("YOUR PROCESS COST")
                 .font(.system(size: 14, design: .rounded).weight(.medium))
                 .tracking(8)
                 .foregroundColor(accentBlue)

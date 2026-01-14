@@ -176,61 +176,32 @@ struct P2PInputForm: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Company name
+            // Revenue bucket (for context only)
             InputFieldCompact(
-                label: "COMPANY NAME (OPTIONAL)",
+                label: "ANNUAL REVENUE",
                 theme: theme,
                 isEnabled: narrationFinished
             ) {
-                TextField("", text: $viewModel.userInput.companyName, prompt: Text("Your Company").foregroundColor(.white.opacity(0.3)))
-                    .font(.system(size: 15, design: .rounded).weight(.light))
-                    .foregroundColor(.white)
-                    .disabled(!narrationFinished)
+                RevenueBucketPicker(
+                    selection: $viewModel.userInput.revenueBucket,
+                    theme: theme,
+                    isEnabled: narrationFinished
+                )
             }
 
-            // Invoices per month
+            // Number of employees (used in calculation)
             InputFieldCompact(
-                label: "INVOICES PER MONTH",
+                label: "NUMBER OF EMPLOYEES",
                 theme: theme,
                 isEnabled: narrationFinished
             ) {
                 PresetSelectorCompact(
-                    value: $viewModel.userInput.p2pData.invoicesPerMonth,
-                    presets: P2PInput.invoicePresets,
+                    value: $viewModel.userInput.employeeCount,
+                    presets: InputPresets.employeeCount,
                     formatter: { "\($0.formattedWithCommas)" },
                     theme: theme,
                     isEnabled: narrationFinished
                 )
-            }
-
-            // AP Team Size
-            InputFieldCompact(
-                label: "AP TEAM SIZE (FTEs)",
-                theme: theme,
-                isEnabled: narrationFinished
-            ) {
-                PresetSelectorCompact(
-                    value: $viewModel.userInput.p2pData.fteCount,
-                    presets: P2PInput.ftePresets,
-                    formatter: { "\($0)" },
-                    theme: theme,
-                    isEnabled: narrationFinished
-                )
-            }
-
-            // Automation level
-            InputFieldCompact(
-                label: "CURRENT AUTOMATION",
-                theme: theme,
-                isEnabled: narrationFinished
-            ) {
-                Picker("", selection: $viewModel.userInput.p2pData.currentAutomationLevel) {
-                    ForEach(AutomationLevel.allCases, id: \.self) { level in
-                        Text(level.displayName).tag(level)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .disabled(!narrationFinished)
             }
 
             // Live cost preview
@@ -254,7 +225,7 @@ struct P2PInputForm: View {
                 .frame(height: 1)
                 .padding(.bottom, 4)
 
-            Text("ESTIMATED INVISIBLE COST")
+            Text("ESTIMATED PROCESS COST")
                 .font(.system(size: 9, design: .rounded).weight(.medium))
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
@@ -316,47 +287,24 @@ struct O2CInputForm: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            InputFieldCompact(label: "COMPANY NAME (OPTIONAL)", theme: theme, isEnabled: narrationFinished) {
-                TextField("", text: $viewModel.userInput.companyName, prompt: Text("Your Company").foregroundColor(.white.opacity(0.3)))
-                    .font(.system(size: 15, design: .rounded).weight(.light))
-                    .foregroundColor(.white)
-                    .disabled(!narrationFinished)
+            // Revenue bucket (for context only)
+            InputFieldCompact(label: "ANNUAL REVENUE", theme: theme, isEnabled: narrationFinished) {
+                RevenueBucketPicker(
+                    selection: $viewModel.userInput.revenueBucket,
+                    theme: theme,
+                    isEnabled: narrationFinished
+                )
             }
 
-            InputFieldCompact(label: "ORDERS PER MONTH", theme: theme, isEnabled: narrationFinished) {
+            // Number of employees (used in calculation)
+            InputFieldCompact(label: "NUMBER OF EMPLOYEES", theme: theme, isEnabled: narrationFinished) {
                 PresetSelectorCompact(
-                    value: $viewModel.userInput.o2cData.ordersPerMonth,
-                    presets: O2CInput.orderPresets,
+                    value: $viewModel.userInput.employeeCount,
+                    presets: InputPresets.employeeCount,
                     formatter: { "\($0.formattedWithCommas)" },
                     theme: theme,
                     isEnabled: narrationFinished
                 )
-            }
-
-            InputFieldCompact(label: "CURRENT DSO (DAYS)", theme: theme, isEnabled: narrationFinished) {
-                PresetSelectorCompact(
-                    value: $viewModel.userInput.o2cData.currentDSO,
-                    presets: O2CInput.dsoPresets,
-                    formatter: { "\($0)" },
-                    theme: theme,
-                    isEnabled: narrationFinished
-                )
-            }
-
-            InputFieldCompact(label: "AR TEAM SIZE (FTEs)", theme: theme, isEnabled: narrationFinished) {
-                HStack {
-                    Slider(value: Binding(
-                        get: { Double(viewModel.userInput.o2cData.fteCount) },
-                        set: { viewModel.userInput.o2cData.fteCount = Int($0) }
-                    ), in: 1...100, step: 1)
-                    .tint(theme.accent)
-                    .disabled(!narrationFinished)
-
-                    Text("\(viewModel.userInput.o2cData.fteCount)")
-                        .font(.system(size: 15, design: .rounded).weight(.medium))
-                        .foregroundColor(theme.accent)
-                        .frame(width: 35)
-                }
             }
 
             costPreviewCompact(time: time)
@@ -373,7 +321,7 @@ struct O2CInputForm: View {
                 .frame(height: 1)
                 .padding(.bottom, 4)
 
-            Text("ESTIMATED INVISIBLE COST")
+            Text("ESTIMATED PROCESS COST")
                 .font(.system(size: 9, design: .rounded).weight(.medium))
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
@@ -413,11 +361,13 @@ struct CustomerSupportInputForm: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            InputFieldCompact(label: "COMPANY NAME (OPTIONAL)", theme: theme, isEnabled: narrationFinished) {
-                TextField("", text: $viewModel.userInput.companyName, prompt: Text("Your Company").foregroundColor(.white.opacity(0.3)))
-                    .font(.system(size: 15, design: .rounded).weight(.light))
-                    .foregroundColor(.white)
-                    .disabled(!narrationFinished)
+            // Revenue bucket (for context only)
+            InputFieldCompact(label: "ANNUAL REVENUE", theme: theme, isEnabled: narrationFinished) {
+                RevenueBucketPicker(
+                    selection: $viewModel.userInput.revenueBucket,
+                    theme: theme,
+                    isEnabled: narrationFinished
+                )
             }
 
             InputFieldCompact(label: "CUSTOMERS SERVED", theme: theme, isEnabled: narrationFinished) {
@@ -439,44 +389,6 @@ struct CustomerSupportInputForm: View {
                     isEnabled: narrationFinished
                 )
             }
-
-            // Support channel picker - custom buttons for reliable tap handling
-            VStack(alignment: .leading, spacing: 4) {
-                Text("PRIMARY SUPPORT CHANNEL")
-                    .font(.system(size: 9, design: .rounded).weight(.medium))
-                    .tracking(2)
-                    .foregroundColor(.white.opacity(narrationFinished ? 0.4 : 0.2))
-
-                HStack(spacing: 0) {
-                    ForEach(SupportChannel.allCases, id: \.self) { channel in
-                        Button(action: {
-                            if narrationFinished {
-                                viewModel.userInput.customerSupportData.currentChannel = channel
-                            }
-                        }) {
-                            Text(channel.displayName)
-                                .font(.system(size: 11, design: .rounded).weight(.medium))
-                                .foregroundColor(viewModel.userInput.customerSupportData.currentChannel == channel ? .black : .white.opacity(0.7))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(
-                                    viewModel.userInput.customerSupportData.currentChannel == channel
-                                        ? Color.white.opacity(0.9)
-                                        : Color.white.opacity(0.1)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(!narrationFinished)
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
-            }
-            .opacity(narrationFinished ? 1.0 : 0.5)
-            .animation(.easeOut(duration: 0.3), value: narrationFinished)
 
             formulaDisplayCompact
             costPreviewCompact(time: time)
@@ -525,7 +437,7 @@ struct CustomerSupportInputForm: View {
             Rectangle()
                 .fill(LinearGradient(colors: [.clear, theme.primary.opacity(0.3), .clear], startPoint: .leading, endPoint: .trailing))
                 .frame(height: 1)
-            Text("ESTIMATED INVISIBLE COST")
+            Text("ESTIMATED PROCESS COST")
                 .font(.system(size: 9, design: .rounded).weight(.medium))
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
@@ -563,11 +475,13 @@ struct ITSMInputForm: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            InputFieldCompact(label: "COMPANY NAME (OPTIONAL)", theme: theme, isEnabled: narrationFinished) {
-                TextField("", text: $viewModel.userInput.companyName, prompt: Text("Your Company").foregroundColor(.white.opacity(0.3)))
-                    .font(.system(size: 15, design: .rounded).weight(.light))
-                    .foregroundColor(.white)
-                    .disabled(!narrationFinished)
+            // Revenue bucket (for context only)
+            InputFieldCompact(label: "ANNUAL REVENUE", theme: theme, isEnabled: narrationFinished) {
+                RevenueBucketPicker(
+                    selection: $viewModel.userInput.revenueBucket,
+                    theme: theme,
+                    isEnabled: narrationFinished
+                )
             }
 
             InputFieldCompact(label: "CUSTOMERS SERVED", theme: theme, isEnabled: narrationFinished) {
@@ -585,16 +499,6 @@ struct ITSMInputForm: View {
                     value: $viewModel.userInput.avgCustomerOrgSize,
                     presets: InputPresets.avgCustomerOrgSize,
                     formatter: { "\($0.formattedWithCommas)" },
-                    theme: theme,
-                    isEnabled: narrationFinished
-                )
-            }
-
-            InputFieldCompact(label: "IT SUPPORT STAFF", theme: theme, isEnabled: narrationFinished) {
-                PresetSelectorCompact(
-                    value: $viewModel.userInput.itsmData.itStaffCount,
-                    presets: ITSMInput.staffPresets,
-                    formatter: { "\($0)" },
                     theme: theme,
                     isEnabled: narrationFinished
                 )
@@ -647,7 +551,7 @@ struct ITSMInputForm: View {
             Rectangle()
                 .fill(LinearGradient(colors: [.clear, theme.primary.opacity(0.3), .clear], startPoint: .leading, endPoint: .trailing))
                 .frame(height: 1)
-            Text("ESTIMATED INVISIBLE COST")
+            Text("ESTIMATED PROCESS COST")
                 .font(.system(size: 9, design: .rounded).weight(.medium))
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
@@ -803,6 +707,43 @@ struct PresetSelectorCompact<T: Hashable>: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(value == preset ? theme.accent : Color.white.opacity(0.15), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+                .disabled(!isEnabled)
+            }
+        }
+    }
+}
+
+// MARK: - Revenue Bucket Picker
+
+struct RevenueBucketPicker: View {
+    @Binding var selection: RevenueBucket
+    let theme: DepartmentTheme
+    let isEnabled: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(RevenueBucket.allCases) { bucket in
+                Button(action: {
+                    guard isEnabled else { return }
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                    selection = bucket
+                }) {
+                    Text(bucket.shortName)
+                        .font(.system(size: 11, design: .rounded).weight(selection == bucket ? .medium : .light))
+                        .foregroundColor(selection == bucket ? .black : .white.opacity(0.7))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(selection == bucket ? theme.accent : Color.white.opacity(0.05))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(selection == bucket ? theme.accent : Color.white.opacity(0.15), lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)

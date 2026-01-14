@@ -85,8 +85,10 @@ struct AAValuePropositionView: View {
         let audioDuration = audioManager.getNarrationDuration(for: audioKey)
 
         // Play narration with completion callback to auto-progress
-        audioManager.playNarration(for: audioKey) { [self] in
+        audioManager.playNarration(for: audioKey) {
             // Auto-progress to next phase after narration completes
+            // The 1.5s delay gives time for the animation to complete
+            // Note: onContinue has a guard in NarrativeView to prevent stale callback issues
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 onContinue()
             }

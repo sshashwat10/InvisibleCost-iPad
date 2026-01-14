@@ -53,17 +53,17 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     /// UPDATED for Department-based system (P2P, O2C, Customer Support, ITSM)
     /// Note: Clinical narrations have more substance, so durations are longer
     static let estimatedDurations: [String: TimeInterval] = [
-        // Emotional Intro - Clinical with presence
-        "opening_1": 6.5,        // "Every organization carries a hidden cost. One that doesn't appear on any balance sheet."
+        // Emotional Intro - Per Neeti's edit
+        "opening_1": 9.0,        // "Every organization carries a hidden cost. Repetitive work. Manual processes. Lost time. And it's costing more than most leaders realize."
         "opening_2": 3.5,        // "Most leaders never quantify it. Until now."
 
-        // Department Selection - Direct instruction
-        "choose_department": 5.5,  // "Select your process. We'll calculate the true operational cost."
-        "choose_industry": 5.5,    // Legacy fallback
+        // Department Selection - Per Neeti's edit
+        "choose_department": 4.5,  // "Choose a department and we will illustrate with an example."
+        "choose_industry": 4.5,    // Legacy fallback
 
-        // Department Input - Clinical prompt
-        "department_input": 7.0,   // "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost."
-        "personal_input": 7.0,     // Legacy fallback
+        // Department Input - Per Neeti's edit
+        "department_input": 7.5,   // "Input your parameters to use industry benchmarks and calculate potential hidden costs."
+        "personal_input": 7.5,     // Legacy fallback
 
         // Building Tension (per department) - Clinical and factual
         "building_p2p": 14.0,           // "Invoice processing. Every invoice requires matching... verification... approval..."
@@ -134,8 +134,8 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         "breathe": 3.5,               // "This is what operational efficiency looks like."
         "purpose": 9.0,               // "Strategy instead of spreadsheets. Innovation instead of administration..."
 
-        // Final CTA - Clinical close
-        "final_cta_enhanced": 8.0,    // "The invisible cost ends here. The question is: what will you do with the capacity you recover?"
+        // Final CTA - Per Neeti's edit
+        "final_cta_enhanced": 7.5,    // "Say no to invisible costs. The question is: what will you do with the capacity you recover?"
         "ready_change": 3.0           // "Ready to recover this capacity?"
     ]
 
@@ -283,17 +283,17 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     /// UPDATED for Department-based system (P2P, O2C, Customer Support, ITSM)
     /// KEY PRINCIPLE: Narrations are GENERAL - no specific numbers in audio, numbers shown VISUALLY
     private let narratorLines: [String: String] = [
-        // Emotional Intro - Clinical with presence
-        "opening_1": "Every organization carries a hidden cost. One that doesn't appear on any balance sheet.",
+        // Emotional Intro - Per Neeti's edit
+        "opening_1": "Every organization carries a hidden cost. Repetitive work. Manual processes. Lost time. And it's costing more than most leaders realize.",
         "opening_2": "Most leaders never quantify it. Until now.",
 
-        // Department Selection - Direct instruction
-        "choose_department": "Select your process. We'll calculate the true operational cost.",
-        "choose_industry": "Select your process. We'll calculate the true operational cost.",
+        // Department Selection - Per Neeti's edit
+        "choose_department": "Choose a department and we will illustrate with an example.",
+        "choose_industry": "Choose a department and we will illustrate with an example.",
 
-        // Department Input - Clinical prompt
-        "department_input": "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost.",
-        "personal_input": "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost.",
+        // Department Input - Per Neeti's edit
+        "department_input": "Input your parameters to use industry benchmarks and calculate potential hidden costs.",
+        "personal_input": "Input your parameters to use industry benchmarks and calculate potential hidden costs.",
 
         // Building Tension - Department Specific - Clinical and factual
         "building_p2p": "Invoice processing. Every invoice requires matching... verification... approval. Your team executes this workflow thousands of times annually. Industry data reveals the true cost.",
@@ -376,8 +376,8 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         "breathe": "This is what operational efficiency looks like.",
         "purpose": "Strategy instead of spreadsheets. Innovation instead of administration. Leading instead of processing.",
 
-        // Final CTA - Clinical close
-        "final_cta_enhanced": "The invisible cost ends here. The question is: what will you do with the capacity you recover?",
+        // Final CTA - Per Neeti's edit
+        "final_cta_enhanced": "Say no to invisible costs. The question is: what will you do with the capacity you recover?",
         "ready_change": "Ready to recover this capacity?"
     ]
 
@@ -476,17 +476,21 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         narrationCompletionTimer?.invalidate()
         narrationCompletionTimer = nil
 
-        isNarrationPlaying = false
         let key = currentNarrationKey ?? "unknown"
         currentNarrationKey = nil
 
         print("[Audio] Narration completed: \(key)")
 
-        // Call completion handler on main thread
-        DispatchQueue.main.async { [weak self] in
-            self?.narrationCompletionHandler?()
-            self?.narrationCompletionHandler = nil
-        }
+        // IMPORTANT: Call completion handler SYNCHRONOUSLY before setting isNarrationPlaying to false
+        // This prevents a race condition where update() sees narration stopped but narrationComplete
+        // is still false (because the async handler hadn't run yet)
+        let handler = narrationCompletionHandler
+        narrationCompletionHandler = nil
+        handler?()
+
+        // Set isNarrationPlaying to false AFTER the completion handler runs
+        // This ensures viewModel.narrationComplete is set before update() can check the state
+        isNarrationPlaying = false
     }
 
     private func speakNarration(_ text: String) {

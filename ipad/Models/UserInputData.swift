@@ -1,8 +1,41 @@
 import Foundation
 
+// MARK: - Revenue Bucket (for context/segmentation only)
+/// Revenue buckets for customer segmentation - NOT used in calculations
+enum RevenueBucket: String, CaseIterable, Identifiable {
+    case under100M = "under_100m"
+    case from100Mto500M = "100m_to_500m"
+    case from500Mto1B = "500m_to_1b"
+    case from1Bto5B = "1b_to_5b"
+    case over5B = "over_5b"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .under100M: return "<$100M"
+        case .from100Mto500M: return "$100M-$500M"
+        case .from500Mto1B: return "$500M-$1B"
+        case .from1Bto5B: return "$1B-$5B"
+        case .over5B: return "$5B+"
+        }
+    }
+
+    var shortName: String {
+        switch self {
+        case .under100M: return "<$100M"
+        case .from100Mto500M: return "$100-500M"
+        case .from500Mto1B: return "$500M-1B"
+        case .from1Bto5B: return "$1-5B"
+        case .over5B: return "$5B+"
+        }
+    }
+}
+
 // MARK: - User Input Data Model
 /// User input data for cost calculation
 /// Implements Neeti's feedback: customersServed x avgCustomerOrgSize for IT/Support calculations
+/// UPDATED for Davos 2026: Removed company name, added revenue bucket
 
 struct UserInputData {
 
@@ -10,8 +43,8 @@ struct UserInputData {
     // CORE INPUTS (Required for ALL departments)
     // =========================================================================
 
-    /// Company name (optional, for personalization)
-    var companyName: String = ""
+    /// Revenue bucket (for context/segmentation only, NOT used in calculations)
+    var revenueBucket: RevenueBucket = .from100Mto500M
 
     /// Number of employees in user's organization
     var employeeCount: Int = 1_000
@@ -52,26 +85,6 @@ struct UserInputData {
     /// Formula: customersServed x avgCustomerOrgSize
     var totalCustomerEmployees: Int {
         return customersServed * avgCustomerOrgSize
-    }
-
-    /// Display name for company - returns entered name or fallback
-    var displayCompanyName: String {
-        let trimmed = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Your Organization" : trimmed
-    }
-
-    /// Short version for tight spaces - truncates if too long
-    var shortCompanyName: String {
-        let name = displayCompanyName
-        if name.count > 20 {
-            return String(name.prefix(17)) + "..."
-        }
-        return name
-    }
-
-    /// Whether user entered a custom company name
-    var hasCustomCompanyName: Bool {
-        !companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 

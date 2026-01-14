@@ -137,17 +137,18 @@ class ExperienceViewModel {
         return DepartmentContent.comparisonCards(for: department, costBreakdown: costBreakdownResult)
     }
 
-    // MARK: - Display Company Name
+    // MARK: - Display Name (Generic since company name was removed)
+    /// Returns "YOUR ORGANIZATION" for display - company name input was removed per Neeti feedback
     var displayCompanyName: String {
-        userInput.displayCompanyName
+        "Your Organization"
     }
 
     var shortCompanyName: String {
-        userInput.shortCompanyName
+        "Your Org"
     }
 
     var hasCustomCompanyName: Bool {
-        userInput.hasCustomCompanyName
+        false  // Always false since we no longer collect company name
     }
 
     // MARK: - Legacy Compatibility Properties
@@ -156,12 +157,6 @@ class ExperienceViewModel {
     var selectedIndustry: Department? {
         get { selectedDepartment }
         set { selectedDepartment = newValue }
-    }
-
-    /// Legacy: companyName
-    var companyName: String {
-        get { userInput.companyName }
-        set { userInput.companyName = newValue }
     }
 
     /// Legacy: teamSize - maps to appropriate department input
@@ -275,22 +270,31 @@ class ExperienceViewModel {
         let completedPhase = currentPhase
         print("[Experience] Narration completed for phase: \(completedPhase.displayName)")
 
+        // NEVER auto-advance from user-controlled phases - they require explicit user action
+        guard !completedPhase.isUserControlled else {
+            print("[Experience] Phase \(completedPhase.displayName) is user-controlled, not auto-advancing")
+            return
+        }
+
         // If we were waiting for narration to advance, do it now (snappy transition)
-        if waitingForNarration && !currentPhase.isUserControlled {
+        if waitingForNarration {
             waitingForNarration = false
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                self?.advanceToNextPhase()
+                guard let self = self else { return }
+                // Double-check we're still on the same phase and it's not user-controlled
+                guard self.currentPhase == completedPhase, !self.currentPhase.isUserControlled else { return }
+                self.advanceToNextPhase()
             }
             return
         }
 
         // For certain timed phases, advance shortly after narration completes
-        if shouldAdvanceOnNarrationComplete(completedPhase) && !completedPhase.isUserControlled && phaseProgress >= 0.25 {
+        if shouldAdvanceOnNarrationComplete(completedPhase) && phaseProgress >= 0.25 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
                 guard let self = self else { return }
-                if self.currentPhase == completedPhase {
-                    self.advanceToNextPhase()
-                }
+                // Double-check we're still on the same phase and it's not user-controlled
+                guard self.currentPhase == completedPhase, !self.currentPhase.isUserControlled else { return }
+                self.advanceToNextPhase()
             }
         }
     }
@@ -298,7 +302,7 @@ class ExperienceViewModel {
     /// Phases that should advance shortly after narration completes
     private func shouldAdvanceOnNarrationComplete(_ phase: Tier1Phase) -> Bool {
         switch phase {
-        case .departmentVignette, .buildingTension, .automationAnywhereReveal:
+        case .departmentVignette, .buildingTension, .automationAnywhereReveal, .humanReturn:
             return true
         default:
             return false

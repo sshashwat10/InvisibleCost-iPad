@@ -2590,14 +2590,14 @@ struct SuckerPunchRevealView: View {
         }
     }
 
-    // MARK: - Company Label (Personalized)
+    // MARK: - Industry Label (Generic header)
 
     private var industryLabel: some View {
         let theme = industry.theme
 
         return VStack(spacing: 8) {
-            // Company name prominently displayed - this is THEIR number
-            Text(companyName.uppercased() + "'S")
+            // Department label - personalized to selected process
+            Text("YOUR")
                 .font(.system(size: 14, design: .rounded).weight(.semibold))
                 .tracking(4)
                 .foregroundStyle(
@@ -2609,7 +2609,7 @@ struct SuckerPunchRevealView: View {
                 )
                 .shadow(color: theme.accent.opacity(0.5), radius: 8)
 
-            Text("INVISIBLE COST")
+            Text("TOTAL PROCESS COST")
                 .font(.system(size: 16, design: .rounded).weight(.light))
                 .tracking(4)
                 .foregroundColor(.white.opacity(0.6))

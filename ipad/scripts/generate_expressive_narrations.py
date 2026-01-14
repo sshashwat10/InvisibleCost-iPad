@@ -57,31 +57,32 @@ OUTPUT_DIR = Path("/Users/shashwatshlok/Projects/InvisibleCost-VisionPro/ipad/Re
 
 NARRATIONS = {
     # =========================================================================
-    # EMOTIONAL INTRO - Clinical with presence
+    # EMOTIONAL INTRO - Per Neeti's edit (Jan 2026)
     # =========================================================================
     "opening_1":
-        "Every organization carries a hidden cost. One that doesn't appear on any balance sheet.",
+        "Every organization carries a hidden cost. Repetitive work. Manual processes. Lost time. "
+        "And it's costing more than most leaders realize.",
 
     "opening_2":
         "Most leaders never quantify it. Until now.",
 
     # =========================================================================
-    # DEPARTMENT SELECTION - Direct instruction
+    # DEPARTMENT SELECTION - Per Neeti's edit
     # =========================================================================
     "choose_department":
-        "Select your process. We'll calculate the true operational cost.",
+        "Choose a department and we will illustrate with an example.",
 
     "choose_industry":
-        "Select your process. We'll calculate the true operational cost.",
+        "Choose a department and we will illustrate with an example.",
 
     # =========================================================================
-    # DEPARTMENT INPUT - Clinical prompt
+    # DEPARTMENT INPUT - Per Neeti's edit
     # =========================================================================
     "department_input":
-        "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost.",
+        "Input your parameters to use industry benchmarks and calculate potential hidden costs.",
 
     "personal_input":
-        "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost.",
+        "Input your parameters to use industry benchmarks and calculate potential hidden costs.",
 
     # =========================================================================
     # BUILDING TENSION - Department Specific - Clinical and factual
@@ -294,10 +295,10 @@ NARRATIONS = {
         "Strategy instead of spreadsheets. Innovation instead of administration. Leading instead of processing.",
 
     # =========================================================================
-    # FINAL CTA - Clinical close
+    # FINAL CTA - Per Neeti's edit
     # =========================================================================
     "final_cta_enhanced":
-        "The invisible cost ends here. The question is: what will you do with the capacity you recover?",
+        "Say no to invisible costs. The question is: what will you do with the capacity you recover?",
 }
 
 
