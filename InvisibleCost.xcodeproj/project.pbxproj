@@ -81,6 +81,44 @@
 		7251412B8A6C83F1E1C66DB3 /* narration_vignette_health_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */; };
 		841837911EE0023A61391A90 /* narration_vignette_supply_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */; };
 		PERSONAL01INPUT001AUDIOMP3 /* narration_personal_input.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = PERSONAL01INPUT002FILEREF /* narration_personal_input.mp3 */; };
+		AAREVFORRESTERBUILD01 /* narration_aa_reveal_forrester.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AAREVFORRESTERFILE01 /* narration_aa_reveal_forrester.mp3 */; };
+		AAVALUECSBUILD000001 /* narration_aa_value_customer_support.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AAVALUECSFILER00001 /* narration_aa_value_customer_support.mp3 */; };
+		AAVALUEITSMBULD0001 /* narration_aa_value_itsm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AAVALUEITSMFILE0001 /* narration_aa_value_itsm.mp3 */; };
+		AAVALUEO2CBUILD0001 /* narration_aa_value_o2c.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AAVALUEO2CFILE00001 /* narration_aa_value_o2c.mp3 */; };
+		AAVALUEP2PBUILD0001 /* narration_aa_value_p2p.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = AAVALUEP2PFILE00001 /* narration_aa_value_p2p.mp3 */; };
+		BUILDINGCSBUILD00001 /* narration_building_customer_support.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BUILDINGCSFILE000001 /* narration_building_customer_support.mp3 */; };
+		BUILDITSMBULD000001 /* narration_building_itsm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BUILDITSMFILE0000001 /* narration_building_itsm.mp3 */; };
+		BUILDINGO2CBLD00001 /* narration_building_o2c.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BUILDINGO2CFILE00001 /* narration_building_o2c.mp3 */; };
+		BUILDINGP2PBLD00001 /* narration_building_p2p.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BUILDINGP2PFILE00001 /* narration_building_p2p.mp3 */; };
+		CHOOSEDEPTBUILD0001 /* narration_choose_department.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = CHOOSEDEPTFILE000001 /* narration_choose_department.mp3 */; };
+		COMPCS1BUILD00000001 /* narration_comparison_customer_support_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPCS1FILE000000001 /* narration_comparison_customer_support_1.mp3 */; };
+		COMPCS2BUILD00000001 /* narration_comparison_customer_support_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPCS2FILE000000001 /* narration_comparison_customer_support_2.mp3 */; };
+		COMPCS3BUILD00000001 /* narration_comparison_customer_support_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPCS3FILE000000001 /* narration_comparison_customer_support_3.mp3 */; };
+		COMPITSM1BUILD000001 /* narration_comparison_itsm_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPITSM1FILE0000001 /* narration_comparison_itsm_1.mp3 */; };
+		COMPITSM2BUILD000001 /* narration_comparison_itsm_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPITSM2FILE0000001 /* narration_comparison_itsm_2.mp3 */; };
+		COMPITSM3BUILD000001 /* narration_comparison_itsm_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPITSM3FILE0000001 /* narration_comparison_itsm_3.mp3 */; };
+		COMPO2C1BUILD0000001 /* narration_comparison_o2c_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPO2C1FILE00000001 /* narration_comparison_o2c_1.mp3 */; };
+		COMPO2C2BUILD0000001 /* narration_comparison_o2c_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPO2C2FILE00000001 /* narration_comparison_o2c_2.mp3 */; };
+		COMPO2C3BUILD0000001 /* narration_comparison_o2c_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPO2C3FILE00000001 /* narration_comparison_o2c_3.mp3 */; };
+		COMPP2P1BUILD0000001 /* narration_comparison_p2p_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPP2P1FILE00000001 /* narration_comparison_p2p_1.mp3 */; };
+		COMPP2P2BUILD0000001 /* narration_comparison_p2p_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPP2P2FILE00000001 /* narration_comparison_p2p_2.mp3 */; };
+		COMPP2P3BUILD0000001 /* narration_comparison_p2p_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COMPP2P3FILE00000001 /* narration_comparison_p2p_3.mp3 */; };
+		COSTBREAKDWNBUILD01 /* narration_cost_breakdown.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = COSTBREAKDWNFILE0001 /* narration_cost_breakdown.mp3 */; };
+		DEPTINPUTAUDBUILD01 /* narration_department_input.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DEPTINPUTAUDFILE0001 /* narration_department_input.mp3 */; };
+		SUCKERPUNCHREVBLD01 /* narration_sucker_punch_reveal.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = SUCKERPUNCHREVFILE01 /* narration_sucker_punch_reveal.mp3 */; };
+		VIGNETTECSBUILD0001 /* narration_vignette_customer_support_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = VIGNETTECSFILE000001 /* narration_vignette_customer_support_enhanced.mp3 */; };
+		VIGNETTEITSMBULD001 /* narration_vignette_itsm_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = VIGNETTEITSMFILE0001 /* narration_vignette_itsm_enhanced.mp3 */; };
+		VIGNETTEO2CBUILD001 /* narration_vignette_o2c_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = VIGNETTEO2CFILE00001 /* narration_vignette_o2c_enhanced.mp3 */; };
+		VIGNETTEP2PBUILD001 /* narration_vignette_p2p_enhanced.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = VIGNETTEP2PFILE00001 /* narration_vignette_p2p_enhanced.mp3 */; };
+		DEPT0001BUILDFILE00001 /* Department.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEPT0001FILEREF00001 /* Department.swift */; };
+		BENCH001BUILDFILE0001 /* BenchmarkData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BENCH001FILEREF00001 /* BenchmarkData.swift */; };
+		USERINPUTBUILDFILE01 /* UserInputData.swift in Sources */ = {isa = PBXBuildFile; fileRef = USERINPUTFILEREF0001 /* UserInputData.swift */; };
+		COSTCALCBUILDFILE01 /* CostCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = COSTCALCFILEREF0001 /* CostCalculator.swift */; };
+		SAVINGSCALCBUILD001 /* SavingsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = SAVINGSCALCFILEREF1 /* SavingsCalculator.swift */; };
+		DEPTSELECT00BUILD01 /* DepartmentSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEPTSELECT00FILEREF /* DepartmentSelectionView.swift */; };
+		DEPTINPUT000BUILD01 /* DepartmentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEPTINPUT000FILEREF /* DepartmentInputView.swift */; };
+		COSTBREAK000BUILD01 /* CostBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = COSTBREAK000FILEREF /* CostBreakdownView.swift */; };
+		AAVALUEPROPBUILD001 /* AAValuePropositionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAVALUEPROPFILEREF1 /* AAValuePropositionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -160,6 +198,44 @@
 		B5E280D383954258029AE7C2 /* narration_vignette_finance_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_finance_enhanced.mp3; sourceTree = "<group>"; };
 		57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_health_enhanced.mp3; sourceTree = "<group>"; };
 		1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_supply_enhanced.mp3; sourceTree = "<group>"; };
+		AAREVFORRESTERFILE01 /* narration_aa_reveal_forrester.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_reveal_forrester.mp3; sourceTree = "<group>"; };
+		AAVALUECSFILER00001 /* narration_aa_value_customer_support.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_value_customer_support.mp3; sourceTree = "<group>"; };
+		AAVALUEITSMFILE0001 /* narration_aa_value_itsm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_value_itsm.mp3; sourceTree = "<group>"; };
+		AAVALUEO2CFILE00001 /* narration_aa_value_o2c.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_value_o2c.mp3; sourceTree = "<group>"; };
+		AAVALUEP2PFILE00001 /* narration_aa_value_p2p.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_aa_value_p2p.mp3; sourceTree = "<group>"; };
+		BUILDINGCSFILE000001 /* narration_building_customer_support.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_customer_support.mp3; sourceTree = "<group>"; };
+		BUILDITSMFILE0000001 /* narration_building_itsm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_itsm.mp3; sourceTree = "<group>"; };
+		BUILDINGO2CFILE00001 /* narration_building_o2c.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_o2c.mp3; sourceTree = "<group>"; };
+		BUILDINGP2PFILE00001 /* narration_building_p2p.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_building_p2p.mp3; sourceTree = "<group>"; };
+		CHOOSEDEPTFILE000001 /* narration_choose_department.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_choose_department.mp3; sourceTree = "<group>"; };
+		COMPCS1FILE000000001 /* narration_comparison_customer_support_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_customer_support_1.mp3; sourceTree = "<group>"; };
+		COMPCS2FILE000000001 /* narration_comparison_customer_support_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_customer_support_2.mp3; sourceTree = "<group>"; };
+		COMPCS3FILE000000001 /* narration_comparison_customer_support_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_customer_support_3.mp3; sourceTree = "<group>"; };
+		COMPITSM1FILE0000001 /* narration_comparison_itsm_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_itsm_1.mp3; sourceTree = "<group>"; };
+		COMPITSM2FILE0000001 /* narration_comparison_itsm_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_itsm_2.mp3; sourceTree = "<group>"; };
+		COMPITSM3FILE0000001 /* narration_comparison_itsm_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_itsm_3.mp3; sourceTree = "<group>"; };
+		COMPO2C1FILE00000001 /* narration_comparison_o2c_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_o2c_1.mp3; sourceTree = "<group>"; };
+		COMPO2C2FILE00000001 /* narration_comparison_o2c_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_o2c_2.mp3; sourceTree = "<group>"; };
+		COMPO2C3FILE00000001 /* narration_comparison_o2c_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_o2c_3.mp3; sourceTree = "<group>"; };
+		COMPP2P1FILE00000001 /* narration_comparison_p2p_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_p2p_1.mp3; sourceTree = "<group>"; };
+		COMPP2P2FILE00000001 /* narration_comparison_p2p_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_p2p_2.mp3; sourceTree = "<group>"; };
+		COMPP2P3FILE00000001 /* narration_comparison_p2p_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_comparison_p2p_3.mp3; sourceTree = "<group>"; };
+		COSTBREAKDWNFILE0001 /* narration_cost_breakdown.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_cost_breakdown.mp3; sourceTree = "<group>"; };
+		DEPTINPUTAUDFILE0001 /* narration_department_input.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_department_input.mp3; sourceTree = "<group>"; };
+		SUCKERPUNCHREVFILE01 /* narration_sucker_punch_reveal.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_sucker_punch_reveal.mp3; sourceTree = "<group>"; };
+		VIGNETTECSFILE000001 /* narration_vignette_customer_support_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_customer_support_enhanced.mp3; sourceTree = "<group>"; };
+		VIGNETTEITSMFILE0001 /* narration_vignette_itsm_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_itsm_enhanced.mp3; sourceTree = "<group>"; };
+		VIGNETTEO2CFILE00001 /* narration_vignette_o2c_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_o2c_enhanced.mp3; sourceTree = "<group>"; };
+		VIGNETTEP2PFILE00001 /* narration_vignette_p2p_enhanced.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = narration_vignette_p2p_enhanced.mp3; sourceTree = "<group>"; };
+		DEPT0001FILEREF00001 /* Department.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Department.swift; sourceTree = "<group>"; };
+		BENCH001FILEREF00001 /* BenchmarkData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkData.swift; sourceTree = "<group>"; };
+		USERINPUTFILEREF0001 /* UserInputData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInputData.swift; sourceTree = "<group>"; };
+		COSTCALCFILEREF0001 /* CostCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostCalculator.swift; sourceTree = "<group>"; };
+		SAVINGSCALCFILEREF1 /* SavingsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsCalculator.swift; sourceTree = "<group>"; };
+		DEPTSELECT00FILEREF /* DepartmentSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartmentSelectionView.swift; sourceTree = "<group>"; };
+		DEPTINPUT000FILEREF /* DepartmentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartmentInputView.swift; sourceTree = "<group>"; };
+		COSTBREAK000FILEREF /* CostBreakdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostBreakdownView.swift; sourceTree = "<group>"; };
+		AAVALUEPROPFILEREF1 /* AAValuePropositionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AAValuePropositionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -243,6 +319,35 @@
 				B5E280D383954258029AE7C2 /* narration_vignette_finance_enhanced.mp3 */,
 				57270B35792F687FCB65FFA0 /* narration_vignette_health_enhanced.mp3 */,
 				1A7A401F630D78A34F913486 /* narration_vignette_supply_enhanced.mp3 */,
+				AAREVFORRESTERFILE01 /* narration_aa_reveal_forrester.mp3 */,
+				AAVALUECSFILER00001 /* narration_aa_value_customer_support.mp3 */,
+				AAVALUEITSMFILE0001 /* narration_aa_value_itsm.mp3 */,
+				AAVALUEO2CFILE00001 /* narration_aa_value_o2c.mp3 */,
+				AAVALUEP2PFILE00001 /* narration_aa_value_p2p.mp3 */,
+				BUILDINGCSFILE000001 /* narration_building_customer_support.mp3 */,
+				BUILDITSMFILE0000001 /* narration_building_itsm.mp3 */,
+				BUILDINGO2CFILE00001 /* narration_building_o2c.mp3 */,
+				BUILDINGP2PFILE00001 /* narration_building_p2p.mp3 */,
+				CHOOSEDEPTFILE000001 /* narration_choose_department.mp3 */,
+				COMPCS1FILE000000001 /* narration_comparison_customer_support_1.mp3 */,
+				COMPCS2FILE000000001 /* narration_comparison_customer_support_2.mp3 */,
+				COMPCS3FILE000000001 /* narration_comparison_customer_support_3.mp3 */,
+				COMPITSM1FILE0000001 /* narration_comparison_itsm_1.mp3 */,
+				COMPITSM2FILE0000001 /* narration_comparison_itsm_2.mp3 */,
+				COMPITSM3FILE0000001 /* narration_comparison_itsm_3.mp3 */,
+				COMPO2C1FILE00000001 /* narration_comparison_o2c_1.mp3 */,
+				COMPO2C2FILE00000001 /* narration_comparison_o2c_2.mp3 */,
+				COMPO2C3FILE00000001 /* narration_comparison_o2c_3.mp3 */,
+				COMPP2P1FILE00000001 /* narration_comparison_p2p_1.mp3 */,
+				COMPP2P2FILE00000001 /* narration_comparison_p2p_2.mp3 */,
+				COMPP2P3FILE00000001 /* narration_comparison_p2p_3.mp3 */,
+				COSTBREAKDWNFILE0001 /* narration_cost_breakdown.mp3 */,
+				DEPTINPUTAUDFILE0001 /* narration_department_input.mp3 */,
+				SUCKERPUNCHREVFILE01 /* narration_sucker_punch_reveal.mp3 */,
+				VIGNETTECSFILE000001 /* narration_vignette_customer_support_enhanced.mp3 */,
+				VIGNETTEITSMFILE0001 /* narration_vignette_itsm_enhanced.mp3 */,
+				VIGNETTEO2CFILE00001 /* narration_vignette_o2c_enhanced.mp3 */,
+				VIGNETTEP2PFILE00001 /* narration_vignette_p2p_enhanced.mp3 */,
 				46D4D48C2F0C21D2008930C9 /* narration_aa_reveal.mp3 */,
 				467A667B2F09935200A4E98D /* narration_final_cta.mp3 */,
 				467A667C2F09935200A4E98D /* narration_potential.mp3 */,
@@ -281,6 +386,11 @@
 				46B760C92F02563000F1A587 /* MotionManager.swift */,
 				46B760B82F02506700F1A587 /* AudioManager.swift */,
 				46B760B92F02506700F1A587 /* ExperienceViewModel.swift */,
+				DEPT0001FILEREF00001 /* Department.swift */,
+				BENCH001FILEREF00001 /* BenchmarkData.swift */,
+				USERINPUTFILEREF0001 /* UserInputData.swift */,
+				COSTCALCFILEREF0001 /* CostCalculator.swift */,
+				SAVINGSCALCFILEREF1 /* SavingsCalculator.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -301,6 +411,10 @@
 			children = (
 				46B760BC2F02506700F1A587 /* Animations.swift */,
 				EMOINTRO001FILEREF001 /* EmotionalIntroView.swift */,
+				DEPTSELECT00FILEREF /* DepartmentSelectionView.swift */,
+				DEPTINPUT000FILEREF /* DepartmentInputView.swift */,
+				COSTBREAK000FILEREF /* CostBreakdownView.swift */,
+				AAVALUEPROPFILEREF1 /* AAValuePropositionView.swift */,
 			);
 			path = SubViews;
 			sourceTree = "<group>";
@@ -446,6 +560,35 @@
 				CFCA2510404A16892D403B8C /* narration_vignette_finance_enhanced.mp3 in Resources */,
 				7251412B8A6C83F1E1C66DB3 /* narration_vignette_health_enhanced.mp3 in Resources */,
 				841837911EE0023A61391A90 /* narration_vignette_supply_enhanced.mp3 in Resources */,
+				AAREVFORRESTERBUILD01 /* narration_aa_reveal_forrester.mp3 in Resources */,
+				AAVALUECSBUILD000001 /* narration_aa_value_customer_support.mp3 in Resources */,
+				AAVALUEITSMBULD0001 /* narration_aa_value_itsm.mp3 in Resources */,
+				AAVALUEO2CBUILD0001 /* narration_aa_value_o2c.mp3 in Resources */,
+				AAVALUEP2PBUILD0001 /* narration_aa_value_p2p.mp3 in Resources */,
+				BUILDINGCSBUILD00001 /* narration_building_customer_support.mp3 in Resources */,
+				BUILDITSMBULD000001 /* narration_building_itsm.mp3 in Resources */,
+				BUILDINGO2CBLD00001 /* narration_building_o2c.mp3 in Resources */,
+				BUILDINGP2PBLD00001 /* narration_building_p2p.mp3 in Resources */,
+				CHOOSEDEPTBUILD0001 /* narration_choose_department.mp3 in Resources */,
+				COMPCS1BUILD00000001 /* narration_comparison_customer_support_1.mp3 in Resources */,
+				COMPCS2BUILD00000001 /* narration_comparison_customer_support_2.mp3 in Resources */,
+				COMPCS3BUILD00000001 /* narration_comparison_customer_support_3.mp3 in Resources */,
+				COMPITSM1BUILD000001 /* narration_comparison_itsm_1.mp3 in Resources */,
+				COMPITSM2BUILD000001 /* narration_comparison_itsm_2.mp3 in Resources */,
+				COMPITSM3BUILD000001 /* narration_comparison_itsm_3.mp3 in Resources */,
+				COMPO2C1BUILD0000001 /* narration_comparison_o2c_1.mp3 in Resources */,
+				COMPO2C2BUILD0000001 /* narration_comparison_o2c_2.mp3 in Resources */,
+				COMPO2C3BUILD0000001 /* narration_comparison_o2c_3.mp3 in Resources */,
+				COMPP2P1BUILD0000001 /* narration_comparison_p2p_1.mp3 in Resources */,
+				COMPP2P2BUILD0000001 /* narration_comparison_p2p_2.mp3 in Resources */,
+				COMPP2P3BUILD0000001 /* narration_comparison_p2p_3.mp3 in Resources */,
+				COSTBREAKDWNBUILD01 /* narration_cost_breakdown.mp3 in Resources */,
+				DEPTINPUTAUDBUILD01 /* narration_department_input.mp3 in Resources */,
+				SUCKERPUNCHREVBLD01 /* narration_sucker_punch_reveal.mp3 in Resources */,
+				VIGNETTECSBUILD0001 /* narration_vignette_customer_support_enhanced.mp3 in Resources */,
+				VIGNETTEITSMBULD001 /* narration_vignette_itsm_enhanced.mp3 in Resources */,
+				VIGNETTEO2CBUILD001 /* narration_vignette_o2c_enhanced.mp3 in Resources */,
+				VIGNETTEP2PBUILD001 /* narration_vignette_p2p_enhanced.mp3 in Resources */,
 				469C33EE2F07DD48002E908D /* narration_agentic.mp3 in Resources */,
 				469C33EF2F07DD48002E908D /* narration_closing.mp3 in Resources */,
 				469C33F02F07DD48002E908D /* narration_restoration.mp3 in Resources */,
@@ -508,6 +651,15 @@
 				46B760C72F02506700F1A587 /* NarrativeView.swift in Sources */,
 				46B760C82F02506700F1A587 /* Animations.swift in Sources */,
 				EMOINTRO001BUILDFILE001 /* EmotionalIntroView.swift in Sources */,
+				DEPT0001BUILDFILE00001 /* Department.swift in Sources */,
+				BENCH001BUILDFILE0001 /* BenchmarkData.swift in Sources */,
+				USERINPUTBUILDFILE01 /* UserInputData.swift in Sources */,
+				COSTCALCBUILDFILE01 /* CostCalculator.swift in Sources */,
+				SAVINGSCALCBUILD001 /* SavingsCalculator.swift in Sources */,
+				DEPTSELECT00BUILD01 /* DepartmentSelectionView.swift in Sources */,
+				DEPTINPUT000BUILD01 /* DepartmentInputView.swift in Sources */,
+				COSTBREAK000BUILD01 /* CostBreakdownView.swift in Sources */,
+				AAVALUEPROPBUILD001 /* AAValuePropositionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

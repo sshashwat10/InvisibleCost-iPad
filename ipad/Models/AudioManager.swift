@@ -48,59 +48,95 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
 
     // MARK: - Actual Narration Durations (measured from audio files)
     /// These are the actual durations of the narration audio files in seconds
-    /// Updated based on afinfo measurements of the MP3 files
+    /// MEASURED from regenerated CLINICAL narrations (Jan 2026)
+    /// Settings used: stability=0.35, similarity=0.80, style=0.15
+    /// UPDATED for Department-based system (P2P, O2C, Customer Support, ITSM)
+    /// Note: Clinical narrations have more substance, so durations are longer
     static let estimatedDurations: [String: TimeInterval] = [
-        // Emotional Intro (Opening narrations)
-        "opening_1": 4.0,        // narration_opening_1.mp3: "Every organization carries a hidden cost."
-        "opening_2": 3.5,        // narration_opening_2.mp3: "Most leaders never see it."
+        // Emotional Intro - Clinical with presence
+        "opening_1": 6.5,        // "Every organization carries a hidden cost. One that doesn't appear on any balance sheet."
+        "opening_2": 3.5,        // "Most leaders never quantify it. Until now."
 
-        // Industry Selection
-        "choose_industry": 8.0,  // narration_choose_industry.mp3: 7.967s
+        // Department Selection - Direct instruction
+        "choose_department": 5.5,  // "Select your process. We'll calculate the true operational cost."
+        "choose_industry": 5.5,    // Legacy fallback
 
-        // Personalization Input
-        "personal_input": 9.0,   // narration_personal_input.mp3: 8.96s
+        // Department Input - Clinical prompt
+        "department_input": 7.0,   // "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost."
+        "personal_input": 7.0,     // Legacy fallback
 
-        // Building Tension (per industry)
-        "building_finance": 15.4,  // narration_building_finance.mp3: 15.360s
-        "building_supply": 15.0,   // narration_building_supply.mp3: 14.994s
-        "building_health": 13.0,   // narration_building_health.mp3: 12.904s
+        // Building Tension (per department) - Clinical and factual
+        "building_p2p": 14.0,           // "Invoice processing. Every invoice requires matching... verification... approval..."
+        "building_o2c": 14.0,           // "Order to cash. Every order requires processing... credit verification..."
+        "building_customer_support": 13.0,  // "Customer support. Every ticket requires intake... lookup... resolution..."
+        "building_itsm": 14.0,          // "IT service management. Every request requires triage... assignment... resolution..."
+        "building_finance": 14.0,       // Legacy fallback
+        "building_supply": 13.5,        // Legacy fallback
+        "building_health": 14.0,        // Legacy fallback
 
-        // Industry Vignettes
-        "vignette_finance_enhanced": 5.6,  // narration_vignette_finance_enhanced.mp3: ~5.5s
-        "vignette_supply_enhanced": 3.7,   // narration_vignette_supply_enhanced.mp3: ~3.6s
-        "vignette_health_enhanced": 4.0,   // narration_vignette_health_enhanced.mp3: ~3.9s
+        // Department Vignettes - Clinical observations
+        "vignette_p2p_enhanced": 5.5,           // "Invoices accumulating. Cash flow constrained. Teams consumed by manual processing."
+        "vignette_o2c_enhanced": 5.0,           // "Orders queued. Revenue delayed. Collection cycles extending."
+        "vignette_customer_support_enhanced": 6.0,  // "Tickets accumulating. Response times lengthening. Agents repeating..."
+        "vignette_itsm_enhanced": 5.5,          // "Requests pending. Users waiting. Technical staff consumed..."
+        "vignette_finance_enhanced": 5.5,       // Legacy fallback
+        "vignette_supply_enhanced": 5.0,        // Legacy fallback
+        "vignette_health_enhanced": 5.5,        // Legacy fallback
 
-        // Pattern Break
-        "pattern_break_enhanced": 6.0,  // narration_pattern_break_enhanced.mp3: 5.851s
+        // Pattern Break - Clinical question
+        "pattern_break_enhanced": 3.0,     // "What is the true operational cost?"
 
-        // Sucker Punch (per industry)
-        "sucker_punch_finance": 15.3,  // narration_sucker_punch_finance.mp3: 15.229s
-        "sucker_punch_supply": 11.2,   // narration_sucker_punch_supply.mp3: 11.128s
-        "sucker_punch_health": 13.7,   // narration_sucker_punch_health.mp3: 13.609s
+        // Sucker Punch - Clinical statement
+        "sucker_punch_reveal": 4.5,  // "This... is your invisible cost. Annually. Exposed."
+        "sucker_punch_finance": 5.5,  // Legacy fallback
+        "sucker_punch_supply": 5.5,   // Legacy fallback
+        "sucker_punch_health": 5.5,   // Legacy fallback
 
-        // Comparisons (per industry, 3 each)
-        "comparison_finance_1": 5.8,   // narration_comparison_finance_1.mp3: 5.799s
-        "comparison_finance_2": 3.5,   // narration_comparison_finance_2.mp3: 3.474s
-        "comparison_finance_3": 4.4,   // narration_comparison_finance_3.mp3: 4.362s
-        "comparison_supply_1": 3.0,    // narration_comparison_supply_1.mp3: 2.925s
-        "comparison_supply_2": 3.4,    // narration_comparison_supply_2.mp3: 3.369s
-        "comparison_supply_3": 4.4,    // narration_comparison_supply_3.mp3: 4.310s
-        "comparison_health_1": 5.0,    // narration_comparison_health_1.mp3: 4.963s
-        "comparison_health_2": 3.9,    // narration_comparison_health_2.mp3: 3.840s
-        "comparison_health_3": 2.9,    // narration_comparison_health_3.mp3: 2.873s
+        // Cost Breakdown - Clinical explanation
+        "cost_breakdown": 9.0,  // "Direct labor costs. Overhead allocation. And the hidden factors..."
 
-        // Solution
-        "agentic_enhanced": 12.6,      // narration_agentic_enhanced.mp3: 12.564s
-        "aa_reveal_enhanced": 5.4,     // narration_aa_reveal_enhanced.mp3: 5.328s
+        // Comparisons (per department, 3 each) - Clinical statements
+        "comparison_p2p_1": 4.5,   // "Full-time employees allocated entirely to manual processing."
+        "comparison_p2p_2": 4.5,   // "Budget capacity redirected from strategic initiatives."
+        "comparison_p2p_3": 4.5,   // "Productive hours consumed by repetitive manual tasks."
+        "comparison_o2c_1": 3.5,   // "Revenue held in accounts receivable."
+        "comparison_o2c_2": 4.0,   // "Working capital unavailable for operations."
+        "comparison_o2c_3": 5.0,   // "Work weeks consumed by manual collection processes."
+        "comparison_customer_support_1": 4.0,  // "Agent capacity consumed by routine inquiries."
+        "comparison_customer_support_2": 4.5,  // "Hours spent on questions automation could resolve."
+        "comparison_customer_support_3": 4.0,  // "Customer wait time that erodes satisfaction."
+        "comparison_itsm_1": 3.5,  // "Cost of password resets alone."
+        "comparison_itsm_2": 4.5,  // "User productivity lost waiting for IT resolution."
+        "comparison_itsm_3": 4.5,  // "Technical staff time consumed by tier-one tickets."
+        "comparison_finance_1": 4.5,  // Legacy fallback
+        "comparison_finance_2": 4.5,
+        "comparison_finance_3": 4.5,
+        "comparison_supply_1": 4.0,
+        "comparison_supply_2": 4.0,
+        "comparison_supply_3": 4.5,
+        "comparison_health_1": 4.5,
+        "comparison_health_2": 4.0,
+        "comparison_health_3": 4.5,
 
-        // Human Return
-        "restoration_enhanced": 3.0,   // narration_restoration_enhanced.mp3: 2.925s
-        "breathe": 2.5,                // narration_breathe.mp3: 2.403s
-        "purpose": 7.4,                // narration_purpose.mp3: 7.340s
+        // Solution - Clinical explanation
+        "agentic_enhanced": 12.0,     // "Now consider: automation that operates across your entire system..."
+        "aa_reveal_forrester": 10.0,  // "Automation Anywhere. Industry-leading ROI. Fastest payback..."
+        "aa_reveal_enhanced": 2.5,    // "Automation Anywhere."
 
-        // Final CTA
-        "final_cta_enhanced": 10.2,    // narration_final_cta_enhanced.mp3: 10.109s
-        "ready_change": 2.7            // narration_ready_change.mp3: ~2.6s
+        // AA Value Proposition (per department) - Clinical benefits
+        "aa_value_p2p": 10.0,           // "Touchless invoice processing. Straight-through matching..."
+        "aa_value_o2c": 6.0,           // "Accelerated collections. Compressed cycle times. Cash flow optimized."
+        "aa_value_customer_support": 9.0,  // "Faster resolution. Higher satisfaction. Agents focused..."
+        "aa_value_itsm": 8.5,          // "Instant provisioning. Automated resolution. IT talent redirected..."
+
+        // Human Return - Clinical outcome
+        "restoration_enhanced": 7.0,  // "Manual work... automated. Repetitive processes... eliminated. Capacity... restored."
+        "breathe": 3.5,               // "This is what operational efficiency looks like."
+        "purpose": 9.0,               // "Strategy instead of spreadsheets. Innovation instead of administration..."
+
+        // Final CTA - Clinical close
+        "final_cta_enhanced": 8.0,    // "The invisible cost ends here. The question is: what will you do with the capacity you recover?"
+        "ready_change": 3.0           // "Ready to recover this capacity?"
     ]
 
     // MARK: - Initialization
@@ -150,18 +186,39 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
 
     private func cacheAllAudioDurations() {
         let narrationKeys = [
-            "opening_1", "opening_2",  // Emotional intro
-            "choose_industry",
-            "personal_input",  // NEW
-            "building_finance", "building_supply", "building_health",
-            "vignette_finance_enhanced", "vignette_supply_enhanced", "vignette_health_enhanced",
+            // Emotional intro
+            "opening_1", "opening_2",
+            // Department selection
+            "choose_department", "choose_industry",
+            // Department input
+            "department_input", "personal_input",
+            // Building tension (department-specific)
+            "building_p2p", "building_o2c", "building_customer_support", "building_itsm",
+            "building_finance", "building_supply", "building_health",  // Legacy
+            // Vignettes (department-specific)
+            "vignette_p2p_enhanced", "vignette_o2c_enhanced", "vignette_customer_support_enhanced", "vignette_itsm_enhanced",
+            "vignette_finance_enhanced", "vignette_supply_enhanced", "vignette_health_enhanced",  // Legacy
+            // Pattern break & sucker punch
             "pattern_break_enhanced",
-            "sucker_punch_finance", "sucker_punch_supply", "sucker_punch_health",
-            "comparison_finance_1", "comparison_finance_2", "comparison_finance_3",
+            "sucker_punch_reveal",  // General (no specific numbers)
+            "sucker_punch_finance", "sucker_punch_supply", "sucker_punch_health",  // Legacy
+            // Cost breakdown
+            "cost_breakdown",
+            // Comparisons (department-specific)
+            "comparison_p2p_1", "comparison_p2p_2", "comparison_p2p_3",
+            "comparison_o2c_1", "comparison_o2c_2", "comparison_o2c_3",
+            "comparison_customer_support_1", "comparison_customer_support_2", "comparison_customer_support_3",
+            "comparison_itsm_1", "comparison_itsm_2", "comparison_itsm_3",
+            "comparison_finance_1", "comparison_finance_2", "comparison_finance_3",  // Legacy
             "comparison_supply_1", "comparison_supply_2", "comparison_supply_3",
             "comparison_health_1", "comparison_health_2", "comparison_health_3",
-            "agentic_enhanced", "aa_reveal_enhanced",
+            // Solution
+            "agentic_enhanced", "aa_reveal_forrester", "aa_reveal_enhanced",
+            // AA Value Proposition (department-specific)
+            "aa_value_p2p", "aa_value_o2c", "aa_value_customer_support", "aa_value_itsm",
+            // Human return
             "restoration_enhanced", "breathe", "purpose",
+            // Final CTA
             "final_cta_enhanced", "ready_change"
         ]
 
@@ -220,63 +277,108 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
 
     // MARK: - Narration Playback
 
-    /// Enhanced narration scripts for all phases
+    /// Enhanced narration scripts for all phases - CLINICAL TONE
+    /// EXPRESSIVE with proper pause formatting: "..." directly after words (no spaces before)
+    /// REGENERATED Jan 2026 - Clinical, professional delivery with substance
+    /// UPDATED for Department-based system (P2P, O2C, Customer Support, ITSM)
+    /// KEY PRINCIPLE: Narrations are GENERAL - no specific numbers in audio, numbers shown VISUALLY
     private let narratorLines: [String: String] = [
-        // Emotional Intro (Opening narrations)
-        "opening_1": "Every organization carries a hidden cost.",
-        "opening_2": "Most leaders never see it.",
+        // Emotional Intro - Clinical with presence
+        "opening_1": "Every organization carries a hidden cost. One that doesn't appear on any balance sheet.",
+        "opening_2": "Most leaders never quantify it. Until now.",
 
-        // Industry Selection
-        "choose_industry": "Choose your industry. See your invisible cost.",
+        // Department Selection - Direct instruction
+        "choose_department": "Select your process. We'll calculate the true operational cost.",
+        "choose_industry": "Select your process. We'll calculate the true operational cost.",
 
-        // Personalization Input
-        "personal_input": "Now let's see YOUR invisible cost. How many people on your team? How many hours each week lost to work that doesn't need humans?",
+        // Department Input - Clinical prompt
+        "department_input": "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost.",
+        "personal_input": "Enter your volumes. We'll apply industry benchmarks to calculate your hidden cost.",
 
-        // Building Tension
-        "building_finance": "Every report. Every reconciliation. Every manual entry that keeps your team from the work that matters.",
-        "building_supply": "Every shipment tracked by hand. Every exception managed manually. Every delay cascading through your network.",
-        "building_health": "Every chart note. Every referral fax. Every authorization that keeps healers from healing.",
+        // Building Tension - Department Specific - Clinical and factual
+        "building_p2p": "Invoice processing. Every invoice requires matching... verification... approval. Your team executes this workflow thousands of times annually. Industry data reveals the true cost.",
+        "building_o2c": "Order to cash. Every order requires processing... credit verification... invoicing... collection. Each step introduces latency. Industry data reveals the true cost.",
+        "building_customer_support": "Customer support. Every ticket requires intake... lookup... resolution. The same inquiries, processed repeatedly. Industry data reveals the true cost.",
+        "building_itsm": "IT service management. Every request requires triage... assignment... resolution. Password resets alone consume significant capacity. Industry data reveals the true cost.",
+        "building_finance": "Finance operations. Every transaction requires entry... reconciliation... approval. Your team executes this workflow thousands of times annually. Industry data reveals the true cost.",
+        "building_supply": "Supply chain operations. Every shipment requires tracking... updating... exception handling. Manual touchpoints at every stage. Industry data reveals the true cost.",
+        "building_health": "Clinical administration. Every patient requires charting... authorization... documentation. Time diverted from patient care. Industry data reveals the true cost.",
 
-        // Industry Vignettes (Enhanced)
-        "vignette_finance_enhanced": "Hours lost to tasks that machines were made for.",
-        "vignette_supply_enhanced": "Brilliant minds trapped in busywork.",
-        "vignette_health_enhanced": "Healers buried under paperwork.",
+        // Department Vignettes - Clinical observations
+        "vignette_p2p_enhanced": "Invoices accumulating. Cash flow constrained. Teams consumed by manual processing.",
+        "vignette_o2c_enhanced": "Orders queued. Revenue delayed. Collection cycles extending.",
+        "vignette_customer_support_enhanced": "Tickets accumulating. Response times lengthening. Agents repeating the same resolutions.",
+        "vignette_itsm_enhanced": "Requests pending. Users waiting. Technical staff consumed by routine tasks.",
+        "vignette_finance_enhanced": "Transactions queued. Reconciliations pending. Analysts consumed by data entry.",
+        "vignette_supply_enhanced": "Shipments tracked manually. Exceptions mounting. Visibility degrading.",
+        "vignette_health_enhanced": "Documentation backlog. Authorizations pending. Clinical staff consumed by paperwork.",
 
-        // Pattern Break
-        "pattern_break_enhanced": "But what if... you could see the real number?",
+        // Pattern Break - Clinical question
+        "pattern_break_enhanced": "What is the true operational cost?",
 
-        // Sucker Punch
-        "sucker_punch_finance": "Forty-seven point five million dollars. Every. Single. Year. Gone. To invisible work.",
-        "sucker_punch_supply": "Thirty-eight point two million dollars. Every. Single. Year. Evaporating. While you watch.",
-        "sucker_punch_health": "Fifty-two point eight million dollars. Every. Single. Year. Stolen. From patient care.",
+        // Sucker Punch - Clinical statement
+        "sucker_punch_reveal": "This... is your invisible cost. Annually. Exposed.",
+        "sucker_punch_finance": "This is what manual operations cost you. Annually. Exposed.",
+        "sucker_punch_supply": "This is what manual processes cost you. Annually. Exposed.",
+        "sucker_punch_health": "This is what administrative burden costs you. Annually. Exposed.",
 
-        // Comparisons - Finance
-        "comparison_finance_1": "That's nine hundred fifty senior analyst salaries. Gone.",
-        "comparison_finance_2": "Fifteen years of your entire IT budget. Vanished.",
-        "comparison_finance_3": "A hundred eighty-nine thousand client meetings. Lost.",
+        // Cost Breakdown - Clinical explanation
+        "cost_breakdown": "Direct labor costs. Overhead allocation. And the hidden factors... exceptions, rework, opportunity cost.",
 
-        // Comparisons - Supply Chain
-        "comparison_supply_1": "That's seven hundred sixty-four warehouse workers. Not hired.",
-        "comparison_supply_2": "Twelve thousand seven hundred containers. Delayed.",
-        "comparison_supply_3": "Your margins. Eroded. Daily.",
+        // Comparisons - P2P - Clinical statements
+        "comparison_p2p_1": "Full-time employees allocated entirely to manual processing.",
+        "comparison_p2p_2": "Budget capacity redirected from strategic initiatives.",
+        "comparison_p2p_3": "Productive hours consumed by repetitive manual tasks.",
 
-        // Comparisons - Healthcare
-        "comparison_health_1": "That's over a thousand nurse salaries. Consumed by paperwork.",
-        "comparison_health_2": "Twenty-six thousand patient visits. That didn't happen.",
-        "comparison_health_3": "Your physicians' sanity. Under siege.",
+        // Comparisons - O2C - Clinical statements
+        "comparison_o2c_1": "Revenue held in accounts receivable.",
+        "comparison_o2c_2": "Working capital unavailable for operations.",
+        "comparison_o2c_3": "Work weeks consumed by manual collection processes.",
 
-        // Solution
-        "agentic_enhanced": "This is Agentic Solutions. Intelligence that anticipates. Acts. And frees you to think.",
-        "aa_reveal_enhanced": "From Automation Anywhere. Elevating Human Potential.",
+        // Comparisons - Customer Support - Clinical statements
+        "comparison_customer_support_1": "Agent capacity consumed by routine inquiries.",
+        "comparison_customer_support_2": "Hours spent on questions automation could resolve.",
+        "comparison_customer_support_3": "Customer wait time that erodes satisfaction.",
 
-        // Human Return
-        "restoration_enhanced": "The chains dissolve. One by one.",
-        "breathe": "And suddenly you remember what it feels like to breathe.",
-        "purpose": "This is what happens when machines handle the mechanics and humans reclaim their purpose.",
+        // Comparisons - ITSM - Clinical statements
+        "comparison_itsm_1": "Cost of password resets alone.",
+        "comparison_itsm_2": "User productivity lost waiting for IT resolution.",
+        "comparison_itsm_3": "Technical staff time consumed by tier-one tickets.",
 
-        // Final CTA
-        "final_cta_enhanced": "The invisible cost... ends now. The future of work... starts here.",
-        "ready_change": "Ready to change this?"
+        // Comparisons - Legacy Finance
+        "comparison_finance_1": "Analyst capacity consumed by manual data entry.",
+        "comparison_finance_2": "Budget equivalent redirected from growth initiatives.",
+        "comparison_finance_3": "Productive hours lost to reconciliation tasks.",
+
+        // Comparisons - Legacy Supply Chain
+        "comparison_supply_1": "Positions unfilled due to budget constraints.",
+        "comparison_supply_2": "Shipments delayed by manual processing.",
+        "comparison_supply_3": "Margin erosion from operational inefficiency.",
+
+        // Comparisons - Legacy Healthcare
+        "comparison_health_1": "Clinical staff time consumed by documentation.",
+        "comparison_health_2": "Patient encounters that could have occurred.",
+        "comparison_health_3": "Care capacity lost to administrative burden.",
+
+        // Solution - Clinical explanation
+        "agentic_enhanced": "Now consider: automation that operates across your entire system. AI agents that identify work, execute processes, and resolve issues... before escalation.",
+        "aa_reveal_forrester": "Automation Anywhere. Industry-leading ROI. Fastest payback in the category. Validated by Forrester Total Economic Impact.",
+        "aa_reveal_enhanced": "Automation Anywhere.",
+
+        // AA Value Proposition - Department Specific - Clinical benefits
+        "aa_value_p2p": "Touchless invoice processing. Straight-through matching. Exception handling automated. Your team reallocated to strategic finance.",
+        "aa_value_o2c": "Accelerated collections. Compressed cycle times. Cash flow optimized.",
+        "aa_value_customer_support": "Faster resolution. Higher satisfaction. Agents focused on complex cases that require human judgment.",
+        "aa_value_itsm": "Instant provisioning. Automated resolution. IT talent redirected to strategic initiatives.",
+
+        // Human Return - Clinical outcome
+        "restoration_enhanced": "Manual work... automated. Repetitive processes... eliminated. Capacity... restored.",
+        "breathe": "This is what operational efficiency looks like.",
+        "purpose": "Strategy instead of spreadsheets. Innovation instead of administration. Leading instead of processing.",
+
+        // Final CTA - Clinical close
+        "final_cta_enhanced": "The invisible cost ends here. The question is: what will you do with the capacity you recover?",
+        "ready_change": "Ready to recover this capacity?"
     ]
 
     /// Play narration with completion callback for sync
@@ -312,6 +414,19 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         if key.hasSuffix("_enhanced") {
             let baseKey = String(key.dropLast("_enhanced".count))
             filenamesToTry.append("narration_\(baseKey)")
+        }
+
+        // Fallback for AA value proposition files (if not yet generated)
+        // These fall back to the general AA reveal
+        let aaValueFallbacks = [
+            "aa_reveal_forrester": "aa_reveal_enhanced",
+            "aa_value_p2p": "aa_reveal_enhanced",
+            "aa_value_o2c": "aa_reveal_enhanced",
+            "aa_value_customer_support": "aa_reveal_enhanced",
+            "aa_value_itsm": "aa_reveal_enhanced"
+        ]
+        if let fallback = aaValueFallbacks[key] {
+            filenamesToTry.append("narration_\(fallback)")
         }
 
         for filename in filenamesToTry {
@@ -930,28 +1045,32 @@ extension AudioManager {
         case .emotionalIntro:
             // Ambient music starts immediately for emotional intro
             playAmbientMusic()
-        case .industrySelection:
+        case .departmentSelection:
             // Ambient music should already be playing from intro
             if !isAmbientPlaying {
                 playAmbientMusic()
             }
-        case .personalInput:
+        case .departmentInput:
             playTransition()  // Subtle transition sound
         case .buildingTension:
             playTransition()
-        case .industryVignette:
+        case .departmentVignette:
             playTransition()
         case .patternBreak:
             playTensionTone()
         case .suckerPunchReveal:
             // Handled by view with precise timing
             break
+        case .costBreakdown:
+            playTransition()
         case .comparisonCarousel:
             playCardWhoosh()
         case .agenticOrchestration:
             transitionToUpbeatMusic()
             playReveal()
         case .automationAnywhereReveal:
+            playReveal()
+        case .aaValueProposition:
             playReveal()
         case .humanReturn:
             playReveal()
@@ -961,34 +1080,35 @@ extension AudioManager {
     }
 
     /// Calculate the minimum duration needed for a phase based on its narrations
-    /// TIGHTENED - reduced buffers to eliminate dead space
-    func getMinimumPhaseDuration(for phase: Tier1Phase, industry: Industry?) -> TimeInterval {
-        let buffer: TimeInterval = 1.5 // Tighter breathing room (was 2.0)
+    /// ULTRA-TIGHTENED - minimal buffers, no dead space
+    /// Based on MEASURED audio durations from expressive regeneration (Jan 2026)
+    /// UPDATED for Department-based system
+    func getMinimumPhaseDuration(for phase: Tier1Phase, department: Department?) -> TimeInterval {
+        let buffer: TimeInterval = 0.8 // Ultra-tight breathing room
 
         switch phase {
         case .waiting, .complete:
             return 0
 
         case .emotionalIntro:
-            // Fixed 15 seconds - snappy timed phase with two narrations
-            // Narrations are triggered at specific progress points, not sequentially
-            return 15.0
+            // opening_1 (2.9s) + opening_2 (2.3s) + visual spacing
+            return 10.0
 
-        case .industrySelection:
-            return getNarrationDuration(for: "choose_industry") + buffer
+        case .departmentSelection:
+            return getNarrationDuration(for: "choose_department") + buffer
 
-        case .personalInput:
-            return getNarrationDuration(for: "personal_input") + buffer
+        case .departmentInput:
+            return getNarrationDuration(for: "department_input") + buffer
 
         case .buildingTension:
-            guard let industry = industry else { return 12.0 }
-            let key = "building_\(industry.rawValue)"
-            return getNarrationDuration(for: key) + buffer + 1.0 // Reduced from +2.0
+            guard let dept = department else { return 14.0 }
+            let key = "building_\(dept.rawValue)"
+            return getNarrationDuration(for: key) + buffer
 
-        case .industryVignette:
-            guard let industry = industry else { return 8.0 }
-            let key = "vignette_\(industry.rawValue)_enhanced"
-            return getNarrationDuration(for: key) + buffer + 2.0 // Reduced from +6.0
+        case .departmentVignette:
+            guard let dept = department else { return 5.0 }
+            let key = "vignette_\(dept.rawValue)_enhanced"
+            return getNarrationDuration(for: key) + buffer + 1.5 // Extra for metrics
 
         case .patternBreak:
             return 0 // User-controlled
@@ -996,23 +1116,29 @@ extension AudioManager {
         case .suckerPunchReveal:
             return 0 // User-controlled
 
+        case .costBreakdown:
+            return 0 // User-controlled (review at own pace)
+
         case .comparisonCarousel:
             return 0 // User-controlled
 
         case .agenticOrchestration:
             let narrationDuration = getNarrationDuration(for: "agentic_enhanced")
-            return max(15.0, narrationDuration + buffer + 2.0) // Reduced from +10.0
+            return max(11.0, narrationDuration + buffer)
 
         case .automationAnywhereReveal:
-            let narrationDuration = getNarrationDuration(for: "aa_reveal_enhanced")
-            return max(8.0, narrationDuration + buffer + 1.0) // Reduced from +3.0
+            // Sync phase duration directly with audio - logo/tagline animations are percentage-based
+            let narrationDuration = getNarrationDuration(for: "aa_reveal_forrester")
+            return narrationDuration + buffer  // Audio duration + small buffer for exit fade
+
+        case .aaValueProposition:
+            return 0 // User-controlled (review Forrester data)
 
         case .humanReturn:
-            // Multiple narrations in sequence - tighter spacing
+            // Two narrations in sequence: restoration, then purpose
             let restoration = getNarrationDuration(for: "restoration_enhanced")
-            let breathe = getNarrationDuration(for: "breathe")
             let purpose = getNarrationDuration(for: "purpose")
-            return restoration + breathe + purpose + buffer * 2 + 1.5 // Reduced from buffer*3 + 3.0
+            return restoration + purpose + 0.5 // Tight gap between
 
         case .callToAction:
             return 0 // User-controlled, but should wait for narration

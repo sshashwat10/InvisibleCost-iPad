@@ -2,43 +2,48 @@ import SwiftUI
 import Observation
 
 // MARK: - Enhanced Experience Phases
-/// The Invisible Cost - Enhanced Narrative Phases
+/// The Invisible Cost - Overhauled Narrative Phases (Department-based)
 /// TOTAL RUNTIME: ~180 seconds (3:00) - User-controlled pacing
-/// Implements Neeti's feedback: agency, personalization, sucker punch moment
-/// NOW WITH PROPER AUDIO-SYNCED DURATIONS
+/// Implements Neeti's feedback: agency, personalization, sourced data
+/// NOW WITH DEPARTMENT-SPECIFIC CONTENT (P2P, O2C, Customer Support, ITSM)
 
 enum Tier1Phase: Int, CaseIterable {
     case waiting = 0
-    case emotionalIntro          // 25s emotional grounding before interaction
-    case industrySelection       // User chooses Finance/Supply Chain/Healthcare
-    case personalInput           // NEW: User enters team size, hours lost, hourly rate
-    case buildingTension         // Industry-specific tension building
-    case industryVignette        // Deep dive into chosen industry pain
+    case emotionalIntro          // 10s emotional grounding before interaction
+    case departmentSelection     // User chooses P2P, O2C, Customer Support, ITSM
+    case departmentInput         // User enters department-specific inputs
+    case buildingTension         // Department-specific tension building
+    case departmentVignette      // Deep dive into chosen department pain
     case patternBreak            // "But what if..."
-    case suckerPunchReveal       // THE MOMENT - massive cost number (uses personalized data)
+    case suckerPunchReveal       // THE MOMENT - massive cost number (uses calculated data)
+    case costBreakdown           // Visual breakdown of direct/indirect/invisible costs
     case comparisonCarousel      // Relatable comparisons
     case agenticOrchestration    // Solution visualization
     case automationAnywhereReveal // Brand moment
+    case aaValueProposition      // Sourced ROI/savings (Forrester TEI)
     case humanReturn             // Restoration narrative
     case callToAction            // Final CTA
     case complete
 
-    /// Base phase duration - TIGHTENED to eliminate dead space
-    /// Formula: audioLength + 2s buffer (snappy, not sluggish)
+    /// Base phase duration - ULTRA-TIGHTENED for snappy experience
+    /// Based on MEASURED audio durations from expressive regeneration
+    /// Formula: audioLength + 0.5-1s buffer (crisp, not sluggish)
     var baseDuration: TimeInterval {
         switch self {
         case .waiting: return 0
-        case .emotionalIntro: return 15.0     // Auto-advance after 15s (snappy, with skip after 5s)
-        case .industrySelection: return 0     // User-controlled
-        case .personalInput: return 0         // User-controlled (continue after narration)
-        case .buildingTension: return 17      // ~15s audio + 2s buffer (was 20)
-        case .industryVignette: return 8      // ~5.6s audio + 2.5s for metrics (was 12)
+        case .emotionalIntro: return 10.0     // opening_1 (2.9s) + opening_2 (2.3s) + visual transitions
+        case .departmentSelection: return 0   // User-controlled
+        case .departmentInput: return 0       // User-controlled (continue after narration)
+        case .buildingTension: return 15      // ~14s audio + 1s buffer
+        case .departmentVignette: return 5    // ~3s audio + 2s for metrics to appear
         case .patternBreak: return 0          // User-controlled (tap to continue)
         case .suckerPunchReveal: return 0     // User-controlled
+        case .costBreakdown: return 0         // User-controlled (review at own pace)
         case .comparisonCarousel: return 0    // User-controlled
-        case .agenticOrchestration: return 15 // ~12.6s audio + 2.5s (was 20)
-        case .automationAnywhereReveal: return 8 // ~5.3s audio + 2.5s buffer (was 15)
-        case .humanReturn: return 15          // ~13s total for 3 narrations + 2s buffer (was 18)
+        case .agenticOrchestration: return 11 // 10s audio + 1s buffer
+        case .automationAnywhereReveal: return 0 // Duration calculated dynamically from audio
+        case .aaValueProposition: return 0    // User-controlled (review Forrester data)
+        case .humanReturn: return 10          // restoration(2.2) + purpose(7.6) + gap
         case .callToAction: return 0          // User-controlled
         case .complete: return 0
         }
@@ -47,11 +52,11 @@ enum Tier1Phase: Int, CaseIterable {
     /// Whether this phase auto-advances or requires user interaction
     var isUserControlled: Bool {
         switch self {
-        case .industrySelection, .personalInput, .patternBreak, .suckerPunchReveal,
-             .comparisonCarousel, .callToAction:
+        case .departmentSelection, .departmentInput, .patternBreak, .suckerPunchReveal,
+             .costBreakdown, .comparisonCarousel, .aaValueProposition, .callToAction:
             return true
         case .emotionalIntro:
-            return false  // Auto-advances (with skip option after 10s)
+            return false
         default:
             return false
         }
@@ -69,15 +74,17 @@ enum Tier1Phase: Int, CaseIterable {
         switch self {
         case .waiting: return "Waiting"
         case .emotionalIntro: return "Emotional Intro"
-        case .industrySelection: return "Industry Selection"
-        case .personalInput: return "Personal Input"
+        case .departmentSelection: return "Department Selection"
+        case .departmentInput: return "Department Input"
         case .buildingTension: return "Building Tension"
-        case .industryVignette: return "Industry Vignette"
+        case .departmentVignette: return "Department Vignette"
         case .patternBreak: return "Pattern Break"
         case .suckerPunchReveal: return "SUCKER PUNCH"
+        case .costBreakdown: return "Cost Breakdown"
         case .comparisonCarousel: return "Comparisons"
         case .agenticOrchestration: return "Agentic Solution"
         case .automationAnywhereReveal: return "AA Reveal"
+        case .aaValueProposition: return "AA Value Proposition"
         case .humanReturn: return "Human Return"
         case .callToAction: return "Call to Action"
         case .complete: return "Complete"
@@ -104,67 +111,101 @@ class ExperienceViewModel {
     /// The calculated duration for the current phase (based on audio)
     private var currentPhaseDuration: TimeInterval = 0
 
-    // MARK: - Industry Selection (NEW)
-    var selectedIndustry: Industry?
+    // MARK: - Department Selection (Replaces Industry)
+    var selectedDepartment: Department?
 
-    // MARK: - Sucker Punch Data
-    var suckerPunchData: SuckerPunchData? {
-        guard let industry = selectedIndustry else { return nil }
-        return IndustryContent.suckerPunchData(for: industry)
+    // MARK: - User Input Data
+    var userInput = UserInputData()
+
+    // MARK: - Calculated Cost Breakdown (Computed)
+    var costBreakdownResult: CostBreakdown {
+        guard selectedDepartment != nil else { return .empty }
+        let calculator = CostCalculator(userInput: userInput)
+        return calculator.calculateInvisibleCost()
+    }
+
+    // MARK: - Savings Projection (Computed)
+    var savingsProjection: SavingsProjection {
+        let calculator = SavingsCalculator(costBreakdown: costBreakdownResult, userInput: userInput)
+        return calculator.calculateSavingsProjection()
     }
 
     // MARK: - Comparison State
     var currentComparisonIndex: Int = 0
     var comparisonCards: [ComparisonCard] {
-        guard let industry = selectedIndustry else { return [] }
-        return IndustryContent.comparisonCards(for: industry)
+        guard let department = selectedDepartment else { return [] }
+        return DepartmentContent.comparisonCards(for: department, costBreakdown: costBreakdownResult)
     }
 
-    // MARK: - Personalization Data (Enhanced for Davos 2026)
-    var companyName: String = ""
-    var teamSize: Double = 100
-    var lostHoursPerWeek: Double = 20
-    var hourlyRate: Double = 150
-
-    /// Display name for company - returns entered name or fallback
-    /// Used for personalized messaging throughout the experience
+    // MARK: - Display Company Name
     var displayCompanyName: String {
-        let trimmed = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Your Organization" : trimmed
+        userInput.displayCompanyName
     }
 
-    /// Short version for tight spaces - truncates if too long
     var shortCompanyName: String {
-        let name = displayCompanyName
-        if name.count > 20 {
-            return String(name.prefix(17)) + "..."
-        }
-        return name
+        userInput.shortCompanyName
     }
 
-    /// Whether user entered a custom company name
     var hasCustomCompanyName: Bool {
-        !companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        userInput.hasCustomCompanyName
     }
 
-    /// Calculated annual cost based on user input: teamSize * lostHoursPerWeek * 52 weeks * hourlyRate
+    // MARK: - Legacy Compatibility Properties
+
+    /// Legacy: selectedIndustry - now maps to selectedDepartment for old view compatibility
+    var selectedIndustry: Department? {
+        get { selectedDepartment }
+        set { selectedDepartment = newValue }
+    }
+
+    /// Legacy: companyName
+    var companyName: String {
+        get { userInput.companyName }
+        set { userInput.companyName = newValue }
+    }
+
+    /// Legacy: teamSize - maps to appropriate department input
+    var teamSize: Double {
+        get { Double(userInput.employeeCount) }
+        set { userInput.employeeCount = Int(newValue) }
+    }
+
+    /// Legacy: lostHoursPerWeek - computed from inputs
+    var lostHoursPerWeek: Double {
+        get { costBreakdownResult.annualHours / 52 }
+        set { /* No-op for legacy compatibility */ }
+    }
+
+    /// Legacy: hourlyRate
+    var hourlyRate: Double {
+        get { userInput.averageHourlyRate }
+        set { userInput.averageHourlyRate = newValue }
+    }
+
+    /// Legacy: calculatedAnnualCost - now uses cost calculator
     var calculatedAnnualCost: Double {
-        return teamSize * lostHoursPerWeek * 52.0 * hourlyRate
+        costBreakdownResult.totalCost
     }
 
-    /// Formatted annual cost for display
+    /// Legacy: formattedAnnualCost
     var formattedAnnualCost: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
-        formatter.maximumFractionDigits = 0
-        formatter.locale = Locale(identifier: "en_US")
-        return formatter.string(from: NSNumber(value: calculatedAnnualCost)) ?? "$0"
+        costBreakdownResult.formattedTotalCost
     }
 
-    /// Legacy computed property for compatibility
+    /// Legacy: annualImpact
     var annualImpact: Double {
-        return calculatedAnnualCost
+        costBreakdownResult.totalCost
+    }
+
+    /// Legacy: suckerPunchData - now uses calculated cost breakdown
+    var suckerPunchData: SuckerPunchData? {
+        guard selectedDepartment != nil else { return nil }
+        return SuckerPunchData(
+            amount: Int(costBreakdownResult.totalCost),
+            formattedAmount: costBreakdownResult.formattedTotalCost,
+            spokenAmount: costBreakdownResult.spokenTotalCost,
+            audioKey: "sucker_punch_reveal"
+        )
     }
 
     // MARK: - Lifecycle
@@ -175,16 +216,13 @@ class ExperienceViewModel {
         phaseElapsedTime = 0
         totalElapsedTime = 0
         phaseProgress = 0
-        selectedIndustry = nil
+        selectedDepartment = nil
         currentComparisonIndex = 0
         narrationComplete = false
         waitingForNarration = false
 
-        // Reset personalization to defaults
-        companyName = ""
-        teamSize = 100
-        lostHoursPerWeek = 20
-        hourlyRate = 150
+        // Reset user input to defaults
+        userInput = UserInputData()
 
         // Calculate initial phase duration
         updatePhaseDuration()
@@ -192,14 +230,20 @@ class ExperienceViewModel {
         print("[Experience] Started - Phase: \(currentPhase.displayName)")
     }
 
-    func selectIndustry(_ industry: Industry) {
-        selectedIndustry = industry
-        print("[Experience] Industry selected: \(industry.displayName)")
+    func selectDepartment(_ department: Department) {
+        selectedDepartment = department
+        userInput.department = department
+        print("[Experience] Department selected: \(department.displayName)")
 
-        // Auto-advance after selection animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        // Snappy auto-advance after selection animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
             self?.advanceToNextPhase()
         }
+    }
+
+    /// Legacy compatibility - selectIndustry now maps to selectDepartment
+    func selectIndustry(_ department: Department) {
+        selectDepartment(department)
     }
 
     func advanceToNextPhase() {
@@ -228,26 +272,22 @@ class ExperienceViewModel {
     /// Called by NarrativeView when a narration completes
     func onNarrationComplete() {
         narrationComplete = true
-        let completedPhase = currentPhase  // Capture current phase
+        let completedPhase = currentPhase
         print("[Experience] Narration completed for phase: \(completedPhase.displayName)")
 
-        // If we were waiting for narration to advance, do it now (minimal delay for snappy transitions)
+        // If we were waiting for narration to advance, do it now (snappy transition)
         if waitingForNarration && !currentPhase.isUserControlled {
             waitingForNarration = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.advanceToNextPhase()
             }
-            return  // Don't also trigger the below logic
+            return
         }
 
         // For certain timed phases, advance shortly after narration completes
-        // to eliminate dead space where nothing is happening
-        // Only do this if we've already shown enough content (progress > 30%)
-        if shouldAdvanceOnNarrationComplete(completedPhase) && !completedPhase.isUserControlled && phaseProgress >= 0.30 {
-            // Use a short delay to let animations settle, then advance
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+        if shouldAdvanceOnNarrationComplete(completedPhase) && !completedPhase.isUserControlled && phaseProgress >= 0.25 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
                 guard let self = self else { return }
-                // Only advance if we're still in the same phase (not already advanced by progress)
                 if self.currentPhase == completedPhase {
                     self.advanceToNextPhase()
                 }
@@ -255,10 +295,10 @@ class ExperienceViewModel {
         }
     }
 
-    /// Phases that should advance shortly after narration completes (to eliminate dead space)
+    /// Phases that should advance shortly after narration completes
     private func shouldAdvanceOnNarrationComplete(_ phase: Tier1Phase) -> Bool {
         switch phase {
-        case .industryVignette, .buildingTension, .automationAnywhereReveal:
+        case .departmentVignette, .buildingTension, .automationAnywhereReveal:
             return true
         default:
             return false
@@ -271,9 +311,9 @@ class ExperienceViewModel {
             print("[Experience] Comparison \(currentComparisonIndex)/\(comparisonCards.count)")
         }
 
-        // Auto-advance when all comparisons shown
+        // Snappy auto-advance when all comparisons shown
         if currentComparisonIndex >= comparisonCards.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
                 self?.advanceToNextPhase()
             }
         }
@@ -291,10 +331,11 @@ class ExperienceViewModel {
         phaseElapsedTime = 0
         totalElapsedTime = 0
         phaseProgress = 0
-        selectedIndustry = nil
+        selectedDepartment = nil
         currentComparisonIndex = 0
         narrationComplete = false
         waitingForNarration = false
+        userInput = UserInputData()
         print("[Experience] Reset")
     }
 
@@ -302,7 +343,7 @@ class ExperienceViewModel {
 
     private func updatePhaseDuration() {
         // Get the audio-based minimum duration
-        let audioDuration = AudioManager.shared.getMinimumPhaseDuration(for: currentPhase, industry: selectedIndustry)
+        let audioDuration = AudioManager.shared.getMinimumPhaseDuration(for: currentPhase, department: selectedDepartment)
 
         // Use the maximum of base duration and audio-calculated duration
         currentPhaseDuration = max(currentPhase.baseDuration, audioDuration)
@@ -338,16 +379,13 @@ class ExperienceViewModel {
                 // If narration hasn't completed yet, wait for it
                 if !narrationComplete && AudioManager.shared.isNarrationPlaying {
                     waitingForNarration = true
-                    // Don't advance yet, wait for narrationComplete callback
                 } else {
-                    // Narration is done or wasn't playing, advance
                     advanceToNextPhase()
                 }
             }
         } else {
-            // User-controlled phase - progress is based on elapsed time for animations
-            // but won't auto-advance
-            phaseProgress = min(1.0, phaseElapsedTime / 10.0) // Normalize to 10 seconds for animation purposes
+            // User-controlled phase - progress for animations
+            phaseProgress = min(1.0, phaseElapsedTime / 10.0)
         }
     }
 
@@ -355,7 +393,7 @@ class ExperienceViewModel {
 
     /// Get the appropriate narration key for current state
     func narrationKey(for phase: Tier1Phase, subIndex: Int = 0) -> String? {
-        // Handle phases that don't need industry selection
+        // Handle phases that don't need department selection
         if phase == .emotionalIntro {
             switch subIndex {
             case 0: return "opening_1"
@@ -364,12 +402,14 @@ class ExperienceViewModel {
             }
         }
 
-        guard let industry = selectedIndustry else {
-            if phase == .industrySelection {
-                return "choose_industry"
+        guard let department = selectedDepartment else {
+            if phase == .departmentSelection {
+                return "choose_department"
             }
             return nil
         }
+
+        let deptKey = department.rawValue
 
         switch phase {
         case .emotionalIntro:
@@ -378,25 +418,29 @@ class ExperienceViewModel {
             case 1: return "opening_2"
             default: return nil
             }
-        case .industrySelection:
-            return "choose_industry"
-        case .personalInput:
-            return "personal_input"  // NEW: Narration for personalization
+        case .departmentSelection:
+            return "choose_department"
+        case .departmentInput:
+            return "department_input"
         case .buildingTension:
-            return "building_\(industry.rawValue)"
-        case .industryVignette:
-            return "vignette_\(industry.rawValue)_enhanced"
+            return "building_\(deptKey)"
+        case .departmentVignette:
+            return "vignette_\(deptKey)"
         case .patternBreak:
             return "pattern_break_enhanced"
         case .suckerPunchReveal:
-            return "sucker_punch_\(industry.rawValue)"
+            return "sucker_punch_reveal"  // General reveal, numbers shown visually
+        case .costBreakdown:
+            return "cost_breakdown"
         case .comparisonCarousel:
             let index = min(subIndex, 2)
-            return "comparison_\(industry.rawValue)_\(index + 1)"
+            return "comparison_\(deptKey)_\(index + 1)"
         case .agenticOrchestration:
             return "agentic_enhanced"
         case .automationAnywhereReveal:
-            return "aa_reveal_enhanced"
+            return "aa_reveal_forrester"  // Sourced: "262% ROI. Payback under 12 months."
+        case .aaValueProposition:
+            return "aa_value_\(deptKey)"
         case .humanReturn:
             switch subIndex {
             case 0: return "restoration_enhanced"
@@ -419,25 +463,29 @@ extension Tier1Phase {
     var narratorKeys: [String] {
         switch self {
         case .waiting, .complete, .comparisonCarousel:
-            return []  // Handled dynamically
+            return []
         case .emotionalIntro:
-            return ["opening_1", "opening_2"]  // Emotional grounding narrations
-        case .industrySelection:
-            return ["choose_industry"]
-        case .personalInput:
-            return ["personal_input"]  // NEW
+            return ["opening_1", "opening_2"]
+        case .departmentSelection:
+            return ["choose_department"]
+        case .departmentInput:
+            return ["department_input"]
         case .buildingTension:
-            return []  // Dynamic based on industry
-        case .industryVignette:
-            return []  // Dynamic based on industry
+            return []  // Dynamic based on department
+        case .departmentVignette:
+            return []  // Dynamic based on department
         case .patternBreak:
             return ["pattern_break_enhanced"]
         case .suckerPunchReveal:
-            return []  // Dynamic based on industry
+            return ["sucker_punch_reveal"]
+        case .costBreakdown:
+            return ["cost_breakdown"]
         case .agenticOrchestration:
             return ["agentic_enhanced"]
         case .automationAnywhereReveal:
-            return ["aa_reveal_enhanced"]
+            return ["aa_reveal_forrester"]
+        case .aaValueProposition:
+            return []  // Dynamic based on department
         case .humanReturn:
             return ["restoration_enhanced", "breathe", "purpose"]
         case .callToAction:
@@ -446,281 +494,7 @@ extension Tier1Phase {
     }
 }
 
-
-// MARK: - Industry Data
-
-import SwiftUI
-
-// MARK: - Industry Types
-
-/// Represents the three industry verticals for the experience
-enum Industry: String, CaseIterable, Identifiable {
-    case finance = "finance"
-    case supplyChain = "supply"
-    case healthcare = "health"
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .finance: return "FINANCE"
-        case .supplyChain: return "SUPPLY CHAIN"
-        case .healthcare: return "HEALTHCARE"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .finance: return "chart.bar.xaxis"
-        case .supplyChain: return "shippingbox"
-        case .healthcare: return "heart.text.square"
-        }
-    }
-
-    var theme: IndustryTheme {
-        switch self {
-        case .finance:
-            return IndustryTheme(
-                primary: Color(red: 0.23, green: 0.51, blue: 0.96),      // #3B82F6
-                accent: Color(red: 0.37, green: 0.62, blue: 1.0),
-                glow: Color(red: 0.15, green: 0.35, blue: 0.75),
-                gradient: [
-                    Color(red: 0.15, green: 0.35, blue: 0.75),
-                    Color(red: 0.23, green: 0.51, blue: 0.96)
-                ]
-            )
-        case .supplyChain:
-            return IndustryTheme(
-                primary: Color(red: 0.96, green: 0.62, blue: 0.04),      // #F59E0B
-                accent: Color(red: 1.0, green: 0.72, blue: 0.22),
-                glow: Color(red: 0.75, green: 0.45, blue: 0.02),
-                gradient: [
-                    Color(red: 0.75, green: 0.45, blue: 0.02),
-                    Color(red: 0.96, green: 0.62, blue: 0.04)
-                ]
-            )
-        case .healthcare:
-            return IndustryTheme(
-                primary: Color(red: 0.08, green: 0.72, blue: 0.65),      // #14B8A6
-                accent: Color(red: 0.18, green: 0.82, blue: 0.75),
-                glow: Color(red: 0.05, green: 0.55, blue: 0.48),
-                gradient: [
-                    Color(red: 0.05, green: 0.55, blue: 0.48),
-                    Color(red: 0.08, green: 0.72, blue: 0.65)
-                ]
-            )
-        }
-    }
-}
-
-// MARK: - Industry Theme
-
-struct IndustryTheme {
-    let primary: Color
-    let accent: Color
-    let glow: Color
-    let gradient: [Color]
-}
-
-// MARK: - Industry Content Data
-
-/// All content specific to each industry vertical
-struct IndustryContent {
-
-    // MARK: - Building Tension Content
-
-    static func buildingTensionText(for industry: Industry) -> (line1: String, line2: String, teaser: String) {
-        switch industry {
-        case .finance:
-            return (
-                "Every report. Every reconciliation.",
-                "Every manual entry that keeps your team from the work that matters.",
-                "Your team processes 1,247 transactions daily..."
-            )
-        case .supplyChain:
-            return (
-                "Every shipment tracked by hand.",
-                "Every exception managed manually. Every delay cascading through your network.",
-                "Your network spans 847 touchpoints..."
-            )
-        case .healthcare:
-            return (
-                "Every chart note. Every referral fax.",
-                "Every authorization that keeps healers from healing.",
-                "Your clinicians handle 423 administrative tasks daily..."
-            )
-        }
-    }
-
-    // MARK: - Vignette Content
-
-    static func vignetteData(for industry: Industry) -> (title: String, subtitle: String, metrics: [(value: String, label: String)]) {
-        switch industry {
-        case .finance:
-            return (
-                title: "FINANCE",
-                subtitle: "Reconciliation Fatigue",
-                metrics: [
-                    ("4.7h", "daily reconciliation"),
-                    ("340", "manual entries"),
-                    ("23", "systems touched")
-                ]
-            )
-        case .supplyChain:
-            return (
-                title: "SUPPLY CHAIN",
-                subtitle: "Inventory Friction",
-                metrics: [
-                    ("3.2h", "tracking overhead"),
-                    ("89%", "manual updates"),
-                    ("$2.4M", "annual waste")
-                ]
-            )
-        case .healthcare:
-            return (
-                title: "HEALTHCARE",
-                subtitle: "Administrative Burden",
-                metrics: [
-                    ("5.1h", "paperwork daily"),
-                    ("67%", "non-clinical tasks"),
-                    ("142", "forms per week")
-                ]
-            )
-        }
-    }
-
-    // MARK: - Sucker Punch Data (THE MOMENT)
-
-    static func suckerPunchData(for industry: Industry) -> SuckerPunchData {
-        switch industry {
-        case .finance:
-            return SuckerPunchData(
-                amount: 47_500_000,
-                formattedAmount: "$47,500,000",
-                spokenAmount: "Forty-seven point five million dollars",
-                audioKey: "sucker_punch_finance"
-            )
-        case .supplyChain:
-            return SuckerPunchData(
-                amount: 38_200_000,
-                formattedAmount: "$38,200,000",
-                spokenAmount: "Thirty-eight point two million dollars",
-                audioKey: "sucker_punch_supply"
-            )
-        case .healthcare:
-            return SuckerPunchData(
-                amount: 52_800_000,
-                formattedAmount: "$52,800,000",
-                spokenAmount: "Fifty-two point eight million dollars",
-                audioKey: "sucker_punch_health"
-            )
-        }
-    }
-
-    // MARK: - Comparison Data
-
-    static func comparisonCards(for industry: Industry) -> [ComparisonCard] {
-        switch industry {
-        case .finance:
-            return [
-                ComparisonCard(
-                    icon: "person.fill",
-                    number: "950",
-                    unit: "senior analyst salaries",
-                    emphasis: "Gone.",
-                    audioKey: "comparison_finance_1"
-                ),
-                ComparisonCard(
-                    icon: "desktopcomputer",
-                    number: "15",
-                    unit: "years of your IT budget",
-                    emphasis: "Vanished.",
-                    audioKey: "comparison_finance_2"
-                ),
-                ComparisonCard(
-                    icon: "person.2.fill",
-                    number: "189,000",
-                    unit: "client meetings",
-                    emphasis: "Lost.",
-                    audioKey: "comparison_finance_3"
-                )
-            ]
-        case .supplyChain:
-            return [
-                ComparisonCard(
-                    icon: "person.3.fill",
-                    number: "764",
-                    unit: "warehouse workers",
-                    emphasis: "Not hired.",
-                    audioKey: "comparison_supply_1"
-                ),
-                ComparisonCard(
-                    icon: "shippingbox.fill",
-                    number: "12,700",
-                    unit: "containers",
-                    emphasis: "Delayed.",
-                    audioKey: "comparison_supply_2"
-                ),
-                ComparisonCard(
-                    icon: "chart.line.downtrend.xyaxis",
-                    number: "Your margins.",
-                    unit: "Eroded.",
-                    emphasis: "Daily.",
-                    audioKey: "comparison_supply_3"
-                )
-            ]
-        case .healthcare:
-            return [
-                ComparisonCard(
-                    icon: "cross.fill",
-                    number: "1,056",
-                    unit: "nurse salaries",
-                    emphasis: "Consumed.",
-                    audioKey: "comparison_health_1"
-                ),
-                ComparisonCard(
-                    icon: "bed.double.fill",
-                    number: "26,400",
-                    unit: "patient visits",
-                    emphasis: "That didn't happen.",
-                    audioKey: "comparison_health_2"
-                ),
-                ComparisonCard(
-                    icon: "brain.head.profile",
-                    number: "Your physicians'",
-                    unit: "sanity",
-                    emphasis: "Under siege.",
-                    audioKey: "comparison_health_3"
-                )
-            ]
-        }
-    }
-
-    // MARK: - Audio Keys
-
-    static func audioKey(for industry: Industry, phase: AudioPhase) -> String {
-        let industryKey = industry.rawValue
-        switch phase {
-        case .buildingTension:
-            return "building_\(industryKey)"
-        case .vignette:
-            return "vignette_\(industryKey)_enhanced"
-        case .suckerPunch:
-            return "sucker_punch_\(industryKey)"
-        case .comparison(let index):
-            return "comparison_\(industryKey)_\(index + 1)"
-        }
-    }
-
-    enum AudioPhase {
-        case buildingTension
-        case vignette
-        case suckerPunch
-        case comparison(Int)
-    }
-}
-
-// MARK: - Supporting Data Structures
+// MARK: - Supporting Data Structures (Legacy Compatibility)
 
 struct SuckerPunchData {
     let amount: Int
@@ -729,33 +503,58 @@ struct SuckerPunchData {
     let audioKey: String
 }
 
-struct ComparisonCard: Identifiable {
-    let id = UUID()
-    let icon: String
-    let number: String
-    let unit: String
-    let emphasis: String
-    let audioKey: String
-}
+// MARK: - Legacy Industry Type Alias
+/// For backward compatibility with existing views
+typealias Industry = Department
 
-// MARK: - Number Formatting
+// MARK: - Legacy IndustryTheme Type Alias
+/// For backward compatibility with existing animations
+typealias IndustryTheme = DepartmentTheme
 
-extension Int {
-    /// Format large numbers with commas for display
-    var formattedWithCommas: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = Locale(identifier: "en_US")
-        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+// MARK: - Legacy IndustryContent
+/// For backward compatibility with existing views
+struct IndustryContent {
+
+    static func buildingTensionText(for department: Department) -> (line1: String, line2: String, teaser: String) {
+        DepartmentContent.buildingTensionText(for: department)
     }
 
-    /// Format as currency
-    var formattedAsCurrency: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
-        formatter.maximumFractionDigits = 0
-        formatter.locale = Locale(identifier: "en_US")
-        return formatter.string(from: NSNumber(value: self)) ?? "$\(self)"
+    static func vignetteData(for department: Department) -> (title: String, subtitle: String, metrics: [(value: String, label: String)]) {
+        DepartmentContent.vignetteData(for: department)
+    }
+
+    static func suckerPunchData(for department: Department) -> SuckerPunchData {
+        // Return legacy-compatible data
+        SuckerPunchData(
+            amount: 0,
+            formattedAmount: "$0",
+            spokenAmount: "zero dollars",
+            audioKey: "sucker_punch_reveal"
+        )
+    }
+
+    static func comparisonCards(for department: Department) -> [ComparisonCard] {
+        DepartmentContent.comparisonCards(for: department, costBreakdown: .empty)
+    }
+
+    enum AudioPhase {
+        case buildingTension
+        case vignette
+        case suckerPunch
+        case comparison(Int)
+    }
+
+    static func audioKey(for department: Department, phase: AudioPhase) -> String {
+        let deptKey = department.rawValue
+        switch phase {
+        case .buildingTension:
+            return "building_\(deptKey)"
+        case .vignette:
+            return "vignette_\(deptKey)"
+        case .suckerPunch:
+            return "sucker_punch_reveal"
+        case .comparison(let index):
+            return "comparison_\(deptKey)_\(index + 1)"
+        }
     }
 }

@@ -1,14 +1,14 @@
 import SwiftUI
 
 // MARK: - Emotional Intro View
-/// 15-second snappy emotional intro that establishes context before interaction
+/// 10-second ULTRA-SNAPPY emotional intro that establishes context before interaction
 /// Implements the "Weight Before the Choice" concept - TIGHTENED for impact
 ///
-/// Timeline (15 seconds total):
+/// Timeline (10 seconds total - EXPRESSIVE):
 /// - 0-5%: Quick fade from darkness
-/// - 5-20%: Work windows appear and overwhelm
-/// - 20-50%: First narration ("Every organization carries a hidden cost")
-/// - 50-80%: Second narration ("Most leaders never see it")
+/// - 5-18%: Work windows appear and overwhelm
+/// - 18-50%: First narration ("Every organization... carries a hidden cost") ~2.9s
+/// - 50-80%: Second narration ("Most leaders... never see it") ~2.3s
 /// - 80-100%: Quick warm transition to industry selection
 
 struct EmotionalIntroView: View {
@@ -19,12 +19,12 @@ struct EmotionalIntroView: View {
     @State private var windowStates: [FloatingWindowState] = []
     @State private var particleSeeds: [Double] = []
 
-    // Animation phase calculations - TIGHTENED for snappier feel
-    private var darkToPresencePhase: Double { min(1.0, progress / 0.05) }           // 0-0.75s
-    private var overwhelmPhase: Double { max(0, min(1.0, (progress - 0.05) / 0.15)) } // 0.75-3s
-    private var weightPhase: Double { max(0, min(1.0, (progress - 0.20) / 0.30)) }    // 3-7.5s
-    private var recognitionPhase: Double { max(0, min(1.0, (progress - 0.50) / 0.30)) } // 7.5-12s
-    private var invitationPhase: Double { max(0, min(1.0, (progress - 0.80) / 0.20)) } // 12-15s
+    // Animation phase calculations - ULTRA-SNAPPY for 10s experience
+    private var darkToPresencePhase: Double { min(1.0, progress / 0.05) }             // 0-0.5s
+    private var overwhelmPhase: Double { max(0, min(1.0, (progress - 0.05) / 0.13)) } // 0.5-1.8s
+    private var weightPhase: Double { max(0, min(1.0, (progress - 0.18) / 0.32)) }    // 1.8-5s (during first narration)
+    private var recognitionPhase: Double { max(0, min(1.0, (progress - 0.50) / 0.30)) } // 5-8s (during second narration)
+    private var invitationPhase: Double { max(0, min(1.0, (progress - 0.80) / 0.20)) } // 8-10s (transition out)
 
     // Colors
     private let voidBlack = Color(red: 0.02, green: 0.02, blue: 0.04)

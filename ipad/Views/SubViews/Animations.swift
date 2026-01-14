@@ -456,19 +456,22 @@ struct HumanVignettesAnimation: View {
     // Department color themes
     private let departmentColors: [DepartmentTheme] = [
         DepartmentTheme(
-            primary: Color(red: 0.2, green: 0.5, blue: 0.9),      // Finance: Blue
+            primary: Color(red: 0.2, green: 0.5, blue: 0.9),      // P2P: Blue
             accent: Color(red: 0.3, green: 0.6, blue: 1.0),
-            glow: Color(red: 0.1, green: 0.3, blue: 0.7)
+            glow: Color(red: 0.1, green: 0.3, blue: 0.7),
+            gradient: [Color(red: 0.1, green: 0.3, blue: 0.7), Color(red: 0.2, green: 0.5, blue: 0.9)]
         ),
         DepartmentTheme(
-            primary: Color(red: 0.95, green: 0.6, blue: 0.2),     // Supply Chain: Orange
+            primary: Color(red: 0.95, green: 0.6, blue: 0.2),     // Customer Support: Orange
             accent: Color(red: 1.0, green: 0.7, blue: 0.3),
-            glow: Color(red: 0.7, green: 0.4, blue: 0.1)
+            glow: Color(red: 0.7, green: 0.4, blue: 0.1),
+            gradient: [Color(red: 0.7, green: 0.4, blue: 0.1), Color(red: 0.95, green: 0.6, blue: 0.2)]
         ),
         DepartmentTheme(
-            primary: Color(red: 0.2, green: 0.75, blue: 0.5),     // Healthcare: Green
+            primary: Color(red: 0.2, green: 0.75, blue: 0.5),     // O2C: Green/Teal
             accent: Color(red: 0.3, green: 0.85, blue: 0.6),
-            glow: Color(red: 0.1, green: 0.5, blue: 0.3)
+            glow: Color(red: 0.1, green: 0.5, blue: 0.3),
+            gradient: [Color(red: 0.1, green: 0.5, blue: 0.3), Color(red: 0.2, green: 0.75, blue: 0.5)]
         )
     ]
     
@@ -606,11 +609,7 @@ struct HumanVignettesAnimation: View {
     }
 }
 
-struct DepartmentTheme {
-    let primary: Color
-    let accent: Color
-    let glow: Color
-}
+// DepartmentTheme is defined in Department.swift
 
 struct VignetteContent: View {
     let title: String
@@ -2052,26 +2051,28 @@ struct AutomationAnywhereRevealAnimation: View {
         return clamped * clamped * (3 - 2 * clamped)
     }
 
-    // Logo fades in immediately - TIGHTENED
+    // Logo fades in instantly at start - synced with "Automation Anywhere..."
+    // Audio says "Automation Anywhere" in first ~1s = 0-20% of 5s phase
     private var logoOpacity: Double {
-        smoothstep(min(1.0, max(0, (progress - 0.02) / 0.12)))  // 2-14% (was 5-20%)
+        smoothstep(min(1.0, max(0, progress / 0.08)))  // 0-8% = instant fade in
     }
 
     // Subtle background halo - fades with logo
     private var haloOpacity: Double {
-        let fadeIn = smoothstep(min(1.0, max(0, (progress - 0.02) / 0.15)))
-        let fadeOut = progress > 0.90 ? smoothstep(1.0 - (progress - 0.90) / 0.10) : 1.0
+        let fadeIn = smoothstep(min(1.0, max(0, progress / 0.10)))
+        let fadeOut = progress > 0.88 ? smoothstep(1.0 - (progress - 0.88) / 0.12) : 1.0
         return fadeIn * fadeOut * 0.3
     }
 
-    // Tagline fades in earlier to sync with narration - TIGHTENED
+    // Tagline appears after "Automation Anywhere..." is spoken (~1s into ~5s audio)
+    // 20% = 1s mark when narration moves to "industry-leading ROI"
     private var textOpacity: Double {
-        smoothstep(min(1.0, max(0, (progress - 0.20) / 0.12)))  // 20-32% (was 35-45%)
+        smoothstep(min(1.0, max(0, (progress - 0.18) / 0.10)))  // 18-28% = quick fade
     }
 
-    // Exit fade - tightened timing
+    // Exit fade - synced with audio end
     private var exitFade: Double {
-        progress > 0.92 ? smoothstep(1.0 - (progress - 0.92) / 0.08) : 1.0
+        progress > 0.88 ? smoothstep(1.0 - (progress - 0.88) / 0.12) : 1.0
     }
 
     var body: some View {
@@ -2148,15 +2149,15 @@ struct AutomationAnywhereRevealAnimation: View {
 
 
 
-// MARK: - Industry Selection View
+// MARK: - Legacy Industry Selection View (DEPRECATED)
 
 import SwiftUI
 
-// MARK: - Industry Selection View
-/// Premium card selection interface for choosing industry vertical
-/// Creates agency and personal investment from moment one
+// MARK: - Legacy Industry Selection View
+/// DEPRECATED: Use DepartmentSelectionView from DepartmentSelectionView.swift instead
+/// This is kept for reference only - the new system uses Department-based selection
 
-struct IndustrySelectionView: View {
+struct _LegacyIndustrySelectionView: View {
     @Binding var selectedIndustry: Industry?
     let onSelection: (Industry) -> Void
     var narrationFinished: Bool = false
@@ -2182,7 +2183,7 @@ struct IndustrySelectionView: View {
                     // Industry cards
                     HStack(spacing: 40) {
                         ForEach(Array(Industry.allCases.enumerated()), id: \.element.id) { index, industry in
-                            IndustryCardView(
+                            _LegacyIndustryCardView(
                                 industry: industry,
                                 isHovered: hoveredIndustry == industry,
                                 isSelected: selectedIndustry == industry,
@@ -2310,9 +2311,9 @@ struct IndustrySelectionView: View {
     }
 }
 
-// MARK: - Industry Card View
+// MARK: - Legacy Industry Card View (DEPRECATED)
 
-struct IndustryCardView: View {
+struct _LegacyIndustryCardView: View {
     let industry: Industry
     let isHovered: Bool
     let isSelected: Bool
@@ -2456,13 +2457,7 @@ struct IndustryCardView: View {
 
 // MARK: - Preview
 
-#Preview {
-    IndustrySelectionView(
-        selectedIndustry: .constant(nil),
-        onSelection: { _ in },
-        narrationFinished: true
-    )
-}
+// Legacy preview removed - use DepartmentSelectionView instead
 
 
 // MARK: - Sucker Punch Reveal View
@@ -2480,6 +2475,7 @@ struct SuckerPunchRevealView: View {
     let narrationFinished: Bool
     let onContinue: () -> Void
     let onCountingComplete: (() -> Void)?  // Callback when number counting animation finishes
+    let calculatedCost: Double?  // NEW: External calculated cost (uses this if provided)
 
     @State private var displayValue: Int = 0
     @State private var countingComplete = false
@@ -2487,16 +2483,22 @@ struct SuckerPunchRevealView: View {
     @State private var numberGlowIntensity: CGFloat = 0
     @State private var hasTriggeredCountingCallback = false  // Ensure callback fires only once
 
-    private let suckerPunchData: SuckerPunchData
+    private var targetAmount: Int {
+        // Use external calculated cost if provided, otherwise fall back to legacy data
+        if let cost = calculatedCost, cost > 0 {
+            return Int(cost)
+        }
+        return IndustryContent.suckerPunchData(for: industry).amount
+    }
 
-    init(industry: Industry, companyName: String = "Your Organization", progress: Double, narrationFinished: Bool = false, onContinue: @escaping () -> Void, onCountingComplete: (() -> Void)? = nil) {
+    init(industry: Industry, companyName: String = "Your Organization", progress: Double, narrationFinished: Bool = false, onContinue: @escaping () -> Void, onCountingComplete: (() -> Void)? = nil, calculatedCost: Double? = nil) {
         self.industry = industry
         self.companyName = companyName
         self.progress = progress
         self.narrationFinished = narrationFinished
         self.onContinue = onContinue
         self.onCountingComplete = onCountingComplete
-        self.suckerPunchData = IndustryContent.suckerPunchData(for: industry)
+        self.calculatedCost = calculatedCost
     }
 
     var body: some View {
@@ -2694,13 +2696,13 @@ struct SuckerPunchRevealView: View {
                 .font(.system(size: 14, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.3))
         }
-        .padding(.bottom, 60)
+        .padding(.bottom, 100) // Extra bottom padding for safe area
     }
 
     // MARK: - Counting Animation
 
     private func startCountingAnimation() {
-        let targetValue = suckerPunchData.amount
+        let targetValue = targetAmount
         let totalDuration: Double = 4.0
         let steps = 40
         let stepDuration = totalDuration / Double(steps)
@@ -2756,6 +2758,7 @@ struct SuckerPunchRevealView: View {
 
 struct ComparisonCarouselView: View {
     let industry: Industry
+    let costBreakdown: CostBreakdown
     let onComplete: () -> Void
     let onCardChange: ((String) -> Void)?  // Callback with audioKey when card changes
 
@@ -2769,11 +2772,13 @@ struct ComparisonCarouselView: View {
     private let theme: IndustryTheme
     private let audioManager = AudioManager.shared
 
-    init(industry: Industry, onComplete: @escaping () -> Void, onCardChange: ((String) -> Void)? = nil) {
+    init(industry: Industry, costBreakdown: CostBreakdown, onComplete: @escaping () -> Void, onCardChange: ((String) -> Void)? = nil) {
         self.industry = industry
+        self.costBreakdown = costBreakdown
         self.onComplete = onComplete
         self.onCardChange = onCardChange
-        self.comparisons = IndustryContent.comparisonCards(for: industry)
+        // Use actual cost breakdown data for comparisons
+        self.comparisons = DepartmentContent.comparisonCards(for: industry, costBreakdown: costBreakdown)
         self.theme = industry.theme
     }
 
@@ -2871,10 +2876,11 @@ struct ComparisonCarouselView: View {
     // MARK: - Cost Header
 
     private var costHeader: some View {
-        let data = IndustryContent.suckerPunchData(for: industry)
+        // Use actual calculated cost from costBreakdown
+        let formattedAmount = costBreakdown.totalCost.formattedAsCurrency
 
         return VStack(spacing: 8) {
-            Text(data.formattedAmount)
+            Text(formattedAmount)
                 .font(.system(size: 48, design: .rounded).weight(.light))
                 .foregroundStyle(
                     LinearGradient(
@@ -2952,7 +2958,7 @@ struct ComparisonCarouselView: View {
                 .font(.system(size: 13, design: .rounded).weight(.light))
                 .foregroundColor(.white.opacity(0.3))
         }
-        .padding(.bottom, 40)
+        .padding(.bottom, 100) // Extra bottom padding for safe area
         .opacity(cardNarrationFinished ? 1 : 0)  // Only show after narration completes
         .animation(.easeOut(duration: 0.3), value: cardNarrationFinished)
     }
@@ -3077,17 +3083,29 @@ struct ComparisonCardView: View {
 
 // MARK: - Preview
 
-#Preview("Sucker Punch - Finance") {
+#Preview("Sucker Punch - P2P") {
     SuckerPunchRevealView(
-        industry: .finance,
+        industry: .p2p,
         progress: 0.5,
         onContinue: {}
     )
 }
 
 #Preview("Comparison Carousel") {
-    ComparisonCarouselView(
-        industry: .finance,
+    // Sample cost breakdown for preview
+    let sampleBreakdown = CostBreakdown(
+        annualHours: 20000,
+        directCost: 1_500_000,
+        indirectCost: 2_000_000,
+        invisibleCost: 3_000_000,
+        totalCost: 6_500_000,
+        department: .p2p,
+        benchmarkSource: "Preview",
+        keyMetrics: []
+    )
+    return ComparisonCarouselView(
+        industry: .p2p,
+        costBreakdown: sampleBreakdown,
         onComplete: {}
     )
 }

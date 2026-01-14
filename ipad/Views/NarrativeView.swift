@@ -23,9 +23,9 @@ struct NarrativeView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            // Phase-specific content - snappy transitions
+            // Phase-specific content - ultra-snappy transitions
             phaseContent
-                .transition(.opacity.animation(.easeInOut(duration: 0.6)))
+                .transition(.opacity.animation(.easeInOut(duration: 0.4)))
 
             // Start button overlay
             if viewModel.currentPhase == .waiting {
@@ -84,22 +84,18 @@ struct NarrativeView: View {
             EmotionalIntroView(progress: viewModel.phaseProgress)
                 .environment(motionManager)
 
-        case .industrySelection:
-            IndustrySelectionView(
-                selectedIndustry: $viewModel.selectedIndustry,
-                onSelection: { industry in
-                    viewModel.selectIndustry(industry)
+        case .departmentSelection:
+            DepartmentSelectionView(
+                selectedDepartment: $viewModel.selectedDepartment,
+                onSelection: { department in
+                    viewModel.selectDepartment(department)
                 },
                 narrationFinished: narrationFinished
             )
 
-        case .personalInput:
-            PersonalizationInputView(
-                companyName: $viewModel.companyName,
-                teamSize: $viewModel.teamSize,
-                lostHoursPerWeek: $viewModel.lostHoursPerWeek,
-                hourlyRate: $viewModel.hourlyRate,
-                calculatedAnnualCost: viewModel.calculatedAnnualCost,
+        case .departmentInput:
+            DepartmentInputView(
+                viewModel: viewModel,
                 narrationFinished: narrationFinished,
                 onContinue: {
                     viewModel.advanceToNextPhase()
@@ -115,10 +111,10 @@ struct NarrativeView: View {
                 .environment(motionManager)
             }
 
-        case .industryVignette:
-            if let industry = viewModel.selectedIndustry {
-                IndustryVignetteView(
-                    industry: industry,
+        case .departmentVignette:
+            if let department = viewModel.selectedDepartment {
+                DepartmentVignetteView(
+                    department: department,
                     progress: viewModel.phaseProgress
                 )
                 .environment(motionManager)
@@ -134,9 +130,9 @@ struct NarrativeView: View {
             )
 
         case .suckerPunchReveal:
-            if let industry = viewModel.selectedIndustry {
+            if let department = viewModel.selectedDepartment {
                 SuckerPunchRevealView(
-                    industry: industry,
+                    industry: department,
                     companyName: viewModel.displayCompanyName,
                     progress: viewModel.phaseProgress,
                     narrationFinished: narrationFinished,
@@ -145,7 +141,8 @@ struct NarrativeView: View {
                     },
                     onCountingComplete: {
                         // Play narration AFTER the number is fully displayed on screen
-                        let key = "sucker_punch_\(industry.rawValue)"
+                        // Using general "sucker_punch_reveal" key - no specific numbers in audio
+                        let key = "sucker_punch_reveal"
                         if !audioTriggered.contains(key) {
                             audioTriggered.insert(key)
                             audioManager.playNarration(for: key) { [self] in
@@ -153,14 +150,27 @@ struct NarrativeView: View {
                                 viewModel.onNarrationComplete()
                             }
                         }
+                    },
+                    calculatedCost: viewModel.costBreakdownResult.totalCost
+                )
+            }
+
+        case .costBreakdown:
+            if let department = viewModel.selectedDepartment {
+                CostBreakdownView(
+                    costBreakdown: viewModel.costBreakdownResult,
+                    department: department,
+                    onContinue: {
+                        viewModel.advanceToNextPhase()
                     }
                 )
             }
 
         case .comparisonCarousel:
-            if let industry = viewModel.selectedIndustry {
+            if let department = viewModel.selectedDepartment {
                 ComparisonCarouselView(
-                    industry: industry,
+                    industry: department,
+                    costBreakdown: viewModel.costBreakdownResult,
                     onComplete: {
                         viewModel.advanceToNextPhase()
                     },
@@ -179,6 +189,17 @@ struct NarrativeView: View {
 
         case .automationAnywhereReveal:
             AutomationAnywhereRevealAnimation(progress: viewModel.phaseProgress)
+
+        case .aaValueProposition:
+            if let department = viewModel.selectedDepartment {
+                AAValuePropositionView(
+                    savingsProjection: viewModel.savingsProjection,
+                    department: department,
+                    onContinue: {
+                        viewModel.advanceToNextPhase()
+                    }
+                )
+            }
 
         case .humanReturn:
             HumanReturnEnhancedView(
@@ -242,16 +263,16 @@ struct NarrativeView: View {
                 audioManager.playAmbientMusic()
             }
 
-            // First narration at 20% progress (3 seconds) - SNAPPIER
-            // "Every organization carries a hidden cost."
-            triggerAtProgress("opening_1", threshold: 0.20, progress: progress) {
+            // First narration at 18% progress (~1.8 seconds) - SNAPPIER
+            // "Every organization... carries a hidden cost." (2.9s)
+            triggerAtProgress("opening_1", threshold: 0.18, progress: progress) {
                 audioManager.playNarration(for: "opening_1") { [self] in
                     // First narration complete, don't advance - wait for second
                 }
             }
 
-            // Second narration at 50% progress (7.5 seconds) - SNAPPIER
-            // "Most leaders never see it."
+            // Second narration at 50% progress (~5 seconds) - SNAPPIER
+            // "Most leaders... never see it." (2.3s)
             triggerAtProgress("opening_2", threshold: 0.50, progress: progress) {
                 audioManager.playNarration(for: "opening_2") { [self] in
                     narrationFinished = true
@@ -259,25 +280,25 @@ struct NarrativeView: View {
                 }
             }
 
-        case .industrySelection:
-            triggerOnce("choose_industry") {
-                audioManager.playNarration(for: "choose_industry") { [self] in
+        case .departmentSelection:
+            triggerOnce("choose_department") {
+                audioManager.playNarration(for: "choose_department") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
                 }
             }
 
-        case .personalInput:
-            triggerOnce("personal_input") {
-                audioManager.playNarration(for: "personal_input") { [self] in
+        case .departmentInput:
+            triggerOnce("department_input") {
+                audioManager.playNarration(for: "department_input") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
                 }
             }
 
         case .buildingTension:
-            if let industry = viewModel.selectedIndustry {
-                let key = "building_\(industry.rawValue)"
+            if let department = viewModel.selectedDepartment {
+                let key = "building_\(department.rawValue)"
                 triggerAtProgress(key, threshold: 0.02, progress: progress) {
                     audioManager.playNarration(for: key) { [self] in
                         narrationFinished = true
@@ -286,9 +307,9 @@ struct NarrativeView: View {
                 }
             }
 
-        case .industryVignette:
-            if let industry = viewModel.selectedIndustry {
-                let key = "vignette_\(industry.rawValue)_enhanced"
+        case .departmentVignette:
+            if let department = viewModel.selectedDepartment {
+                let key = "vignette_\(department.rawValue)_enhanced"
                 triggerAtProgress(key, threshold: 0.03, progress: progress) {
                     audioManager.playNarration(for: key) { [self] in
                         narrationFinished = true
@@ -307,8 +328,22 @@ struct NarrativeView: View {
 
         case .suckerPunchReveal:
             // Narration is now triggered via onCountingComplete callback in the view
-            // This ensures the "38 million dollars" narration plays AFTER the number
-            // has fully rendered on screen (after the 4-second counting animation)
+            // This ensures the narration plays AFTER the number
+            // has fully rendered on screen (after the counting animation)
+            break
+
+        case .costBreakdown:
+            // Cost breakdown is self-paced with visual animations
+            // Play narration to explain the breakdown
+            triggerOnce("cost_breakdown") {
+                audioManager.playNarration(for: "cost_breakdown") { [self] in
+                    narrationFinished = true
+                    viewModel.onNarrationComplete()
+                }
+            }
+
+        case .comparisonCarousel:
+            // Comparisons have their own audio per card
             break
 
         case .agenticOrchestration:
@@ -325,11 +360,23 @@ struct NarrativeView: View {
 
         case .automationAnywhereReveal:
             // Start audio immediately - no dead time at phase start
-            triggerAtProgress("aa_reveal_enhanced", threshold: 0.02, progress: progress) {
-                print("[Narrative] Playing AA reveal audio at progress: \(progress)")
-                audioManager.playNarration(for: "aa_reveal_enhanced") { [self] in
+            triggerAtProgress("aa_reveal_forrester", threshold: 0.02, progress: progress) {
+                print("[Narrative] Playing AA reveal (Forrester) audio at progress: \(progress)")
+                audioManager.playNarration(for: "aa_reveal_forrester") { [self] in
                     narrationFinished = true
                     viewModel.onNarrationComplete()
+                }
+            }
+
+        case .aaValueProposition:
+            // AA Value Proposition - Sourced ROI/savings data
+            if let department = viewModel.selectedDepartment {
+                let key = "aa_value_\(department.rawValue)"
+                triggerOnce(key) {
+                    audioManager.playNarration(for: key) { [self] in
+                        narrationFinished = true
+                        viewModel.onNarrationComplete()
+                    }
                 }
             }
 
@@ -359,11 +406,13 @@ struct NarrativeView: View {
     // MARK: - Human Return Narration Sequence
 
     private func handleHumanReturnNarrations(progress: Double) {
-        // Three sequential narrations: restoration, breathe, purpose
-        // Tightened thresholds for snappy sequence with minimal gaps
+        // Two sequential narrations: restoration, then purpose
+        // ULTRA-TIGHT thresholds based on measured audio durations:
+        // restoration_enhanced: 2.2s, purpose: 7.6s
+        // Total phase: ~10s, so thresholds at ~0%, 25%
 
-        let narrations = ["restoration_enhanced", "breathe", "purpose"]
-        let thresholds = [0.02, 0.22, 0.42] // Tightened from [0.08, 0.35, 0.60]
+        let narrations = ["restoration_enhanced", "purpose"]
+        let thresholds = [0.02, 0.25] // Tight spacing
 
         for (index, key) in narrations.enumerated() {
             if humanReturnNarrationIndex == index {
@@ -698,6 +747,19 @@ struct IndustryVignetteView: View {
             }
             .animation(.spring(response: 0.6, dampingFraction: 0.8), value: progress)
         }
+    }
+}
+
+/// DepartmentVignetteView - Alias for backward compatibility with new naming
+/// Uses Department (same as Industry via type alias)
+struct DepartmentVignetteView: View {
+    let department: Department
+    let progress: Double
+    @Environment(MotionManager.self) private var motion
+
+    var body: some View {
+        IndustryVignetteView(industry: department, progress: progress)
+            .environment(motion)
     }
 }
 
