@@ -17,6 +17,9 @@ struct NarrativeView: View {
     @State private var narrationFinished: Bool = false
     @State private var humanReturnNarrationIndex: Int = 0
 
+    // DEMO-SAFE: Monitor app lifecycle for auto-reset
+    @Environment(\.scenePhase) private var scenePhase
+
     private let audioManager = AudioManager.shared
 
     var body: some View {
@@ -39,6 +42,17 @@ struct NarrativeView: View {
                 handleProgressBasedAudio()
             }
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            // DEMO-SAFE: Auto-reset when app becomes active
+            // Ensures every attendee starts from clean "Start Experience" screen
+            if newPhase == .active {
+                viewModel.reset()
+                audioTriggered.removeAll()
+                narrationFinished = false
+                humanReturnNarrationIndex = 0
+                lastPhase = .waiting
+            }
+        }
         .onDisappear {
             audioManager.stopAll()
         }
@@ -52,6 +66,17 @@ struct NarrativeView: View {
                 .font(.system(size: 48, design: .rounded).weight(.ultraLight))
                 .foregroundColor(.white)
                 .padding(.bottom, 20)
+                .onLongPressGesture(minimumDuration: 5.0) {
+                    // DEMO-SAFE: Staff-only panic reset (not visible in UI)
+                    // Hold title for 5 seconds to force reset
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                    viewModel.reset()
+                    audioTriggered.removeAll()
+                    narrationFinished = false
+                    humanReturnNarrationIndex = 0
+                    lastPhase = .waiting
+                }
 
             Text("An interactive experience")
                 .font(.system(size: 18, design: .rounded).weight(.light))

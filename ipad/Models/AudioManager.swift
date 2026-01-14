@@ -151,8 +151,13 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     private func setupAudioSession() {
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            // DEMO-SAFE: Use spokenAudio mode for reliable narration
+            // - On Vision Pro: Makes narration non-spatial (head-locked, no distance artifacts)
+            // - On iPad: Optimizes for voice clarity
+            // - duckOthers: Lowers other audio when narration plays
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
             try session.setActive(true)
+            print("[Audio] Session configured: playback/spokenAudio/duckOthers")
         } catch {
             print("[Audio] Session setup failed: \(error)")
         }
@@ -436,6 +441,7 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
                         narrationPlayer?.stop()
                         narrationPlayer = try AVAudioPlayer(contentsOf: url)
                         narrationPlayer?.volume = narrationVolume
+                        narrationPlayer?.pan = 0  // Center pan (non-spatial)
                         narrationPlayer?.delegate = self
                         narrationPlayer?.prepareToPlay()
 

@@ -327,20 +327,42 @@ class ExperienceViewModel {
         isExperienceActive = false
         currentPhase = .complete
         print("[Experience] Completed - Total time: \(Int(totalElapsedTime))s")
+
+        // DEMO-SAFE: Auto-reset after short delay
+        // Ensures next attendee always starts fresh
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.reset()
+        }
     }
 
+    /// DEMO-SAFE: Full reset to clean start screen
+    /// This is idempotent - safe to call multiple times
+    /// Called on: app foreground, experience completion, manual reset
     func reset() {
+        print("[Experience] Demo-safe reset initiated")
+
+        // Navigation / phase
         currentPhase = .waiting
         isExperienceActive = false
         phaseElapsedTime = 0
         totalElapsedTime = 0
         phaseProgress = 0
+
+        // User inputs
         selectedDepartment = nil
+        userInput = UserInputData()
+
+        // Comparison state
         currentComparisonIndex = 0
+
+        // Audio sync flags
         narrationComplete = false
         waitingForNarration = false
-        userInput = UserInputData()
-        print("[Experience] Reset")
+
+        // Stop all audio
+        AudioManager.shared.stopAll()
+
+        print("[Experience] Reset complete - ready for new attendee")
     }
 
     // MARK: - Phase Duration Calculation
